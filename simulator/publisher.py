@@ -14,18 +14,17 @@ from google.cloud import pubsub
 
 def start_infinite_publishing(topic_name, data):
     """Starts infinite publishing of messages by preciously set time"""
-    start_time = time.time()
-    for msg_tuple in data:
-        time_worked = time.time() - start_time
-        time_to_publish = msg_tuple[0]
+    while True:
+        start_time = time.time()
+        for msg_tuple in data:
+            time_worked = time.time() - start_time
+            time_to_publish, message_text = msg_tuple
 
-        # Wait until message time
-        if time_to_publish > time_worked:
-            time.sleep(time_to_publish - time_worked)
-        logging.info('Start publishing message "{0}" at {1}'.format(get_shortened_message(msg_tuple[1]), time_to_publish))
-        publish_message(topic_name, msg_tuple[1])
-
-    start_infinite_publishing(topic_name, data)
+            # Wait until message time
+            if time_to_publish > time_worked:
+                time.sleep(time_to_publish - time_worked)
+            logging.info('Start publishing message "{0}" at {1}'.format(get_shortened_message(message_text), time_to_publish))
+            publish_message(topic_name, message_text)
 
 
 def publish_message(topic_name, message):
@@ -63,16 +62,15 @@ if __name__ == '__main__':
 
     # Reads Source file
     with open(source_filename, "r") as source_file:
-        # Parses Source queue and write it to list
+        # Parses source file and write it to list
         source_data_parsed = list()
         for line in source_file.readlines():
             line_data = line.strip().split("\t")
-            msg_time = line_data[0]
-            message_text = line_data[1]
+            msg_time, message_text = line_data
             source_data_parsed.append((float(msg_time), message_text))
 
     # Sorts list by message time
-    source_data_parsed.sort(key=lambda item: item[0])
+    source_data_parsed.sort()
 
     # Starts infinite publishing of messages
     start_infinite_publishing(pubsub_topic, source_data_parsed)
