@@ -67,7 +67,7 @@ for example :
 
 ``` 
 docker run \
-    -v $(pwd):/gcloud_keys/ \
+    -v $(pwd)/gcloud_keys:/gcloud_keys/ \
     -e GOOGLE_APPLICATION_CREDENTIALS='/gcloud_keys/gcloud_credentials.json' \
     -e SOURCE_FILE='gs://nano-stream-test/20170320_GN_179_timestamped_60x.dilate_60x.tsv' \
     -e DESTINATION_BUCKET='simulator-temporary-aerohs8s' \
