@@ -1,10 +1,17 @@
 package com.theappsolutions.nanostream;
 
+import com.theappsolutions.nanostream.aligner.AlignerHttpService;
+import com.theappsolutions.nanostream.aligner.MakeAlignmentViaHttpFn;
+import com.theappsolutions.nanostream.aligner.ParseAlignedDataIntoSAMFn;
 import com.theappsolutions.nanostream.io.WindowedFilenamePolicy;
-import com.theappsolutions.nanostream.trasnform.DecodeNotificationJsonMessage;
-import com.theappsolutions.nanostream.trasnform.FilterObjectFinalizeMessage;
-import com.theappsolutions.nanostream.trasnform.GetDataFromFastQFile;
-import com.theappsolutions.nanostream.util.DurationUtils;
+import com.theappsolutions.nanostream.pubsub.DecodeNotificationJsonMessage;
+import com.theappsolutions.nanostream.pubsub.FilterObjectFinalizeMessage;
+import com.theappsolutions.nanostream.gcs.GetDataFromFastQFile;
+import com.theappsolutions.nanostream.fastq.ParseFastQFn;
+import com.theappsolutions.nanostream.util.HttpHelper;
+import com.theappsolutions.nanostream.util.trasform.CombineIterableAccumulatorFn;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.fastq.FastqRecord;
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.FileBasedSink;
@@ -13,15 +20,17 @@ import org.apache.beam.sdk.io.fs.ResourceId;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.options.*;
-import org.apache.beam.sdk.transforms.ParDo;
-import org.apache.beam.sdk.transforms.SerializableFunction;
+import org.apache.beam.sdk.transforms.*;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
 import org.apache.beam.sdk.transforms.windowing.Window;
+import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
+import org.joda.time.Duration;
 
 
 /**
- * Main class of the Nanostream Dataflow App that provides dataflow pipeline with transformation from PubsubMessage to FasQ data
+ * Main class of the Nanostream Dataflow App that provides dataflow pipeline
+ * with transformation from PubsubMessage to FasQ data
  */
 public class NanostreamApp {
 
@@ -34,7 +43,7 @@ public class NanostreamApp {
         void setSubscription(String value);
 
 
-        @Description("The window duration in which data will be written. Defaults to 5m. "
+        /*@Description("The window duration in which data will be written. Defaults to 5m. "
                 + "Allowed formats are: "
                 + "Ns (for seconds, example: 5s), "
                 + "Nm (for minutes, example: 12m), "
@@ -42,7 +51,7 @@ public class NanostreamApp {
         @Default.String("1m")
         String getWindowDuration();
 
-        void setWindowDuration(String value);
+        void setWindowDuration(String value);*/
 
 
         @Description("The maximum number of output shards produced when writing.")
@@ -78,6 +87,25 @@ public class NanostreamApp {
 
         void setOutputShardTemplate(ValueProvider<String> value);
 
+
+        @Description("The window duration in which FastQ records will be collected")
+        @Default.Integer(60)
+        Integer getResistanceGenesWindowTime();
+
+        void setResistanceGenesWindowTime(Integer value);
+
+        @Description("Resistance Genes - Alignment server to use")
+        @Validation.Required
+        String getResistanceGenesAlignmentServer();
+
+        void setResistanceGenesAlignmentServer(String value);
+
+        @Description("Resistance Genes - Alignment database")
+        @Validation.Required
+        String getResistanceGenesAlignmentDatabase();
+
+        void setResistanceGenesAlignmentDatabase(String value);
+
     }
 
     public static void main(String[] args) {
@@ -95,10 +123,27 @@ public class NanostreamApp {
                 .apply("Filter only ADD FILE", ParDo.of(new FilterObjectFinalizeMessage()))
                 .apply("Deserialize messages", ParDo.of(new DecodeNotificationJsonMessage()))
                 .apply("Get data from FastQ", ParDo.of(new GetDataFromFastQFile()))
-                //TODO temporary output to gcs file for debug
+                .apply("Parse FasQ data", ParDo.of(new ParseFastQFn()))
                 .apply(
-                        options.getWindowDuration() + " Window",
-                        Window.into(FixedWindows.of(DurationUtils.parseDuration(options.getWindowDuration()))))
+                        options.getResistanceGenesWindowTime() + "s FastQ collect window",
+                        Window.into(FixedWindows.of(Duration.standardSeconds(options.getResistanceGenesWindowTime()))))
+                .apply("Accumulate to iterable", Combine.globally(new CombineIterableAccumulatorFn<FastqRecord>())
+                        .withoutDefaults())
+                .apply("Alignment",
+                        ParDo.of(new MakeAlignmentViaHttpFn(new AlignerHttpService(new HttpHelper(), options.getResistanceGenesAlignmentDatabase(),
+                                options.getResistanceGenesAlignmentServer()))))
+                .apply("Generation SAM",
+                        ParDo.of(new ParseAlignedDataIntoSAMFn()))
+
+                //TODO temporary output to gcs file for debug
+                .apply("Filter only mapped", Filter.by((SerializableFunction<KV<String, SAMRecord>, Boolean>) input -> !input.getValue().getReadUnmappedFlag()))
+                .apply("toString()", ParDo.of(new DoFn<KV<String, SAMRecord>, String>() {
+                    @ProcessElement
+                    public void processElement(ProcessContext c) {
+                        SAMRecord data = c.element().getValue();
+                        c.output(data.toString() + "\n" + data.getSAMString() + "\n");
+                    }
+                }))
                 .apply("Write to GCS", TextIO.write()
                         .withWindowedWrites()
                         .withNumShards(options.getNumShards())

@@ -26,7 +26,6 @@
       <scope>test</scope>
     </dependency>
 
-
     <!-- apache beam -->
     <dependency>
       <groupId>org.apache.beam</groupId>
@@ -65,6 +64,28 @@
       <artifactId>google-cloud-storage</artifactId>
       <version>1.49.0</version>
     </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.6</version>
+    </dependency>
+    <!--Genomics-->
+    <dependency>
+      <groupId>com.github.samtools</groupId>
+      <artifactId>htsjdk</artifactId>
+      <version>2.10.1</version>
+    </dependency>
+    <!-- http services -->
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>4.5.3</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpmime</artifactId>
+      <version>4.5.3</version>
+    </dependency>
     <!-- Testing -->
     <dependency>
       <groupId>junit</groupId>
@@ -76,6 +97,12 @@
       <groupId>org.hamcrest</groupId>
       <artifactId>java-hamcrest</artifactId>
       <version>2.0.0.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>1.10.19</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -101,8 +128,18 @@
           <version>2.20.1</version>
         </plugin>
         <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
           <version>3.0.2</version>
+          <!--<configuration>
+            <archive>
+              <manifest>
+                <addClasspath>true</addClasspath>
+                <classpathPrefix>lib/</classpathPrefix>
+                <mainClass>com.theappsolutions.nanostream.NanostreamApp</mainClass>
+              </manifest>
+            </archive>
+          </configuration>-->
         </plugin>
         <plugin>
           <artifactId>maven-install-plugin</artifactId>
