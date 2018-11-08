@@ -1,6 +1,6 @@
-package com.theappsolutions.nanostream;
+package com.theappsolutions.nanostream.pubsub;
 
-import com.theappsolutions.nanostream.trasnform.FilterObjectFinalizeMessage;
+import com.theappsolutions.nanostream.pubsub.FilterObjectFinalizeMessage;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
@@ -16,6 +16,9 @@ import java.util.HashMap;
 import java.util.Random;
 import java.util.stream.StreamSupport;
 
+/**
+ * Tests filtering of PubSub messages
+ */
 public class FilterObjectFinalizeTest {
 
     private final static String EVENT_TYPE_KEY = "eventType";

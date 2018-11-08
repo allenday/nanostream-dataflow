@@ -35,12 +35,15 @@ def add_file_to_bucket(dest_gcs_bucket_name, source_bucket_name, source_object_n
     source_blob = source_bucket.blob(source_object_name)
     destination_bucket = storage_client.get_bucket(dest_gcs_bucket_name)
 
-    new_blob = source_bucket.copy_blob(
-        source_blob, destination_bucket, "simulator/" + source_object_name)
+    if source_blob.exists():
+        new_blob = source_bucket.copy_blob(
+            source_blob, destination_bucket, "simulator/" + source_object_name)
 
-    print('File {} in bucket {} copied to file {} in bucket {}.'.format(
-        get_shortened_file_name(source_blob.name), source_bucket.name, get_shortened_file_name(new_blob.name),
-        destination_bucket.name))
+        print('File {} in bucket {} copied to file {} in bucket {}.'.format(
+            get_shortened_file_name(source_blob.name), source_bucket.name, get_shortened_file_name(new_blob.name),
+            destination_bucket.name))
+    else:
+        print('File {} is not exists'.format(get_shortened_file_name(source_blob.name)))
 
 
 def get_shortened_file_name(filename):

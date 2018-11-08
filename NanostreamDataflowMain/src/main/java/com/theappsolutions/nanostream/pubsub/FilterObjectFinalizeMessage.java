@@ -1,4 +1,4 @@
-package com.theappsolutions.nanostream.trasnform;
+package com.theappsolutions.nanostream.pubsub;
 
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.transforms.DoFn;
