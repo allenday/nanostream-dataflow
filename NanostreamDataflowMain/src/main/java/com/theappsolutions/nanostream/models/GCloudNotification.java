@@ -8,6 +8,9 @@ import org.apache.beam.sdk.coders.SerializableCoder;
 
 import java.io.Serializable;
 
+/**
+ * Object class for Cloud Pub/Sub Notifications for Cloud Storage
+ */
 @DefaultCoder(SerializableCoder.class)
 public class GCloudNotification implements Serializable {
 

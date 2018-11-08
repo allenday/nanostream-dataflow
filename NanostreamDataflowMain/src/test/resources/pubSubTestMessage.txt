@@ -1,0 +1,19 @@
+{
+  "kind": "storage#object",
+  "id": "simulator_fastq/simulator/fast5_fastq_conversion_output_4/20170320_GN_179_timestamped_60x/0/IMB14_011406_LT_20170320_FNFAB45386_MN17027_sequencing_run_GN_179_20032017_82069_ch205_read1714_strand.fastq/1541491133409286",
+  "selfLink": "https://www.googleapis.com/storage/v1/b/simulator_fastq/o/simulator%2Ffast5_fastq_conversion_output_4%2F20170320_GN_179_timestamped_60x%2F0%2FIMB14_011406_LT_20170320_FNFAB45386_MN17027_sequencing_run_GN_179_20032017_82069_ch205_read1714_strand.fastq",
+  "name": "simulator/fast5_fastq_conversion_output_4/20170320_GN_179_timestamped_60x/0/IMB14_011406_LT_20170320_FNFAB45386_MN17027_sequencing_run_GN_179_20032017_82069_ch205_read1714_strand.fastq",
+  "bucket": "simulator_fastq",
+  "generation": "1541491133409286",
+  "metageneration": "1",
+  "contentType": "text/plain",
+  "timeCreated": "2018-11-06T07:58:53.409Z",
+  "updated": "2018-11-06T07:58:53.409Z",
+  "storageClass": "MULTI_REGIONAL",
+  "timeStorageClassUpdated": "2018-11-06T07:58:53.409Z",
+  "size": "38383",
+  "md5Hash": "QxfJVwu8RZQKEYV6l/BTzw==",
+  "mediaLink": "https://www.googleapis.com/download/storage/v1/b/simulator_fastq/o/simulator%2Ffast5_fastq_conversion_output_4%2F20170320_GN_179_timestamped_60x%2F0%2FIMB14_011406_LT_20170320_FNFAB45386_MN17027_sequencing_run_GN_179_20032017_82069_ch205_read1714_strand.fastq?generation=1541491133409286&alt=media",
+  "crc32c": "fxrMdg==",
+  "etag": "CIbQufulv94CEAE="
+}

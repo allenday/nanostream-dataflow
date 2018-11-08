@@ -1,4 +1,4 @@
-package com.theappsolutions.nanostream.trasnform;
+package com.theappsolutions.nanostream.pubsub;
 
 import com.google.gson.Gson;
 import com.theappsolutions.nanostream.models.GCloudNotification;
@@ -15,12 +15,12 @@ public class DecodeNotificationJsonMessage extends DoFn<PubsubMessage, GCloudNot
 
     private Logger LOG = LoggerFactory.getLogger(DecodeNotificationJsonMessage.class);
 
-    @DoFn.Setup
+    @Setup
     public void setup() {
         gson = new Gson();
     }
 
-    @DoFn.ProcessElement
+    @ProcessElement
     public void processElement(ProcessContext c) {
         PubsubMessage pubsubMessage = c.element();
         String data = new String(pubsubMessage.getPayload());
