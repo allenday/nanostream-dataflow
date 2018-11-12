@@ -87,19 +87,21 @@ public class NanostreamApp {
 
         void setOutputShardTemplate(ValueProvider<String> value);
 
-
+        // TODO: this option is not specific to resistance genes only
         @Description("The window duration in which FastQ records will be collected")
         @Default.Integer(60)
         Integer getResistanceGenesWindowTime();
 
         void setResistanceGenesWindowTime(Integer value);
 
+        // TODO: this option is not specific to resistance genes only
         @Description("Resistance Genes - Alignment server to use")
         @Validation.Required
         String getResistanceGenesAlignmentServer();
 
         void setResistanceGenesAlignmentServer(String value);
 
+        // TODO: this option is not specific to resistance genes only
         @Description("Resistance Genes - Alignment database")
         @Validation.Required
         String getResistanceGenesAlignmentDatabase();

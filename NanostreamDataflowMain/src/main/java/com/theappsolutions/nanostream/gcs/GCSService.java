@@ -21,6 +21,8 @@ public class GCSService {
         return new GCSService(StorageOptions.getDefaultInstance().getService());
     }
 
+    // TODO: I think this method shouldn't recieve GCloudNotification as an argument.
+    // Better alternatives would be - bucket and name, or even BlobId
     public Blob getBlobByGCloudNotificationData(GCloudNotification gCloudNotification){
         return storage.get(BlobId.of(gCloudNotification.getBucket(), gCloudNotification.getName()));
     }

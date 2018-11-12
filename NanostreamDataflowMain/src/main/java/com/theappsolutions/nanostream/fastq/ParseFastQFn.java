@@ -18,10 +18,12 @@ public class ParseFastQFn extends DoFn<String, FastqRecord> {
         String data = c.element();
 
         String payload = data.trim();
+        // TODO: what does linesCrud mean?
         String[] linesCrud = StringUtils.split(payload, "\n");
         List<String> linesList = Arrays.stream(linesCrud)
                 .filter(line -> !line.trim().isEmpty()).collect(Collectors.toList());
 
+        // TODO: it's not clear, what's going here, why are these replacements needed?
         String readName = linesList.get(0).replace("XXXX", "").replace("@", "");
         String readBases = linesList.get(1);
         String qualityHeader = linesList.get(2);

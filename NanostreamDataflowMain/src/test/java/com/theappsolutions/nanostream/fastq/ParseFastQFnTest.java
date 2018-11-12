@@ -28,7 +28,7 @@ public class ParseFastQFnTest {
     @Test
     public void testFastQDataParsedCorrectly() {
         try {
-
+            // TODO: I think we need 2 cases with incorrect fastq file(containing garbage like "XXXX"), and with correct file
             String data = IOUtils.toString(
                     getClass().getClassLoader().getResourceAsStream("testFastQFile.fastq"), UTF_8.name());
 
@@ -39,6 +39,7 @@ public class ParseFastQFnTest {
             PCollection<FastqRecord> parsedFastQ = testPipeline
                     .apply(Create.of(data))
                     .apply(ParDo.of(new ParseFastQFn()));
+
             PAssert.that(parsedFastQ)
                     .satisfies((SerializableFunction<Iterable<FastqRecord>, Void>) input -> {
                         FastqRecord fastqRecord = input.iterator().next();
@@ -56,6 +57,9 @@ public class ParseFastQFnTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        // TODO: I think there is no sense in running a test pipeline if an exception has been already thrown
+        // better don't try to catch an exception in the test, leave it to test runner
         testPipeline.run();
     }
 }

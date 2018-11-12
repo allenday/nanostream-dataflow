@@ -38,6 +38,7 @@ public class GCSServiceTest {
         GCSService gcsService = new GCSService(mockStorage);
         String data = null;
         try {
+            // TODO: looks like an overkill. You just need GCloudNotification object with 2 fields - bucket and name
             data = IOUtils.toString(
                     getClass().getClassLoader().getResourceAsStream("pubSubTestMessage.txt"), UTF_8.name());
         } catch (IOException e) {

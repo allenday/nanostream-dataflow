@@ -25,7 +25,9 @@ public class DecodeNotificationJsonMessage extends DoFn<PubsubMessage, GCloudNot
         PubsubMessage pubsubMessage = c.element();
         String data = new String(pubsubMessage.getPayload());
         LOG.info(data);
+        // TODO: I believe it is a good idea to handle exception here
         GCloudNotification gcloudNotification = gson.fromJson(data, GCloudNotification.class);
+
         c.output(gcloudNotification);
     }
 }
