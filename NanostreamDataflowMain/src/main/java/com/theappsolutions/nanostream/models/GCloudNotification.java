@@ -10,6 +10,7 @@ import java.io.Serializable;
 
 /**
  * Object class for Cloud Pub/Sub Notifications for Cloud Storage
+ * TODO: add link to notifications docs
  */
 @DefaultCoder(SerializableCoder.class)
 public class GCloudNotification implements Serializable {

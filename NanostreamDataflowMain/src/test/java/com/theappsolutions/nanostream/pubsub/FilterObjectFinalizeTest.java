@@ -29,7 +29,10 @@ public class FilterObjectFinalizeTest {
     public final transient TestPipeline testPipeline = TestPipeline.create().enableAbandonedNodeEnforcement(true);
 
     @Test
+    // TODO: seems that method name incorrectly describes test
     public void testDuplicatedMessageIsEliminated() {
+        // TODO: I think it would be nice to have helper method for message creation, like this:
+        // PubsubMessage msgFinalize1 = generatePubsubMessage(EVENT_TYPE_OBJECT_FINALIZE);
         PubsubMessage msgFinalize1 = new PubsubMessage(generateRandomByteArray(), new HashMap<String, String>() {{
             put(EVENT_TYPE_KEY, EVENT_TYPE_OBJECT_FINALIZE);
         }});
@@ -47,6 +50,7 @@ public class FilterObjectFinalizeTest {
         PAssert
                 .that(filteredMessages)
                 .satisfies((SerializableFunction<Iterable<PubsubMessage>, Void>) input -> {
+                    // TODO: use assertEquals instead
                     Assert.assertTrue(
                             StreamSupport
                                     .stream(input.spliterator(), false)

@@ -20,6 +20,7 @@ public class GetDataFromFastQFile extends DoFn<GCloudNotification, String> {
     public void processElement(ProcessContext c) {
         GCloudNotification gCloudNotification = c.element();
 
+        // TODO: I believe it's better to handle possible exception here
         Blob blob = gcsService.getBlobByGCloudNotificationData(gCloudNotification);
 
         if (blob != null && blob.exists()) {
