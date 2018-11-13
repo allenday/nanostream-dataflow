@@ -7,10 +7,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-// TODO: I think "stream" term is not clear in class description, better say "collection", etc
-// TODO: also this class is a good candidate for unit-testing
 /**
- * Combine stream of {@link T} objects into single {@link Iterable<T>}
+ * Combine collection of {@link T} objects into single {@link Iterable<T>}
  * @param <T> type of input values
  */
 public class CombineIterableAccumulatorFn<T> extends Combine.CombineFn<T, List<T>, Iterable<T>> {

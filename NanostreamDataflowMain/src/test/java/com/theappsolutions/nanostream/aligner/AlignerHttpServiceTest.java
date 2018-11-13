@@ -1,6 +1,7 @@
 package com.theappsolutions.nanostream.aligner;
 
 import com.theappsolutions.nanostream.util.HttpHelper;
+import htsjdk.samtools.fastq.FastqRecord;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.mime.content.ContentBody;
@@ -8,6 +9,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.Test;
 
 import java.net.URI;
+import java.util.ArrayList;
 
 import static org.mockito.Mockito.*;
 
@@ -21,7 +23,6 @@ public class AlignerHttpServiceTest {
         HttpHelper mockHttpHelper = mock(HttpHelper.class);
         String testDatabase = "test.db";
         String testServer = "http://test.com";
-        String testFastQData = "test_fastq_data";
 
         CloseableHttpClient mockClient = mock(CloseableHttpClient.class);
         HttpEntity mockHttpEntity = mock(HttpEntity.class);
@@ -37,7 +38,9 @@ public class AlignerHttpServiceTest {
         when(mockHttpHelper.executeRequest(any(), any(), any())).thenReturn("");
 
         AlignerHttpService alignerHttpService = new AlignerHttpService(mockHttpHelper, testDatabase, testServer);
-        alignerHttpService.generateAlignData(testFastQData);
+        alignerHttpService.generateAlignData(new ArrayList<FastqRecord>() {{
+            add(mock(FastqRecord.class));
+        }});
 
         verify(mockHttpHelper, times(1)).createHttpClient();
         verify(mockHttpHelper, times(2)).buildStringContentBody(anyString());

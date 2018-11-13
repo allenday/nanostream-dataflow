@@ -2,7 +2,6 @@ package com.theappsolutions.nanostream.models;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
-import org.apache.beam.sdk.coders.AvroCoder;
 import org.apache.beam.sdk.coders.DefaultCoder;
 import org.apache.beam.sdk.coders.SerializableCoder;
 
@@ -10,9 +9,9 @@ import java.io.Serializable;
 
 /**
  * Object class for Cloud Pub/Sub Notifications for Cloud Storage
- * TODO: add link to notifications docs
+ * See <a href="https://cloud.google.com/storage/docs/object-change-notification">Object Change Notification</a>
+ * documentation
  */
-@DefaultCoder(SerializableCoder.class)
 public class GCloudNotification implements Serializable {
 
     @SerializedName("kind")
