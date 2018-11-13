@@ -1,6 +1,5 @@
 package com.theappsolutions.nanostream.fastq;
 
-import com.theappsolutions.nanostream.fastq.ParseFastQFn;
 import htsjdk.samtools.fastq.FastqRecord;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
@@ -26,40 +25,41 @@ public class ParseFastQFnTest {
     public final transient TestPipeline testPipeline = TestPipeline.create().enableAbandonedNodeEnforcement(true);
 
     @Test
-    public void testFastQDataParsedCorrectly() {
-        try {
-            // TODO: I think we need 2 cases with incorrect fastq file(containing garbage like "XXXX"), and with correct file
-            String data = IOUtils.toString(
-                    getClass().getClassLoader().getResourceAsStream("testFastQFile.fastq"), UTF_8.name());
+    public void testFastQDataParsedCorrectly() throws IOException {
+        testFastQDataParsedCorrectly("testFastQFile.fastq");
+    }
 
-            String[] assertData = IOUtils.toString(
-                    getClass().getClassLoader().getResourceAsStream("fasqQOutputData.txt"), UTF_8.name())
-                    .split("\n");
+    @Test
+    public void testFastQDataParsedCorrectlyWithoutTags() throws IOException {
+        testFastQDataParsedCorrectly("testFastQFileWithoutTags.fastq");
+    }
 
-            PCollection<FastqRecord> parsedFastQ = testPipeline
-                    .apply(Create.of(data))
-                    .apply(ParDo.of(new ParseFastQFn()));
+    private void testFastQDataParsedCorrectly(String sourceDataFilename) throws IOException{
+        String data = IOUtils.toString(
+                getClass().getClassLoader().getResourceAsStream(sourceDataFilename), UTF_8.name());
+        String[] assertData = IOUtils.toString(
+                getClass().getClassLoader().getResourceAsStream("fasqQOutputData.txt"), UTF_8.name())
+                .split("\n");
 
-            PAssert.that(parsedFastQ)
-                    .satisfies((SerializableFunction<Iterable<FastqRecord>, Void>) input -> {
-                        FastqRecord fastqRecord = input.iterator().next();
+        PCollection<FastqRecord> parsedFastQ = testPipeline
+                .apply(Create.of(data))
+                .apply(ParDo.of(new ParseFastQFn()));
 
-                        Assert.assertEquals(assertData[0],
-                                fastqRecord.getReadName());
-                        Assert.assertEquals(assertData[1],
-                                fastqRecord.getReadString());
-                        Assert.assertEquals(assertData[2],
-                                fastqRecord.getBaseQualityHeader());
-                        Assert.assertEquals(assertData[3],
-                                fastqRecord.getBaseQualityString());
-                        return null;
-                    });
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        PAssert.that(parsedFastQ)
+                .satisfies((SerializableFunction<Iterable<FastqRecord>, Void>) input -> {
+                    FastqRecord fastqRecord = input.iterator().next();
 
-        // TODO: I think there is no sense in running a test pipeline if an exception has been already thrown
-        // better don't try to catch an exception in the test, leave it to test runner
+                    Assert.assertEquals(assertData[0],
+                            fastqRecord.getReadName());
+                    Assert.assertEquals(assertData[1],
+                            fastqRecord.getReadString());
+                    Assert.assertEquals(assertData[2],
+                            fastqRecord.getBaseQualityHeader());
+                    Assert.assertEquals(assertData[3],
+                            fastqRecord.getBaseQualityString());
+                    return null;
+                });
+
         testPipeline.run();
     }
 }

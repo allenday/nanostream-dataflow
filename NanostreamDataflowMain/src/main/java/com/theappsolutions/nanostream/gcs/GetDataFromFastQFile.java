@@ -1,13 +1,18 @@
 package com.theappsolutions.nanostream.gcs;
 
-import com.google.cloud.storage.*;
+import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.StorageException;
 import com.theappsolutions.nanostream.models.GCloudNotification;
 import org.apache.beam.sdk.transforms.DoFn;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Gets fastq filename from GCloudNotification and extracts data from this file
  */
 public class GetDataFromFastQFile extends DoFn<GCloudNotification, String> {
+
+    private Logger LOG = LoggerFactory.getLogger(GetDataFromFastQFile.class);
 
     private GCSService gcsService;
 
@@ -20,11 +25,15 @@ public class GetDataFromFastQFile extends DoFn<GCloudNotification, String> {
     public void processElement(ProcessContext c) {
         GCloudNotification gCloudNotification = c.element();
 
-        // TODO: I believe it's better to handle possible exception here
-        Blob blob = gcsService.getBlobByGCloudNotificationData(gCloudNotification);
-
-        if (blob != null && blob.exists()) {
-            c.output(new String(blob.getContent()));
+        try {
+            Blob blob = gcsService.getBlobByGCloudNotificationData(
+                    gCloudNotification.getBucket(), gCloudNotification.getName()
+            );
+            if (blob != null && blob.exists()) {
+                c.output(new String(blob.getContent()));
+            }
+        } catch (StorageException e) {
+            LOG.error(e.getMessage());
         }
     }
 }
