@@ -2,6 +2,7 @@ package com.theappsolutions.nanostream.aligner;
 
 import com.theappsolutions.nanostream.http.NanostreamResponseHandler;
 import com.theappsolutions.nanostream.util.HttpHelper;
+import htsjdk.samtools.fastq.FastqRecord;
 import javafx.util.Pair;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -42,10 +43,12 @@ public class AlignerHttpService implements Serializable {
     /**
      * Makes call to http alignment server
      *
-     * @param fastQData prepared fast data
+     * @param data fastQ data
      * @return response body with aligned result
      */
-    public String generateAlignData(String fastQData) throws URISyntaxException, IOException {
+    public String generateAlignData(Iterable<FastqRecord> data) throws URISyntaxException, IOException {
+        String fastQData = prepareFastQData(data);
+
         CloseableHttpClient httpClient = httpHelper.createHttpClient();
 
         ContentBody fastqBody = httpHelper.buildStringContentBody(fastQData);
@@ -63,5 +66,14 @@ public class AlignerHttpService implements Serializable {
         httpClient.close();
 
         return responseBody;
+    }
+
+    private String prepareFastQData(Iterable<FastqRecord> data) {
+        StringBuilder fastqPostBody = new StringBuilder();
+        for (FastqRecord fq : data) {
+            fastqPostBody.append(fq.toFastQString()).append("\n");
+        }
+
+        return fastqPostBody.toString();
     }
 }
