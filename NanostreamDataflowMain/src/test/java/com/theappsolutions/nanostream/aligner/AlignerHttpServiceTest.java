@@ -1,5 +1,8 @@
 package com.theappsolutions.nanostream.aligner;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.theappsolutions.nanostream.injection.TestModule;
 import com.theappsolutions.nanostream.util.HttpHelper;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -18,15 +21,17 @@ public class AlignerHttpServiceTest {
 
     @Test
     public void testAlignRequestExecution() throws Exception {
-        HttpHelper mockHttpHelper = mock(HttpHelper.class);
         String testDatabase = "test.db";
         String testServer = "http://test.com";
+
+        Injector injector = Guice.createInjector(new TestModule(testDatabase, testServer));
+        HttpHelper mockHttpHelper = injector.getInstance(HttpHelper.class);
+
         String testFastQData = "test_fastq_data";
 
         CloseableHttpClient mockClient = mock(CloseableHttpClient.class);
         HttpEntity mockHttpEntity = mock(HttpEntity.class);
         HttpUriRequest mockHttpUriRequest = mock(HttpUriRequest.class);
-
 
         when(mockHttpHelper.createHttpClient())
                 .thenReturn(mockClient);
@@ -36,7 +41,7 @@ public class AlignerHttpServiceTest {
         when(mockHttpHelper.buildRequest(any(), any())).thenReturn(mockHttpUriRequest);
         when(mockHttpHelper.executeRequest(any(), any(), any())).thenReturn("");
 
-        AlignerHttpService alignerHttpService = new AlignerHttpService(mockHttpHelper, testDatabase, testServer);
+        AlignerHttpService alignerHttpService = injector.getInstance(AlignerHttpService.class);
         alignerHttpService.generateAlignData(testFastQData);
 
         verify(mockHttpHelper, times(1)).createHttpClient();

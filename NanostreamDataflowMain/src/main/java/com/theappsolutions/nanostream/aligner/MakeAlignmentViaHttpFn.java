@@ -1,5 +1,6 @@
 package com.theappsolutions.nanostream.aligner;
 
+import com.google.inject.Inject;
 import htsjdk.samtools.fastq.FastqRecord;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.slf4j.Logger;
@@ -18,6 +19,7 @@ public class MakeAlignmentViaHttpFn extends DoFn<Iterable<FastqRecord>, String> 
 
     private AlignerHttpService alignerHttpService;
 
+    @Inject
     public MakeAlignmentViaHttpFn(AlignerHttpService alignerHttpService) {
         this.alignerHttpService = alignerHttpService;
     }
