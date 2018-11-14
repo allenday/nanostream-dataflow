@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 
 /**
- * Makes alignment of fastq data via HTTP server and returnes string body of alignment HTTP response
+ * Makes alignment of fastq data via HTTP server and returns string body of alignment HTTP response
  */
 public class MakeAlignmentViaHttpFn extends DoFn<Iterable<FastqRecord>, String> {
 
@@ -27,19 +27,10 @@ public class MakeAlignmentViaHttpFn extends DoFn<Iterable<FastqRecord>, String> 
         Iterable<FastqRecord> data = c.element();
         try {
             @Nonnull
-            String responseBody = alignerHttpService.generateAlignData(prepareFastQData(data));
+            String responseBody = alignerHttpService.generateAlignData(data);
             c.output(responseBody);
         } catch (URISyntaxException | IOException e) {
             LOG.error(e.getMessage());
-            e.printStackTrace();
         }
-    }
-
-    private String prepareFastQData(Iterable<FastqRecord> data) {
-        StringBuilder fastqPostBody = new StringBuilder();
-        for (FastqRecord fq : data) {
-            fastqPostBody.append(fq.toFastQString()).append("\n");
-        }
-        return fastqPostBody.toString();
     }
 }

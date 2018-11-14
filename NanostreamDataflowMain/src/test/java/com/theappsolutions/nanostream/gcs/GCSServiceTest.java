@@ -4,17 +4,14 @@ import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Storage;
 import com.google.gson.Gson;
 import com.theappsolutions.nanostream.models.GCloudNotification;
-import com.theappsolutions.nanostream.gcs.GCSService;
 import org.apache.beam.sdk.testing.TestPipeline;
-import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import java.io.IOException;
 
-import static com.google.common.base.Charsets.UTF_8;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests {@link GCSService} blob searching method
@@ -32,20 +29,20 @@ public class GCSServiceTest {
     }
 
     @Test
-    public void testBlobSearchingByBlobId() {
-        Storage mockStorage = Mockito.mock(Storage.class);
+    public void testBlobSearchingByBlobId() throws IOException {
+        String testBucketName = "bucket_name";
+        String testBlobName = "blob_name";
+
+        Storage mockStorage = mock(Storage.class);
 
         GCSService gcsService = new GCSService(mockStorage);
-        String data = null;
-        try {
-            data = IOUtils.toString(
-                    getClass().getClassLoader().getResourceAsStream("pubSubTestMessage.txt"), UTF_8.name());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        GCloudNotification testGCloudNotification = gson.fromJson(data, GCloudNotification.class);
-        gcsService.getBlobByGCloudNotificationData(testGCloudNotification);
 
-        Mockito.verify(mockStorage).get(BlobId.of(testGCloudNotification.getBucket(), testGCloudNotification.getName()));
+        GCloudNotification mockGCloudNotification = mock(GCloudNotification.class);
+        when(mockGCloudNotification.getBucket()).thenReturn(testBucketName);
+        when(mockGCloudNotification.getName()).thenReturn(testBlobName);
+
+        gcsService.getBlobByGCloudNotificationData(mockGCloudNotification.getBucket(), mockGCloudNotification.getName());
+
+        verify(mockStorage).get(BlobId.of(mockGCloudNotification.getBucket(), mockGCloudNotification.getName()));
     }
 }

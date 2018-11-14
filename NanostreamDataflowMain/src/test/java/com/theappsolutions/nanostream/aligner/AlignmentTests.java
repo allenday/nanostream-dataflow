@@ -1,8 +1,5 @@
 package com.theappsolutions.nanostream.aligner;
 
-import com.theappsolutions.nanostream.aligner.AlignerHttpService;
-import com.theappsolutions.nanostream.aligner.MakeAlignmentViaHttpFn;
-import com.theappsolutions.nanostream.aligner.ParseAlignedDataIntoSAMFn;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.fastq.FastqRecord;
 import org.apache.beam.sdk.testing.PAssert;
@@ -47,15 +44,13 @@ public class AlignmentTests implements Serializable {
 
             String fastqAlignmentResult = IOUtils.toString(
                     getClass().getClassLoader().getResourceAsStream("fastQAlignmentResult.txt"), UTF_8.name());
-            String fastQPrepearedForAlignmentData = IOUtils.toString(
-                    getClass().getClassLoader().getResourceAsStream("fastQPrepearedForAlignment.txt"), UTF_8.name());
 
             FastqRecord fastqRecord = new FastqRecord(fastqData[0], fastqData[1], fastqData[2], fastqData[3]);
             Iterable<FastqRecord> fastqRecordIterable = Collections.singletonList(fastqRecord);
 
             AlignerHttpService mockAlignerHttpService = mock(AlignerHttpService.class,
                     withSettings().serializable());
-            when(mockAlignerHttpService.generateAlignData(fastQPrepearedForAlignmentData)).thenReturn(fastqAlignmentResult);
+            when(mockAlignerHttpService.generateAlignData(fastqRecordIterable)).thenReturn(fastqAlignmentResult);
 
             PCollection<String> parsedFastQ = testPipeline
                     .apply(Create.<Iterable<FastqRecord>>of(fastqRecordIterable))

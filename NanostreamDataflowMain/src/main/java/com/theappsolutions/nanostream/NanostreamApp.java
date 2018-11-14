@@ -42,18 +42,6 @@ public class NanostreamApp {
 
         void setSubscription(String value);
 
-
-        /*@Description("The window duration in which data will be written. Defaults to 5m. "
-                + "Allowed formats are: "
-                + "Ns (for seconds, example: 5s), "
-                + "Nm (for minutes, example: 12m), "
-                + "Nh (for hours, example: 2h).")
-        @Default.String("1m")
-        String getWindowDuration();
-
-        void setWindowDuration(String value);*/
-
-
         @Description("The maximum number of output shards produced when writing.")
         @Default.Integer(1)
         Integer getNumShards();
@@ -87,24 +75,23 @@ public class NanostreamApp {
 
         void setOutputShardTemplate(ValueProvider<String> value);
 
-
         @Description("The window duration in which FastQ records will be collected")
         @Default.Integer(60)
-        Integer getResistanceGenesWindowTime();
+        Integer getWindowTime();
 
-        void setResistanceGenesWindowTime(Integer value);
+        void setWindowTime(Integer value);
 
-        @Description("Resistance Genes - Alignment server to use")
+        @Description("Alignment server to use")
         @Validation.Required
-        String getResistanceGenesAlignmentServer();
+        String getAlignmentServer();
 
-        void setResistanceGenesAlignmentServer(String value);
+        void setAlignmentServer(String value);
 
-        @Description("Resistance Genes - Alignment database")
+        @Description("Alignment database")
         @Validation.Required
-        String getResistanceGenesAlignmentDatabase();
+        String getAlignmentDatabase();
 
-        void setResistanceGenesAlignmentDatabase(String value);
+        void setAlignmentDatabase(String value);
 
     }
 
@@ -125,13 +112,13 @@ public class NanostreamApp {
                 .apply("Get data from FastQ", ParDo.of(new GetDataFromFastQFile()))
                 .apply("Parse FasQ data", ParDo.of(new ParseFastQFn()))
                 .apply(
-                        options.getResistanceGenesWindowTime() + "s FastQ collect window",
-                        Window.into(FixedWindows.of(Duration.standardSeconds(options.getResistanceGenesWindowTime()))))
+                        options.getWindowTime() + "s FastQ collect window",
+                        Window.into(FixedWindows.of(Duration.standardSeconds(options.getWindowTime()))))
                 .apply("Accumulate to iterable", Combine.globally(new CombineIterableAccumulatorFn<FastqRecord>())
                         .withoutDefaults())
                 .apply("Alignment",
-                        ParDo.of(new MakeAlignmentViaHttpFn(new AlignerHttpService(new HttpHelper(), options.getResistanceGenesAlignmentDatabase(),
-                                options.getResistanceGenesAlignmentServer()))))
+                        ParDo.of(new MakeAlignmentViaHttpFn(new AlignerHttpService(new HttpHelper(), options.getAlignmentDatabase(),
+                                options.getAlignmentServer()))))
                 .apply("Generation SAM",
                         ParDo.of(new ParseAlignedDataIntoSAMFn()))
 
