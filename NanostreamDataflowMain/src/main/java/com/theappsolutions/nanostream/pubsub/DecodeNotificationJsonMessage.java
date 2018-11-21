@@ -1,6 +1,7 @@
 package com.theappsolutions.nanostream.pubsub;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.theappsolutions.nanostream.models.GCloudNotification;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.transforms.DoFn;
@@ -24,8 +25,12 @@ public class DecodeNotificationJsonMessage extends DoFn<PubsubMessage, GCloudNot
     public void processElement(ProcessContext c) {
         PubsubMessage pubsubMessage = c.element();
         String data = new String(pubsubMessage.getPayload());
-        LOG.info(data);
-        GCloudNotification gcloudNotification = gson.fromJson(data, GCloudNotification.class);
-        c.output(gcloudNotification);
+
+        try {
+            GCloudNotification gcloudNotification = gson.fromJson(data, GCloudNotification.class);
+            c.output(gcloudNotification);
+        } catch (JsonSyntaxException e) {
+            LOG.error(e.getMessage());
+        }
     }
 }

@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
- * Combine stream of {@link T} objects into single {@link Iterable<T>}
+ * Combine collection of {@link T} objects into single {@link Iterable<T>}
  * @param <T> type of input values
  */
 public class CombineIterableAccumulatorFn<T> extends Combine.CombineFn<T, List<T>, Iterable<T>> {
