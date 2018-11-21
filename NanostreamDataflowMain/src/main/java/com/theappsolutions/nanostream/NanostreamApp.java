@@ -9,6 +9,7 @@ import com.theappsolutions.nanostream.gcs.GetDataFromFastQFile;
 import com.theappsolutions.nanostream.injection.MainModule;
 import com.theappsolutions.nanostream.io.WindowedFilenamePolicy;
 import com.theappsolutions.nanostream.kalign.ExtractSequenceFn;
+import com.theappsolutions.nanostream.kalign.ProceedKAlignmentFn;
 import com.theappsolutions.nanostream.kalign.SequenceOnlyDNACoder;
 import com.theappsolutions.nanostream.pubsub.DecodeNotificationJsonMessage;
 import com.theappsolutions.nanostream.pubsub.FilterObjectFinalizeMessage;
@@ -40,7 +41,7 @@ public class NanostreamApp {
         NanostreamPipelineOptions options = PipelineOptionsFactory.fromArgs(args)
                 .withValidation()
                 .as(NanostreamPipelineOptions.class);
-        Injector injector = Guice.createInjector(new MainModule(options));
+        Injector injector = Guice.createInjector(new MainModule.Builder().buildWithPipelineOptions(options));
 
         Pipeline pipeline = Pipeline.create(options);
         SequenceOnlyDNACoder sequenceOnlyDNACoder = new SequenceOnlyDNACoder();
@@ -61,12 +62,13 @@ public class NanostreamApp {
                         Window.into(FixedWindows.of(Duration.standardSeconds(options.getWindowTime()))))
                 .apply("Accumulate to iterable", Combine.globally(new CombineIterableAccumulatorFn<FastqRecord>())
                         .withoutDefaults())
-                .apply("Alignment", ParDo.of((injector.getInstance(MakeAlignmentViaHttpFn.class))))
+                .apply("Alignment", ParDo.of(injector.getInstance(MakeAlignmentViaHttpFn.class)))
                 .apply("Generation SAM",
                         ParDo.of(new ParseAlignedDataIntoSAMFn()))
                 .apply("Group by SAM referance", GroupByKey.create())
                 .apply("Extract Sequences",
                         ParDo.of(new ExtractSequenceFn()))
+                .apply("Consensus", ParDo.of(injector.getInstance(ProceedKAlignmentFn.class)))
                 //TODO temporary output to gcs file for debug
                 //.apply("Filter only mapped", Filter.by((SerializableFunction<KV<String, SAMRecord>, Boolean>) input -> !input.getValue().getReadUnmappedFlag()))
                 .apply("toString()", ToString.elements())

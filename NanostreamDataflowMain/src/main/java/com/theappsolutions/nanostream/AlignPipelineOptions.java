@@ -13,15 +13,31 @@ public interface AlignPipelineOptions extends DataflowPipelineOptions {
 
     void setWindowTime(Integer value);
 
-    @Description("Alignment server to use")
+
+    @Description("BWA Alignment server endpoint to use")
     @Validation.Required
-    String getAlignmentServer();
+    String getBwaEndpoint();
 
-    void setAlignmentServer(String value);
+    void setBwaEndpoint(String value);
 
-    @Description("Alignment database")
+
+    @Description("BWA Alignment database")
     @Validation.Required
-    String getAlignmentDatabase();
+    String getBwaDatabase();
 
-    void setRAlignmentDatabase(String value);
+    void setBwaDatabase(String value);
+
+
+    @Description("K-Align server endpoint to use")
+    @Validation.Required
+    String getKAlignEndpoint();
+
+    void setKAlignEndpoint(String value);
+
+
+    @Description("Base URL")
+    @Validation.Required
+    String getBaseUrl();
+
+    void setBaseUrl(String value);
 }
