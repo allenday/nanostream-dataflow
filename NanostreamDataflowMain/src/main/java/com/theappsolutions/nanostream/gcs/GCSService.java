@@ -1,10 +1,6 @@
 package com.theappsolutions.nanostream.gcs;
 
-import com.google.cloud.storage.Blob;
-import com.google.cloud.storage.BlobId;
-import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.StorageOptions;
-import com.theappsolutions.nanostream.models.GCloudNotification;
+import com.google.cloud.storage.*;
 
 /**
  * Provides access to {@link Storage} instance with convenient interface
@@ -21,7 +17,7 @@ public class GCSService {
         return new GCSService(StorageOptions.getDefaultInstance().getService());
     }
 
-    public Blob getBlobByGCloudNotificationData(GCloudNotification gCloudNotification){
-        return storage.get(BlobId.of(gCloudNotification.getBucket(), gCloudNotification.getName()));
+    public Blob getBlobByGCloudNotificationData(String bucketName, String blobName) throws StorageException {
+        return storage.get(BlobId.of(bucketName, blobName));
     }
 }
