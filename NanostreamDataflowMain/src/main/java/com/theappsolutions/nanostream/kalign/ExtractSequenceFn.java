@@ -6,26 +6,35 @@ import japsa.seq.Sequence;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.values.KV;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
+/**
+ * Converts {@link SAMRecord} into {@link Sequence}
+ */
 public class ExtractSequenceFn extends DoFn<KV<String, Iterable<SAMRecord>>, KV<String, Iterable<Sequence>>> {
 
     @ProcessElement
     public void processElement(ProcessContext c) {
         String ref = c.element().getKey();
-        Iterable<SAMRecord> samIt = c.element().getValue();
-        List<Sequence> seqs = new ArrayList<>();
-        for (SAMRecord sam : samIt) {
-            String alignedBases = sam.getReadString().substring(sam.getAlignmentStart(), sam.getAlignmentEnd());
-            Sequence seq = new Sequence(Alphabet.DNA(), alignedBases, sam.getReadName());
 
-            if (sam.getReadNegativeStrandFlag()) {
-                seq = Alphabet.DNA.complement(seq);
-                seq.setName(sam.getReadName());
-            }
-            seqs.add(seq);
+        List<Sequence> sequences = StreamSupport.stream(c.element().getValue().spliterator(), false)
+                .map(this::generateSequenceFromSam)
+                .collect(Collectors.toList());
+        c.output(KV.of(ref, sequences));
+    }
+
+    private Sequence generateSequenceFromSam(SAMRecord samRecord){
+        Alphabet alphabet = Alphabet.DNA();
+        String readString = samRecord.getReadString();
+        String name = samRecord.getReadName();
+        if (samRecord.getReadNegativeStrandFlag()){
+            Sequence sequence = Alphabet.DNA.complement(new Sequence(alphabet, readString, name));
+            sequence.setName(name);
+            return sequence;
+        } else {
+            return new Sequence(alphabet, readString, name);
         }
-        c.output(KV.of(ref, seqs));
     }
 }

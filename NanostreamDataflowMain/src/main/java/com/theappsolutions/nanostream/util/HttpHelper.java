@@ -1,6 +1,5 @@
 package com.theappsolutions.nanostream.util;
 
-import javafx.util.Pair;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
@@ -16,7 +15,7 @@ import org.apache.http.impl.client.HttpClients;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
-import java.util.Arrays;
+import java.util.Map;
 
 /**
  * Provides set of methods for working with Apache HTTP client
@@ -31,9 +30,9 @@ public class HttpHelper implements Serializable {
         return new StringBody(data, ContentType.DEFAULT_TEXT);
     }
 
-    public  HttpEntity createMultipartHttpEntity(Pair<String, ContentBody>... parts) {
+    public HttpEntity createMultipartHttpEntity(Map<String, ContentBody> preparedContent) {
         MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-        Arrays.stream(parts).forEach(part -> builder.addPart(part.getKey(), part.getValue()));
+        preparedContent.forEach(builder::addPart);
         return builder.build();
     }
 
