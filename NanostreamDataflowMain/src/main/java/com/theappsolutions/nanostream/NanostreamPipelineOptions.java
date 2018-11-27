@@ -5,6 +5,10 @@ import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.Validation;
 import org.apache.beam.sdk.options.ValueProvider;
 
+/**
+ * Provides list of {@link org.apache.beam.sdk.Pipeline} options
+ * for implementation {@link NanostreamApp} Dataflow transformation
+ */
 public interface NanostreamPipelineOptions extends AlignPipelineOptions {
 
     @Description("GCP PubSub subscription name to read messages from")

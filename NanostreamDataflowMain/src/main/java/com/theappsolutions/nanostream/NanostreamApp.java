@@ -68,9 +68,8 @@ public class NanostreamApp {
                 .apply("Group by SAM referance", GroupByKey.create())
                 .apply("Extract Sequences",
                         ParDo.of(new ExtractSequenceFn()))
-                .apply("Consensus", ParDo.of(injector.getInstance(ProceedKAlignmentFn.class)))
+                .apply("K-Align", ParDo.of(injector.getInstance(ProceedKAlignmentFn.class)))
                 //TODO temporary output to gcs file for debug
-                //.apply("Filter only mapped", Filter.by((SerializableFunction<KV<String, SAMRecord>, Boolean>) input -> !input.getValue().getReadUnmappedFlag()))
                 .apply("toString()", ToString.elements())
                 .apply("Write to GCS", TextIO.write()
                         .withWindowedWrites()

@@ -5,6 +5,9 @@ import org.apache.beam.sdk.options.Default;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.Validation;
 
+/**
+ * Provides list of {@link org.apache.beam.sdk.Pipeline} options for HTTP alignment operations
+ */
 public interface AlignPipelineOptions extends DataflowPipelineOptions {
 
     @Description("The window duration in which FastQ records will be collected")
@@ -30,9 +33,9 @@ public interface AlignPipelineOptions extends DataflowPipelineOptions {
 
     @Description("K-Align server endpoint to use")
     @Validation.Required
-    String getKAlignEndpoint();
+    String getkAlignEndpoint();
 
-    void setKAlignEndpoint(String value);
+    void setkAlignEndpoint(String value);
 
 
     @Description("Base URL")
