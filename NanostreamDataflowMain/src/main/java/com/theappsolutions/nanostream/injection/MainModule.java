@@ -8,7 +8,9 @@ import com.theappsolutions.nanostream.http.NanostreamHttpService;
 import com.theappsolutions.nanostream.kalign.ProceedKAlignmentFn;
 import com.theappsolutions.nanostream.util.HttpHelper;
 
-
+/**
+ * App dependency injection module, that provide graph of main dependencies in app
+ */
 public class MainModule extends AbstractModule {
 
     private String baseUrl;
@@ -58,7 +60,7 @@ public class MainModule extends AbstractModule {
             return new MainModule(alignPipelineOptions.getBaseUrl(),
                     alignPipelineOptions.getBwaDatabase(),
                     alignPipelineOptions.getBwaEndpoint(),
-                    alignPipelineOptions.getKAlignEndpoint());
+                    alignPipelineOptions.getkAlignEndpoint());
         }
     }
 

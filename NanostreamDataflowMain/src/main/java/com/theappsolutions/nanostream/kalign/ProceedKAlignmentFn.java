@@ -19,6 +19,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Makes K-Align transformation of {@link Sequence} via HTTP server*
+ * See <a href="https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-6-298">K-Align</a>
+ * information
+ */
 public class ProceedKAlignmentFn extends DoFn<KV<String, Iterable<Sequence>>, KV<String, Iterable<Sequence>>> {
 
     private final static String FASTA_DATA_MULTIPART_KEY = "fasta";
