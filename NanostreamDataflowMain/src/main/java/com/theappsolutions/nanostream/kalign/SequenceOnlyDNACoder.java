@@ -32,7 +32,7 @@ public class SequenceOnlyDNACoder extends CustomCoder<Sequence> {
         byte[] byteSeq = BYTE_SEQ_CODER.decode(inStream);
         Sequence sequence = new Sequence(Alphabet.DNA(), byteSeq);
         sequence.setName(NAME_CODER.decode(inStream));
-        sequence.setName(DESC_CODER.decode(inStream));
+        sequence.setDesc(DESC_CODER.decode(inStream));
         return sequence;
     }
 }

@@ -1,6 +1,9 @@
 package com.theappsolutions.nanostream.aligner;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.theappsolutions.nanostream.http.NanostreamHttpService;
+import com.theappsolutions.nanostream.injection.TestModule;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.fastq.FastqRecord;
 import org.apache.beam.sdk.testing.PAssert;
@@ -38,6 +41,9 @@ public class AlignmentTests implements Serializable {
 
     @Test
     public void testFastQHttpAlignment() {
+
+        Injector injector = Guice.createInjector(new TestModule.Builder().build());
+
         try {
             String[] fastqData = IOUtils.toString(
                     getClass().getClassLoader().getResourceAsStream("fasqQSourceData.txt"), UTF_8.name())
@@ -49,13 +55,12 @@ public class AlignmentTests implements Serializable {
             FastqRecord fastqRecord = new FastqRecord(fastqData[0], fastqData[1], fastqData[2], fastqData[3]);
             Iterable<FastqRecord> fastqRecordIterable = Collections.singletonList(fastqRecord);
 
-            NanostreamHttpService mockHttpService = mock(NanostreamHttpService.class,
-                    withSettings().serializable());
+            NanostreamHttpService mockHttpService = injector.getInstance(NanostreamHttpService.class);
             when(mockHttpService.generateAlignData(any(), any())).thenReturn(fastqAlignmentResult);
 
             PCollection<String> parsedFastQ = testPipeline
                     .apply(Create.<Iterable<FastqRecord>>of(fastqRecordIterable))
-                    .apply(ParDo.of(new MakeAlignmentViaHttpFn(mockHttpService, "", "")));
+                    .apply(ParDo.of(injector.getInstance(MakeAlignmentViaHttpFn.class)));
             PAssert.that(parsedFastQ)
                     .satisfies((SerializableFunction<Iterable<String>, Void>) input -> {
                         Iterator<String> dataIterator = input.iterator();
@@ -86,7 +91,7 @@ public class AlignmentTests implements Serializable {
                     .apply(ParDo.of(new ParseAlignedDataIntoSAMFn()));
 
             PAssert.that(parsedFastQ)
-                    .satisfies((SerializableFunction<Iterable<KV<String, SAMRecord>>, Void>) input -> {
+                    .satisfies(input -> {
                         KV<String, SAMRecord> result = input.iterator().next();
                         Assert.assertEquals(1, StreamSupport.stream(input.spliterator(), false)
                                 .count());

@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.StreamSupport;
 
 /**
  * Makes K-Align transformation of {@link Sequence} via HTTP server*
@@ -44,6 +45,13 @@ public class ProceedKAlignmentFn extends DoFn<KV<String, Iterable<Sequence>>, KV
     public void processElement(ProcessContext c) {
         Iterable<Sequence> sequenceIterable = c.element().getValue();
         String geneID = c.element().getKey();
+
+        long sequenceIterableSize = StreamSupport.stream(sequenceIterable.spliterator(), false)
+                .count();
+        if (sequenceIterableSize <= 1) {
+            c.output(c.element());
+            return;
+        }
 
         Map<String, String> content = new HashMap<>();
         content.put(FASTA_DATA_MULTIPART_KEY, prepareFastAData(sequenceIterable));
