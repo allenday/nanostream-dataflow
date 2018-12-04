@@ -1,8 +1,7 @@
-package com.theappsolutions.nanostream.aligner;
+package com.theappsolutions.nanostream.http;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.theappsolutions.nanostream.http.NanostreamHttpService;
 import com.theappsolutions.nanostream.injection.TestModule;
 import com.theappsolutions.nanostream.util.HttpHelper;
 import org.apache.http.HttpEntity;
@@ -59,7 +58,7 @@ public class NanostreamHttpServiceTest {
         when(mockHttpHelper.executeRequest(any(), any(), any()))
                 .thenReturn("");
 
-        NanostreamHttpService alignerHttpService = injector.getInstance(NanostreamHttpService.class);
+        NanostreamHttpService alignerHttpService = new NanostreamHttpService(mockHttpHelper, testBaseUrl);
         alignerHttpService.generateAlignData(testEndpoint, testContent);
 
         verify(mockHttpHelper, times(1)).createHttpClient();

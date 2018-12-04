@@ -4,6 +4,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.theappsolutions.nanostream.aligner.MakeAlignmentViaHttpFn;
 import com.theappsolutions.nanostream.aligner.ParseAlignedDataIntoSAMFn;
+import com.theappsolutions.nanostream.errorcorrection.ErrorCorrectionFn;
 import com.theappsolutions.nanostream.fastq.ParseFastQFn;
 import com.theappsolutions.nanostream.gcs.GetDataFromFastQFile;
 import com.theappsolutions.nanostream.injection.MainModule;
@@ -65,10 +66,11 @@ public class NanostreamApp {
                 .apply("Alignment", ParDo.of(injector.getInstance(MakeAlignmentViaHttpFn.class)))
                 .apply("Generation SAM",
                         ParDo.of(new ParseAlignedDataIntoSAMFn()))
-                .apply("Group by SAM referance", GroupByKey.create())
+                .apply("Group by SAM reference", GroupByKey.create())
                 .apply("Extract Sequences",
                         ParDo.of(new ExtractSequenceFn()))
                 .apply("K-Align", ParDo.of(injector.getInstance(ProceedKAlignmentFn.class)))
+                .apply("Error correction", ParDo.of(new ErrorCorrectionFn()))
                 //TODO temporary output to gcs file for debug
                 .apply("toString()", ToString.elements())
                 .apply("Write to GCS", TextIO.write()
