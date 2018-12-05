@@ -1,29 +1,32 @@
 package com.theappsolutions.nanostream;
 
-import com.theappsolutions.nanostream.aligner.AlignerHttpService;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.theappsolutions.nanostream.aligner.MakeAlignmentViaHttpFn;
 import com.theappsolutions.nanostream.aligner.ParseAlignedDataIntoSAMFn;
+import com.theappsolutions.nanostream.fastq.ParseFastQFn;
+import com.theappsolutions.nanostream.gcs.GetDataFromFastQFile;
+import com.theappsolutions.nanostream.injection.MainModule;
 import com.theappsolutions.nanostream.io.WindowedFilenamePolicy;
+import com.theappsolutions.nanostream.kalign.ExtractSequenceFn;
+import com.theappsolutions.nanostream.kalign.ProceedKAlignmentFn;
+import com.theappsolutions.nanostream.kalign.SequenceOnlyDNACoder;
 import com.theappsolutions.nanostream.pubsub.DecodeNotificationJsonMessage;
 import com.theappsolutions.nanostream.pubsub.FilterObjectFinalizeMessage;
-import com.theappsolutions.nanostream.gcs.GetDataFromFastQFile;
-import com.theappsolutions.nanostream.fastq.ParseFastQFn;
-import com.theappsolutions.nanostream.util.HttpHelper;
 import com.theappsolutions.nanostream.util.trasform.CombineIterableAccumulatorFn;
-import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.fastq.FastqRecord;
-import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
+import org.apache.beam.sdk.PipelineResult;
 import org.apache.beam.sdk.io.FileBasedSink;
 import org.apache.beam.sdk.io.TextIO;
 import org.apache.beam.sdk.io.fs.ResourceId;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
-import org.apache.beam.sdk.options.*;
+import org.apache.beam.sdk.options.PipelineOptionsFactory;
+import org.apache.beam.sdk.options.ValueProvider;
 import org.apache.beam.sdk.transforms.*;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
 import org.apache.beam.sdk.transforms.windowing.Window;
-import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.joda.time.Duration;
 
@@ -34,73 +37,16 @@ import org.joda.time.Duration;
  */
 public class NanostreamApp {
 
-    public interface NanostreamPipelineOptions extends DataflowPipelineOptions {
-
-        @Description("GCP PubSub subscription name to read messages from")
-        @Validation.Required
-        String getSubscription();
-
-        void setSubscription(String value);
-
-        @Description("The maximum number of output shards produced when writing.")
-        @Default.Integer(1)
-        Integer getNumShards();
-
-        void setNumShards(Integer value);
-
-        @Description("The directory to output files to. Must end with a slash.")
-        @Validation.Required
-        ValueProvider<String> getOutputDirectory();
-
-        void setOutputDirectory(ValueProvider<String> value);
-
-        @Description("The filename prefix of the files to write to.")
-        @Default.String("output_file_")
-        @Validation.Required
-        ValueProvider<String> getOutputFilenamePrefix();
-
-        void setOutputFilenamePrefix(ValueProvider<String> value);
-
-        @Description("The suffix of the files to write.")
-        @Default.String("")
-        ValueProvider<String> getOutputFilenameSuffix();
-
-        void setOutputFilenameSuffix(ValueProvider<String> value);
-
-        @Description("The shard template of the output file. Specified as repeating sequences "
-                + "of the letters 'S' or 'N' (example: SSS-NNN). These are replaced with the "
-                + "shard number, or number of shards respectively")
-        @Default.String("W-P-SS-of-NN")
-        ValueProvider<String> getOutputShardTemplate();
-
-        void setOutputShardTemplate(ValueProvider<String> value);
-
-        @Description("The window duration in which FastQ records will be collected")
-        @Default.Integer(60)
-        Integer getWindowTime();
-
-        void setWindowTime(Integer value);
-
-        @Description("Alignment server to use")
-        @Validation.Required
-        String getAlignmentServer();
-
-        void setAlignmentServer(String value);
-
-        @Description("Alignment database")
-        @Validation.Required
-        String getAlignmentDatabase();
-
-        void setAlignmentDatabase(String value);
-
-    }
-
     public static void main(String[] args) {
         NanostreamPipelineOptions options = PipelineOptionsFactory.fromArgs(args)
                 .withValidation()
                 .as(NanostreamPipelineOptions.class);
+        Injector injector = Guice.createInjector(new MainModule.Builder().buildWithPipelineOptions(options));
 
         Pipeline pipeline = Pipeline.create(options);
+        SequenceOnlyDNACoder sequenceOnlyDNACoder = new SequenceOnlyDNACoder();
+        pipeline.getCoderRegistry()
+                .registerCoderForType(sequenceOnlyDNACoder.getEncodedTypeDescriptor(), sequenceOnlyDNACoder);
 
         PCollection<PubsubMessage> pubsubMessages = pipeline.apply("Reading PubSub", PubsubIO
                 .readMessagesWithAttributes()
@@ -116,21 +62,15 @@ public class NanostreamApp {
                         Window.into(FixedWindows.of(Duration.standardSeconds(options.getWindowTime()))))
                 .apply("Accumulate to iterable", Combine.globally(new CombineIterableAccumulatorFn<FastqRecord>())
                         .withoutDefaults())
-                .apply("Alignment",
-                        ParDo.of(new MakeAlignmentViaHttpFn(new AlignerHttpService(new HttpHelper(), options.getAlignmentDatabase(),
-                                options.getAlignmentServer()))))
+                .apply("Alignment", ParDo.of(injector.getInstance(MakeAlignmentViaHttpFn.class)))
                 .apply("Generation SAM",
                         ParDo.of(new ParseAlignedDataIntoSAMFn()))
-
+                .apply("Group by SAM referance", GroupByKey.create())
+                .apply("Extract Sequences",
+                        ParDo.of(new ExtractSequenceFn()))
+                .apply("K-Align", ParDo.of(injector.getInstance(ProceedKAlignmentFn.class)))
                 //TODO temporary output to gcs file for debug
-                .apply("Filter only mapped", Filter.by((SerializableFunction<KV<String, SAMRecord>, Boolean>) input -> !input.getValue().getReadUnmappedFlag()))
-                .apply("toString()", ParDo.of(new DoFn<KV<String, SAMRecord>, String>() {
-                    @ProcessElement
-                    public void processElement(ProcessContext c) {
-                        SAMRecord data = c.element().getValue();
-                        c.output(data.toString() + "\n" + data.getSAMString() + "\n");
-                    }
-                }))
+                .apply("toString()", ToString.elements())
                 .apply("Write to GCS", TextIO.write()
                         .withWindowedWrites()
                         .withNumShards(options.getNumShards())
@@ -143,6 +83,8 @@ public class NanostreamApp {
                         .withTempDirectory(ValueProvider.NestedValueProvider.of(
                                 options.getOutputDirectory(),
                                 (SerializableFunction<String, ResourceId>) FileBasedSink::convertToFileResourceIfPossible)));
-        pipeline.run();
+
+        PipelineResult result = pipeline.run();
+        result.waitUntilFinish();
     }
 }
