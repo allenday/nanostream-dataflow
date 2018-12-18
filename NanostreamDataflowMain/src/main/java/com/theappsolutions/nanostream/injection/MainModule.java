@@ -2,6 +2,7 @@ package com.theappsolutions.nanostream.injection;
 
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.theappsolutions.nanostream.AlignPipelineOptions;
 import com.theappsolutions.nanostream.aligner.MakeAlignmentViaHttpFn;
 import com.theappsolutions.nanostream.http.NanostreamHttpService;
 import com.theappsolutions.nanostream.kalign.ProceedKAlignmentFn;
@@ -16,10 +17,18 @@ public class MainModule extends BaseModule {
         super(baseUrl, bwaDb, bwaEndpoint, kalignEndpoint);
     }
 
-    public static class Builder extends BaseModule.Builder {
+    public static class Builder<T extends BaseModule> extends BaseModule.Builder {
 
         public MainModule build() {
             return new MainModule(baseUrl, bwaDb, bwaEndpoint, kalignEndpoint);
+        }
+
+
+        public MainModule buildWithPipelineOptions(AlignPipelineOptions alignPipelineOptions) {
+            return new MainModule(alignPipelineOptions.getBaseUrl(),
+                    alignPipelineOptions.getBwaDatabase(),
+                    alignPipelineOptions.getBwaEndpoint(),
+                    alignPipelineOptions.getkAlignEndpoint());
         }
     }
 

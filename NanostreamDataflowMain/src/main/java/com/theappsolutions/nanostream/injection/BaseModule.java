@@ -20,7 +20,7 @@ public class BaseModule extends AbstractModule {
         this.kalignEndpoint = kalignEndpoint;
     }
 
-    public static class Builder {
+    public static class Builder{
 
         String baseUrl;
         String bwaDb;
@@ -49,13 +49,6 @@ public class BaseModule extends AbstractModule {
 
         public BaseModule build() {
             return new BaseModule(baseUrl, bwaDb, bwaEndpoint, kalignEndpoint);
-        }
-
-        public BaseModule buildWithPipelineOptions(AlignPipelineOptions alignPipelineOptions) {
-            return new BaseModule(alignPipelineOptions.getBaseUrl(),
-                    alignPipelineOptions.getBwaDatabase(),
-                    alignPipelineOptions.getBwaEndpoint(),
-                    alignPipelineOptions.getkAlignEndpoint());
         }
     }
 }
