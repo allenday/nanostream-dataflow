@@ -20,13 +20,6 @@ public class GCSServiceTest {
 
     @Rule
     public final transient TestPipeline testPipeline = TestPipeline.create().enableAbandonedNodeEnforcement(true);
-    private Gson gson;
-
-
-    @Before
-    public void setup() {
-        gson = new Gson();
-    }
 
     @Test
     public void testBlobSearchingByBlobId() throws IOException {

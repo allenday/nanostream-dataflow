@@ -6,6 +6,7 @@ import com.theappsolutions.nanostream.AlignPipelineOptions;
 import com.theappsolutions.nanostream.aligner.MakeAlignmentViaHttpFn;
 import com.theappsolutions.nanostream.http.NanostreamHttpService;
 import com.theappsolutions.nanostream.kalign.ProceedKAlignmentFn;
+import com.theappsolutions.nanostream.output.WriteToFirestoreDbFn;
 import com.theappsolutions.nanostream.util.HttpHelper;
 
 /**
@@ -13,14 +14,16 @@ import com.theappsolutions.nanostream.util.HttpHelper;
  */
 public class MainModule extends BaseModule {
 
-    private MainModule(String baseUrl, String bwaDb, String bwaEndpoint, String kalignEndpoint) {
-        super(baseUrl, bwaDb, bwaEndpoint, kalignEndpoint);
+    private MainModule(String baseUrl, String bwaDb, String bwaEndpoint, String kalignEndpoint,
+                       String firestoreDatabaseUrl, String firestoreDestCollection, String projectId) {
+        super(baseUrl, bwaDb, bwaEndpoint, kalignEndpoint, firestoreDatabaseUrl, firestoreDestCollection, projectId);
     }
 
     public static class Builder<T extends BaseModule> extends BaseModule.Builder {
 
         public MainModule build() {
-            return new MainModule(baseUrl, bwaDb, bwaEndpoint, kalignEndpoint);
+            return new MainModule(baseUrl, bwaDb, bwaEndpoint, kalignEndpoint,
+                    firestoreDatabaseUrl, firestoreDestCollection, projectId);
         }
 
 
@@ -28,7 +31,10 @@ public class MainModule extends BaseModule {
             return new MainModule(alignPipelineOptions.getBaseUrl(),
                     alignPipelineOptions.getBwaDatabase(),
                     alignPipelineOptions.getBwaEndpoint(),
-                    alignPipelineOptions.getkAlignEndpoint());
+                    alignPipelineOptions.getkAlignEndpoint(),
+                    alignPipelineOptions.getOutputDatastoreDbUrl().get(),
+                    alignPipelineOptions.getOutputDatastoreDbCollection().get(),
+                    alignPipelineOptions.getProject());
         }
     }
 
@@ -47,5 +53,10 @@ public class MainModule extends BaseModule {
     @Provides
     public ProceedKAlignmentFn provideProceedKAlignmentFn(NanostreamHttpService service) {
         return new ProceedKAlignmentFn(service, kalignEndpoint);
+    }
+
+    @Provides
+    public WriteToFirestoreDbFn provideWriteToFirestoreDbFn() {
+        return new WriteToFirestoreDbFn(firestoreDatabaseUrl, firestoreDestCollection, projectId);
     }
 }

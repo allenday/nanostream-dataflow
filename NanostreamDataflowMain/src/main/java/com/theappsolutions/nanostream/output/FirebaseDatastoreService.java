@@ -1,34 +1,48 @@
 package com.theappsolutions.nanostream.output;
 
+import com.google.api.core.ApiFuture;
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.WriteResult;
 import com.google.cloud.storage.*;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
+import com.google.firebase.cloud.FirestoreClient;
 
 import java.io.IOException;
+import java.util.UUID;
 
 /**
- * Provides access to {@link Storage} instance with convenient interface
+ * Provides access to {@link Firestore} instance with convenient interface
  */
 public class FirebaseDatastoreService {
 
-    private Storage storage;
+    private final static String FIREBASE_APP_NAME = "NanostreamFirebaseApp";
+    private final Firestore firestore;
 
-    private FirebaseDatastoreService() {
+    public FirebaseDatastoreService(Firestore firestore) {
+        this.firestore = firestore;
     }
 
-    public static FirebaseDatastoreService initialize() throws IOException {
+    public static FirebaseDatastoreService initialize(String projectId, String databaseUrl) throws IOException {
 
         FirebaseOptions firebaseOptions = new FirebaseOptions.Builder()
                 .setCredentials(GoogleCredentials.getApplicationDefault())
-                .setDatabaseUrl("https://upwork-nano-stream.firebaseio.com")
+                .setDatabaseUrl(databaseUrl)
+                .setProjectId(projectId)
                 .build();
-        FirebaseApp.initializeApp(firebaseOptions);
 
-        return new FirebaseDatastoreService();
+        if (FirebaseApp.getApps().stream().noneMatch(firebaseApp -> firebaseApp.getName().equals(FIREBASE_APP_NAME))){
+            try {
+                FirebaseApp.initializeApp(firebaseOptions, FIREBASE_APP_NAME);
+            } catch (RuntimeException ignored){
+            }
+        }
+        return new FirebaseDatastoreService(FirestoreClient.getFirestore(FirebaseApp.getInstance(FIREBASE_APP_NAME)));
     }
 
-    public Blob getBlobByGCloudNotificationData(String bucketName, String blobName) throws StorageException {
-        return storage.get(BlobId.of(bucketName, blobName));
+    public ApiFuture<WriteResult> writeObjectToFirestoreCollection(String firestoreCollection, Object objectToWrite) throws StorageException {
+        return firestore.collection(firestoreCollection).document(UUID.randomUUID().toString())
+                .set(objectToWrite);
     }
 }

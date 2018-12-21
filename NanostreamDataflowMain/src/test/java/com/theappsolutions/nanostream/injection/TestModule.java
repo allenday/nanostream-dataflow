@@ -13,14 +13,16 @@ import static org.mockito.Mockito.withSettings;
 
 public class TestModule extends BaseModule {
 
-    private TestModule(String baseUrl, String bwaDb, String bwaEndpoint, String kalignEndpoint) {
-        super(baseUrl, bwaDb, bwaEndpoint, kalignEndpoint);
+    private TestModule(String baseUrl, String bwaDb, String bwaEndpoint, String kalignEndpoint,
+                       String firestoreDatabaseUrl, String firestoreDestCollection, String projectId) {
+        super(baseUrl, bwaDb, bwaEndpoint, kalignEndpoint, firestoreDatabaseUrl, firestoreDestCollection, projectId);
     }
 
     public static class Builder extends BaseModule.Builder {
 
         public TestModule build() {
-            return new TestModule(baseUrl, bwaDb, bwaEndpoint, kalignEndpoint);
+            return new TestModule(baseUrl, bwaDb, bwaEndpoint, kalignEndpoint, firestoreDatabaseUrl,
+                    firestoreDestCollection, projectId);
         }
     }
 
