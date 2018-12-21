@@ -1,12 +1,5 @@
 package com.theappsolutions.nanostream;
 
-import com.google.api.core.ApiFuture;
-import com.google.auth.oauth2.GoogleCredentials;
-import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.WriteResult;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.FirebaseOptions;
-import com.google.firebase.cloud.FirestoreClient;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.theappsolutions.nanostream.aligner.MakeAlignmentViaHttpFn;
@@ -19,11 +12,12 @@ import com.theappsolutions.nanostream.io.WindowedFilenamePolicy;
 import com.theappsolutions.nanostream.kalign.ExtractSequenceFn;
 import com.theappsolutions.nanostream.kalign.ProceedKAlignmentFn;
 import com.theappsolutions.nanostream.kalign.SequenceOnlyDNACoder;
-import com.theappsolutions.nanostream.output.OutputRecord;
+import com.theappsolutions.nanostream.output.WriteToFirestoreDbFn;
 import com.theappsolutions.nanostream.pubsub.DecodeNotificationJsonMessage;
 import com.theappsolutions.nanostream.pubsub.FilterObjectFinalizeMessage;
 import com.theappsolutions.nanostream.util.trasform.CombineIterableAccumulatorFn;
 import htsjdk.samtools.fastq.FastqRecord;
+import japsa.seq.Sequence;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.PipelineResult;
 import org.apache.beam.sdk.io.FileBasedSink;
@@ -36,16 +30,9 @@ import org.apache.beam.sdk.options.ValueProvider;
 import org.apache.beam.sdk.transforms.*;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
 import org.apache.beam.sdk.transforms.windowing.Window;
+import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.joda.time.Duration;
-
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.UUID;
-import java.util.concurrent.ExecutionException;
-
 
 /**
  * Main class of the Nanostream Dataflow App that provides dataflow pipeline
@@ -59,38 +46,6 @@ public class NanostreamApp {
                 .as(NanostreamPipelineOptions.class);
         Injector injector = Guice.createInjector(new MainModule.Builder().buildWithPipelineOptions(options));
 
-        FileInputStream serviceAccount =
-                null;
-        try {
-            serviceAccount = new FileInputStream("keys/upwork-nano-stream-firebase.json");
-
-
-            FirebaseOptions firebaseOptions = new FirebaseOptions.Builder()
-                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                    .setDatabaseUrl("https://upwork-nano-stream.firebaseio.com")
-                    .build();
-
-            FirebaseApp.initializeApp(firebaseOptions);
-            Firestore db = FirestoreClient.getFirestore();
-
-            ApiFuture<WriteResult> future = db.collection("nanostream_results").document(UUID.randomUUID().toString())
-                    .set(new OutputRecord("1", "1", "1", "1", "1"));
-            // block on response if required
-            System.out.println("Update time : " + future.get().getUpdateTime());
-        } catch (IOException | InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-
-        int i = 0;
-        while (i < 1) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
-
         Pipeline pipeline = Pipeline.create(options);
         SequenceOnlyDNACoder sequenceOnlyDNACoder = new SequenceOnlyDNACoder();
         pipeline.getCoderRegistry()
@@ -100,7 +55,7 @@ public class NanostreamApp {
                 .readMessagesWithAttributes()
                 .fromSubscription(options.getSubscription()));
 
-        pubsubMessages
+        PCollection<KV<String, Sequence>> mainWorkflow = pubsubMessages
                 .apply("Filter only ADD FILE", ParDo.of(new FilterObjectFinalizeMessage()))
                 .apply("Deserialize messages", ParDo.of(new DecodeNotificationJsonMessage()))
                 .apply("Get data from FastQ", ParDo.of(new GetDataFromFastQFile()))
@@ -117,9 +72,11 @@ public class NanostreamApp {
                 .apply("Extract Sequences",
                         ParDo.of(new ExtractSequenceFn()))
                 .apply("K-Align", ParDo.of(injector.getInstance(ProceedKAlignmentFn.class)))
-                .apply("Error correction", ParDo.of(new ErrorCorrectionFn()))
+                .apply("Error correction", ParDo.of(new ErrorCorrectionFn()));
+
+        mainWorkflow.apply("Write to Datastore", ParDo.of(injector.getInstance(WriteToFirestoreDbFn.class)));
                 //TODO temporary output to gcs file for debug
-                .apply("toString()", ToString.elements())
+        mainWorkflow.apply("toString()", ToString.elements())
                 .apply("Write to GCS", TextIO.write()
                         .withWindowedWrites()
                         .withNumShards(options.getNumShards())

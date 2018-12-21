@@ -13,7 +13,7 @@ public class LoadGeneInfoTransform extends PTransform<PBegin, PCollection<String
     public PCollection<String> expand(PBegin input) {
 
         return input.getPipeline()
-                .apply("Read GS", TextIO.read().from("gs://nano-stream-test/ResistanceGenes/resFinder/DB.fasta"))
+                .apply("Read GS", TextIO.read().from("gs://nano-stream-test/gene_info/DB_resistant_formatted.fasta"))
                 .apply("Count", ParDo.of(new DoFn<String, String>() {
                     @ProcessElement
                     public void processElement(ProcessContext c) {

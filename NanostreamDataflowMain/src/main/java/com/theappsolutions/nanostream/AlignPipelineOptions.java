@@ -4,6 +4,7 @@ import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.options.Default;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.Validation;
+import org.apache.beam.sdk.options.ValueProvider;
 
 /**
  * Provides list of {@link org.apache.beam.sdk.Pipeline} options for HTTP alignment operations
@@ -43,4 +44,17 @@ public interface AlignPipelineOptions extends DataflowPipelineOptions {
     String getBaseUrl();
 
     void setBaseUrl(String value);
+
+    @Description("Url of the Firebase Datastore database that will be used for writing output data")
+    @Validation.Required
+    ValueProvider<String> getOutputDatastoreDbUrl();
+
+    void setOutputDatastoreDbUrl(ValueProvider<String> value);
+
+
+    @Description("Collection name of the Firebase Datastore database that will be used for writing output data")
+    @Validation.Required
+    ValueProvider<String> getOutputDatastoreDbCollection();
+
+    void setOutputDatastoreDbCollection(ValueProvider<String> value);
 }
