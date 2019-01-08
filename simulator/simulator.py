@@ -11,13 +11,14 @@ import logging
 from google.cloud import storage
 
 
-def start_infinite_adding_files(dest_gcs_bucket_name, data):
+def start_infinite_adding_files(dest_gcs_bucket_name, data, publishing_speed):
     """Starts infinite adding of files to specific GCS bucked at preciously set time"""
     while True:
         start_time = time.time()
         for msg_tuple in data:
             worked_time = time.time() - start_time
             time_to_add, file_to_add = msg_tuple
+            time_to_add = time_to_add/publishing_speed
 
             # Wait until add time
             if time_to_add > worked_time:
@@ -95,6 +96,10 @@ if __name__ == '__main__':
     source_gsc_filename = sys.argv[1]
     destination_gcs_bucket_name = sys.argv[2]
 
+    publishing_speed = 1
+    if len(sys.argv) > 3:
+        publishing_speed = float(sys.argv[3])
+
     # Downloads source file filename for GSC bucket
     source_bucket_name, source_gsc_filename = parse_file_to_bucket_and_filename(source_gsc_filename)
     source_filename = source_gsc_filename
@@ -113,4 +118,4 @@ if __name__ == '__main__':
     source_data_parsed.sort()
 
     # Starts infinite adding of files
-    start_infinite_adding_files(destination_gcs_bucket_name, source_data_parsed)
+    start_infinite_adding_files(destination_gcs_bucket_name, source_data_parsed, publishing_speed)

@@ -7,4 +7,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY simulator.py /simulator/simulator.py
 
-CMD python simulator.py $SOURCE_FILE $DESTINATION_BUCKET
+CMD python simulator.py $SOURCE_FILE $DESTINATION_BUCKET $PUBLISHING_SPEED

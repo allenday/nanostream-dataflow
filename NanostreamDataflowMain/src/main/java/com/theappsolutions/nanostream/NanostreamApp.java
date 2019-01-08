@@ -7,6 +7,8 @@ import com.theappsolutions.nanostream.aligner.ParseAlignedDataIntoSAMFn;
 import com.theappsolutions.nanostream.errorcorrection.ErrorCorrectionFn;
 import com.theappsolutions.nanostream.fastq.ParseFastQFn;
 import com.theappsolutions.nanostream.gcs.GetDataFromFastQFile;
+import com.theappsolutions.nanostream.geneinfo.GeneInfo;
+import com.theappsolutions.nanostream.geneinfo.LoadGeneInfoTransform;
 import com.theappsolutions.nanostream.injection.MainModule;
 import com.theappsolutions.nanostream.io.WindowedFilenamePolicy;
 import com.theappsolutions.nanostream.kalign.ExtractSequenceFn;
@@ -32,7 +34,10 @@ import org.apache.beam.sdk.transforms.windowing.FixedWindows;
 import org.apache.beam.sdk.transforms.windowing.Window;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
+import org.apache.beam.sdk.values.PCollectionView;
 import org.joda.time.Duration;
+
+import java.util.Map;
 
 /**
  * Main class of the Nanostream Dataflow App that provides dataflow pipeline
@@ -55,6 +60,11 @@ public class NanostreamApp {
                 .readMessagesWithAttributes()
                 .fromSubscription(options.getSubscription()));
 
+        PCollectionView<Map<String, GeneInfo>> geneInfo = pipeline.apply(injector.getInstance(LoadGeneInfoTransform.class))
+                .apply(
+                        View.asMap()
+                );
+
         PCollection<KV<String, Sequence>> mainWorkflow = pubsubMessages
                 .apply("Filter only ADD FILE", ParDo.of(new FilterObjectFinalizeMessage()))
                 .apply("Deserialize messages", ParDo.of(new DecodeNotificationJsonMessage()))
@@ -76,6 +86,7 @@ public class NanostreamApp {
 
         mainWorkflow.apply("Write to Datastore", ParDo.of(injector.getInstance(WriteToFirestoreDbFn.class)));
                 //TODO temporary output to gcs file for debug
+
         mainWorkflow.apply("toString()", ToString.elements())
                 .apply("Write to GCS", TextIO.write()
                         .withWindowedWrites()
