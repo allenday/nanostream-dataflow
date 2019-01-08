@@ -1,0 +1,6 @@
+target/
+.idea/
+*.iml
+*.iws
+src/.gitignore
+result-*
