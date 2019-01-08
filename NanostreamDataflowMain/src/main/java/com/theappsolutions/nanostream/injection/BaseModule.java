@@ -13,16 +13,21 @@ public class BaseModule extends AbstractModule {
     protected String kalignEndpoint;
     protected String firestoreDatabaseUrl;
     protected String firestoreDestCollection;
+    protected String resistantGenesFastaFile;
+    protected String resistantGenesListFile;
     protected String projectId;
 
     public BaseModule(String baseUrl, String bwaDb, String bwaEndpoint, String kalignEndpoint,
-                      String firestoreDatabaseUrl, String firestoreDestCollection, String projectId) {
+                      String firestoreDatabaseUrl, String firestoreDestCollection, String resistantGenesFastaFile,
+                      String resistantGenesListFile, String projectId) {
         this.baseUrl = baseUrl;
         this.bwaDb = bwaDb;
         this.bwaEndpoint = bwaEndpoint;
         this.kalignEndpoint = kalignEndpoint;
         this.firestoreDatabaseUrl = firestoreDatabaseUrl;
         this.firestoreDestCollection = firestoreDestCollection;
+        this.resistantGenesFastaFile = resistantGenesFastaFile;
+        this.resistantGenesListFile = resistantGenesListFile;
         this.projectId = projectId;
     }
 
@@ -34,6 +39,8 @@ public class BaseModule extends AbstractModule {
         String kalignEndpoint;
         String firestoreDatabaseUrl;
         String firestoreDestCollection;
+        String resistantGenesFastaFile;
+        String resistantGenesListFile;
         String projectId;
 
         public Builder setBaseUrl(String baseUrl) {
@@ -71,9 +78,20 @@ public class BaseModule extends AbstractModule {
             return this;
         }
 
+        public Builder setResistantGenesFastaFile(String resistantGenesFastaFile) {
+            this.resistantGenesFastaFile = resistantGenesFastaFile;
+            return this;
+        }
+
+        public Builder setResistantGenesListFile(String resistantGenesListFile) {
+            this.resistantGenesListFile = resistantGenesListFile;
+            return this;
+        }
+
         public BaseModule build() {
             return new BaseModule(baseUrl, bwaDb, bwaEndpoint, kalignEndpoint,
-                    firestoreDatabaseUrl, firestoreDestCollection, projectId);
+                    firestoreDatabaseUrl, firestoreDestCollection, resistantGenesFastaFile,
+                    resistantGenesListFile, projectId);
         }
     }
 }

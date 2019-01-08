@@ -7,9 +7,9 @@ import org.apache.beam.sdk.options.Validation;
 import org.apache.beam.sdk.options.ValueProvider;
 
 /**
- * Provides list of {@link org.apache.beam.sdk.Pipeline} options for HTTP alignment operations
+ * Provides list of {@link org.apache.beam.sdk.Pipeline} options for Nanostream pipeline transformations
  */
-public interface AlignPipelineOptions extends DataflowPipelineOptions {
+public interface MainLogicPipelineOptions extends DataflowPipelineOptions {
 
     @Description("The window duration in which FastQ records will be collected")
     @Default.Integer(60)
@@ -57,4 +57,18 @@ public interface AlignPipelineOptions extends DataflowPipelineOptions {
     ValueProvider<String> getOutputDatastoreDbCollection();
 
     void setOutputDatastoreDbCollection(ValueProvider<String> value);
+
+
+    @Description("GS path for resistant genes fasta file")
+    @Validation.Required
+    ValueProvider<String> getResistantGenesFastaFile();
+
+    void setResistantGenesFastaFile(ValueProvider<String> value);
+
+
+    @Description("GS path for resistant genes list file")
+    @Validation.Required
+    ValueProvider<String> getResistantGenesListFile();
+
+    void setResistantGenesListFile(ValueProvider<String> value);
 }
