@@ -42,7 +42,11 @@ public class FirebaseDatastoreService {
     }
 
     public ApiFuture<WriteResult> writeObjectToFirestoreCollection(String firestoreCollection, Object objectToWrite) throws StorageException {
-        return firestore.collection(firestoreCollection).document(UUID.randomUUID().toString())
+        return writeObjectToFirestoreCollection(firestoreCollection, UUID.randomUUID().toString(), objectToWrite);
+    }
+
+    public ApiFuture<WriteResult> writeObjectToFirestoreCollection(String firestoreCollection, String documentId, Object objectToWrite) throws StorageException {
+        return firestore.collection(firestoreCollection).document(documentId)
                 .set(objectToWrite);
     }
 }

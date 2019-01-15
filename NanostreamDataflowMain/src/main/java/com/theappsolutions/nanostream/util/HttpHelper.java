@@ -5,6 +5,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.ContentBody;
@@ -15,6 +16,7 @@ import org.apache.http.impl.client.HttpClients;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
 
 /**
@@ -36,11 +38,23 @@ public class HttpHelper implements Serializable {
         return builder.build();
     }
 
+    public URI buildURI(String baseUrl, Map<String, String> params) throws URISyntaxException {
+        URIBuilder uriBuilder = new URIBuilder(baseUrl);
+        params.forEach(uriBuilder::addParameter);
+        return uriBuilder.build();
+    }
+
+    public HttpUriRequest buildRequest(URI uri) {
+        return buildRequest(uri, null);
+    }
+
     public HttpUriRequest buildRequest(URI uri, HttpEntity httpEntity) {
-        return RequestBuilder
-                .post(uri)
-                .setEntity(httpEntity)
-                .build();
+        RequestBuilder requestBuilder =  RequestBuilder
+                .post(uri);
+        if (httpEntity != null) {
+            requestBuilder = requestBuilder.setEntity(httpEntity);
+        }
+        return requestBuilder.build();
     }
 
     public <T> T executeRequest(HttpClient client, HttpUriRequest request, ResponseHandler<T> httpEntity)

@@ -10,8 +10,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Random;
 import java.util.concurrent.Future;
 
 /**
@@ -19,7 +17,7 @@ import java.util.concurrent.Future;
  * See <a href="https://cloud.google.com/storage/docs/object-change-notification">Firestore Database</a>
  * documentation
  */
-public class WriteToFirestoreDbFn extends DoFn<KV<String, Sequence>, String> {
+public class WriteToFirestoreDbFn extends DoFn<Iterable<KV<String, Sequence>>, String> {
 
     private Logger LOG = LoggerFactory.getLogger(WriteToFirestoreDbFn.class);
 
@@ -49,10 +47,12 @@ public class WriteToFirestoreDbFn extends DoFn<KV<String, Sequence>, String> {
         if (firebaseDatastoreService == null){
             return;
         }
-        KV<String, Sequence> sequenceKV = c.element();
-        OutputRecord outputRecord = new OutputRecord(new Date(), sequenceKV.getKey(),
-                sequenceKV.getValue().toString(), new Random().nextFloat(), new Random().nextFloat());
-        Future<WriteResult> result = firebaseDatastoreService.writeObjectToFirestoreCollection(firestoreDestCollection, outputRecord);
+        Iterable<KV<String, Sequence>> sequenceIterableKV = c.element();
+        SequenceInfoGenerator sequenceInfoGenerator = new SequenceInfoGenerator();
+        /*SequenceInfoResult sequenceInfoResult = new SequenceInfoResult(new Date(), sequenceKV.getKey(),
+                sequenceKV.getValue().toString(), new Random().nextFloat(), new Random().nextFloat());*/
+        SequenceInfoResult sequenceInfoResult = sequenceInfoGenerator.genereteSequnceInfo(sequenceIterableKV);
+        Future<WriteResult> result = firebaseDatastoreService.writeObjectToFirestoreCollection(firestoreDestCollection, "resultDocument", sequenceInfoResult);
         c.output(result.toString());
     }
 }
