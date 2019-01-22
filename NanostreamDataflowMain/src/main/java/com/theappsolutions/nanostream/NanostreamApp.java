@@ -97,22 +97,6 @@ public class NanostreamApp {
         errorCorrectedCollection.apply("Write to sequences to Firestore", ParDo.of(injector.getInstance(WriteSequencesBodyToFirestoreDbFn.class)));
 
 
-                //TODO temporary output to gcs file for debug
-
-        /*mainWorkflow.apply("toString()", ToString.elements())
-                .apply("Write to GCS", TextIO.write()
-                        .withWindowedWrites()
-                        .withNumShards(options.getNumShards())
-                        .to(
-                                new WindowedFilenamePolicy(
-                                        options.getOutputDirectory(),
-                                        options.getOutputFilenamePrefix(),
-                                        options.getOutputShardTemplate(),
-                                        options.getOutputFilenameSuffix()))
-                        .withTempDirectory(ValueProvider.NestedValueProvider.of(
-                                options.getOutputDirectory(),
-                                (SerializableFunction<String, ResourceId>) FileBasedSink::convertToFileResourceIfPossible)));*/
-
         PipelineResult result = pipeline.run();
         result.waitUntilFinish();
     }

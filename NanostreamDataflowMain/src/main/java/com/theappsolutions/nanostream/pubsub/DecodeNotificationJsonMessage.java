@@ -2,7 +2,6 @@ package com.theappsolutions.nanostream.pubsub;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import com.theappsolutions.nanostream.models.GCloudNotification;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.slf4j.Logger;
