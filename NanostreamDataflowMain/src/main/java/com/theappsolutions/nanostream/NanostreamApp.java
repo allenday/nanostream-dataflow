@@ -8,7 +8,6 @@ import com.theappsolutions.nanostream.errorcorrection.ErrorCorrectionFn;
 import com.theappsolutions.nanostream.fastq.ParseFastQFn;
 import com.theappsolutions.nanostream.gcs.GetDataFromFastQFile;
 import com.theappsolutions.nanostream.injection.MainModule;
-import com.theappsolutions.nanostream.injection.NanostreamModule;
 import com.theappsolutions.nanostream.kalign.ExtractSequenceFn;
 import com.theappsolutions.nanostream.kalign.ProceedKAlignmentFn;
 import com.theappsolutions.nanostream.kalign.SequenceOnlyDNACoder;
@@ -91,7 +90,8 @@ public class NanostreamApp {
                 .apply("Take only last pane", Window.<Map<String, SequenceCountAndTaxonomyData>>into(new GlobalWindows())
                         .triggering(Repeatedly.forever(AfterProcessingTime
                                 .pastFirstElementInPane().plusDelayOf(Duration.standardSeconds(10))))
-                        .withAllowedLateness(Duration.ZERO))
+                        .withAllowedLateness(Duration.ZERO)
+                        .discardingFiredPanes())
                 .apply("Write to sequence statistic to Firestore", ParDo.of(injector.getInstance(WriteSequencesStatisticToFirestoreDbFn.class)));
 
         errorCorrectedCollection.apply("Write to sequences to Firestore", ParDo.of(injector.getInstance(WriteSequencesBodyToFirestoreDbFn.class)));
