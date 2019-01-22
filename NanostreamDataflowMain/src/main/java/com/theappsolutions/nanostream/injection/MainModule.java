@@ -2,72 +2,59 @@ package com.theappsolutions.nanostream.injection;
 
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.theappsolutions.nanostream.MainLogicPipelineOptions;
 import com.theappsolutions.nanostream.aligner.MakeAlignmentViaHttpFn;
-import com.theappsolutions.nanostream.geneinfo.LoadGeneInfoTransform;
 import com.theappsolutions.nanostream.http.NanostreamHttpService;
 import com.theappsolutions.nanostream.kalign.ProceedKAlignmentFn;
-import com.theappsolutions.nanostream.output.WriteToFirestoreDbFn;
+import com.theappsolutions.nanostream.output.WriteSequencesBodyToFirestoreDbFn;
+import com.theappsolutions.nanostream.output.WriteSequencesStatisticToFirestoreDbFn;
+import com.theappsolutions.nanostream.taxonomy.GetTaxonomyDataFn;
 import com.theappsolutions.nanostream.util.HttpHelper;
 
 /**
  * App dependency injection module, that provide graph of main dependencies in app
  */
-public class MainModule extends BaseModule {
+public class MainModule extends NanostreamModule {
 
-    public MainModule(String baseUrl, String bwaDb, String bwaEndpoint, String kalignEndpoint,
-                      String firestoreDatabaseUrl, String firestoreDestCollection, String resistantGenesFastaFile,
-                      String resistantGenesListFile, String projectId) {
-        super(baseUrl, bwaDb, bwaEndpoint, kalignEndpoint, firestoreDatabaseUrl, firestoreDestCollection,
-                resistantGenesFastaFile, resistantGenesListFile, projectId);
+    public MainModule(Builder builder) {
+        super(builder);
     }
 
-    public static class Builder<T extends BaseModule> extends BaseModule.Builder {
+    public static class Builder extends NanostreamModule.Builder {
 
+        @Override
         public MainModule build() {
-            return new MainModule(baseUrl, bwaDb, bwaEndpoint, kalignEndpoint,
-                    firestoreDatabaseUrl, firestoreDestCollection, resistantGenesFastaFile, resistantGenesListFile,
-                    projectId);
-        }
-
-
-        public MainModule buildWithPipelineOptions(MainLogicPipelineOptions mainLogicPipelineOptions) {
-            return new MainModule(mainLogicPipelineOptions.getBaseUrl(),
-                    mainLogicPipelineOptions.getBwaDatabase(),
-                    mainLogicPipelineOptions.getBwaEndpoint(),
-                    mainLogicPipelineOptions.getkAlignEndpoint(),
-                    mainLogicPipelineOptions.getOutputDatastoreDbUrl().get(),
-                    mainLogicPipelineOptions.getOutputDatastoreDbCollection().get(),
-                    mainLogicPipelineOptions.getResistantGenesFastaFile().get(),
-                    mainLogicPipelineOptions.getResistantGenesListFile().get(),
-                    mainLogicPipelineOptions.getProject());
+            return new MainModule(this);
         }
     }
-
 
     @Provides
     @Singleton
     public NanostreamHttpService provideNanostreamHttpService(HttpHelper httpHelper) {
-        return new NanostreamHttpService(httpHelper, baseUrl);
+        return new NanostreamHttpService(httpHelper, servicesUrl);
     }
 
     @Provides
     public MakeAlignmentViaHttpFn provideMakeAlignmentViaHttpFn(NanostreamHttpService service) {
-        return new MakeAlignmentViaHttpFn(service, bwaDb, bwaEndpoint);
+        return new MakeAlignmentViaHttpFn(service, bwaDB, bwaEndpoint);
     }
 
     @Provides
     public ProceedKAlignmentFn provideProceedKAlignmentFn(NanostreamHttpService service) {
-        return new ProceedKAlignmentFn(service, kalignEndpoint);
+        return new ProceedKAlignmentFn(service, kAlignEndpoint);
     }
 
     @Provides
-    public WriteToFirestoreDbFn provideWriteToFirestoreDbFn() {
-        return new WriteToFirestoreDbFn(firestoreDatabaseUrl, firestoreDestCollection, projectId);
+    public WriteSequencesStatisticToFirestoreDbFn provideWriteSequencesStatisticToFirestoreDbFn() {
+        return new WriteSequencesStatisticToFirestoreDbFn(outputFirestoreDbUrl, outputFirestoreSequencesStatisticCollection, projectId);
     }
 
     @Provides
-    public LoadGeneInfoTransform provideLoadGeneInfoTransform() {
-        return new LoadGeneInfoTransform(resistantGenesFastaFile, resistantGenesListFile);
+    public WriteSequencesBodyToFirestoreDbFn provideWriteSequencesBodyToFirestoreDbFn() {
+        return new WriteSequencesBodyToFirestoreDbFn(outputFirestoreDbUrl, outputFirestoreSequencesBodyCollection, projectId);
+    }
+
+    @Provides
+    public GetTaxonomyDataFn provideGetTaxonomyDataFn() {
+        return new GetTaxonomyDataFn(outputFirestoreDbUrl, outputFirestoreGeneCacheCollection, projectId);
     }
 }

@@ -1,56 +1,37 @@
 package com.theappsolutions.nanostream.genebank;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.theappsolutions.nanostream.http.NanostreamResponseHandler;
-import com.theappsolutions.nanostream.util.HttpHelper;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.beam.sdk.coders.DefaultCoder;
+import org.apache.beam.sdk.coders.SerializableCoder;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.HashMap;
+import java.io.Serializable;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
-public class GeneBankRepository {
+@DefaultCoder(SerializableCoder.class)
+public class GeneBankRepository implements Serializable {
 
-    private Gson gson;
+    private NCBIDataSource ncbiDataSource;
+    private FirestoreGeneCacheDataSource firestoreGeneCacheDataSource;
 
-    public GeneBankRepository(Gson gson) {
-        this.gson = gson;
+    public GeneBankRepository(NCBIDataSource ncbiDataSource, FirestoreGeneCacheDataSource firestoreGeneCacheDataSource) {
+        this.ncbiDataSource = ncbiDataSource;
+        this.firestoreGeneCacheDataSource = firestoreGeneCacheDataSource;
     }
 
-    public String[] getHierarchyByName(String name){
-        HttpHelper httpHelper = new HttpHelper();
-        HttpClient httpClient = httpHelper.createHttpClient();
-
+    public List<String> getHierarchyByName(String name) {
         try {
-            URI uri = httpHelper.buildURI("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi",
-                    new HashMap<String, String>(){{
-                        put("db", "Nucleotide");
-                        put("usehistory", "y");
-                        put("retmode", "json");
-                        put("term", name);
-                    }});
-            HttpUriRequest httpRequest = httpHelper.buildRequest(uri);
-            String response = httpHelper.executeRequest(httpClient, httpRequest, new NanostreamResponseHandler());
-            JsonObject jsonObject = gson.fromJson(response, JsonObject.class);
-
-            JsonObject eSearchResult =  jsonObject.getAsJsonObject("esearchresult");
-            String webEnv = eSearchResult.get("webenv").getAsString();
-            String querykey = eSearchResult.get("querykey").getAsString();
-            uri = httpHelper.buildURI("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi",
-                    new HashMap<String, String>(){{
-                        put("db", "Nucleotide");
-                        put("WebEnv",webEnv);
-                        put("query_key", querykey);
-                    }});
-            httpRequest = httpHelper.buildRequest(uri);
-            response = httpHelper.executeRequest(httpClient, httpRequest, new NanostreamResponseHandler());
-            System.out.println(response);
-        } catch (URISyntaxException | IOException e) {
+            GeneTaxonomyInfo geneTaxonomyInfo = firestoreGeneCacheDataSource.getTaxonomyFromFirestore(name);
+            if (geneTaxonomyInfo.getSearchQuery() != null && geneTaxonomyInfo.getGeneLocusNCBI() == null) {
+                throw new FirestoreGeneCacheDataSource.GeneCacheInfoMissedExeption();
+            }
+            return geneTaxonomyInfo.getTaxonomy();
+        } catch (FirestoreGeneCacheDataSource.GeneCacheNotFoundExeption | FirestoreGeneCacheDataSource.GeneCacheInfoMissedExeption geneCacheNotFoundException) {
+            GeneTaxonomyInfo geneTaxonomyInfo = ncbiDataSource.getTaxonomyFromNCBI(name);
+            firestoreGeneCacheDataSource.saveTaxonomyToFirestore(geneTaxonomyInfo);
+            return geneTaxonomyInfo.getTaxonomy();
+        } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
+            return null;
         }
-        return new String[0];
     }
 }

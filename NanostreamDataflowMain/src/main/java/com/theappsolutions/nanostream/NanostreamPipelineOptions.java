@@ -1,5 +1,6 @@
 package com.theappsolutions.nanostream;
 
+import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.options.Default;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.Validation;
@@ -9,44 +10,77 @@ import org.apache.beam.sdk.options.ValueProvider;
  * Provides list of {@link org.apache.beam.sdk.Pipeline} options
  * for implementation {@link NanostreamApp} Dataflow transformation
  */
-public interface NanostreamPipelineOptions extends MainLogicPipelineOptions {
+public interface NanostreamPipelineOptions extends DataflowPipelineOptions {
 
     @Description("GCP PubSub subscription name to read messages from")
     @Validation.Required
-    String getSubscription();
+    String getInputDataSubscription();
 
-    void setSubscription(String value);
+    void setInputDataSubscription(String value);
 
-    @Description("The maximum number of output shards produced when writing.")
-    @Default.Integer(1)
-    Integer getNumShards();
+    @Description("The window duration in which FastQ records will be collected")
+    @Default.Integer(60)
+    Integer getDataCollectionWindow();
 
-    void setNumShards(Integer value);
+    void setDataCollectionWindow(Integer value);
 
-    @Description("The directory to output files to. Must end with a slash.")
+    @Description("Base URL")
     @Validation.Required
-    ValueProvider<String> getOutputDirectory();
+    String getServicesUrl();
 
-    void setOutputDirectory(ValueProvider<String> value);
+    void setServicesUrl(String value);
 
-    @Description("The filename prefix of the files to write to.")
-    @Default.String("output_file_")
+    @Description("BWA Alignment server endpoint to use")
     @Validation.Required
-    ValueProvider<String> getOutputFilenamePrefix();
+    String getBwaEndpoint();
 
-    void setOutputFilenamePrefix(ValueProvider<String> value);
+    void setBwaEndpoint(String value);
 
-    @Description("The suffix of the files to write.")
-    @Default.String("")
-    ValueProvider<String> getOutputFilenameSuffix();
 
-    void setOutputFilenameSuffix(ValueProvider<String> value);
+    @Description("BWA Alignment database")
+    @Validation.Required
+    String getBwaDatabase();
 
-    @Description("The shard template of the output file. Specified as repeating sequences "
-            + "of the letters 'S' or 'N' (example: SSS-NNN). These are replaced with the "
-            + "shard number, or number of shards respectively")
-    @Default.String("W-P-SS-of-NN")
-    ValueProvider<String> getOutputShardTemplate();
+    void setBwaDatabase(String value);
 
-    void setOutputShardTemplate(ValueProvider<String> value);
+
+    @Description("K-Align server endpoint to use")
+    @Validation.Required
+    String getkAlignEndpoint();
+
+    void setkAlignEndpoint(String value);
+
+    @Description("Url of the Firebase Datastore database that will be used for writing output data")
+    @Validation.Required
+    ValueProvider<String> getOutputFirestoreDbUrl();
+
+    void setOutputFirestoreDbUrl(ValueProvider<String> value);
+
+
+    @Description("Collection name of the Firebase Datastore database that will be used for writing output data")
+    @Validation.Required
+    ValueProvider<String> getOutputFirestoreMainCollection();
+
+    void setOutputFirestoreMainCollection(ValueProvider<String> value);
+
+    //TODO
+    @Description("")
+    @Validation.Required
+    ValueProvider<String> getOutputFirestoreSequencesStatisticCollection();
+
+    void setOutputFirestoreSequencesStatisticCollection(ValueProvider<String> value);
+
+    //TODO
+    @Description("")
+    @Validation.Required
+    ValueProvider<String> getOutputFirestoreSequencesBodyCollection();
+
+    void setOutputFirestoreSequencesBodyCollection(ValueProvider<String> value);
+
+    //TODO
+    @Description("")
+    @Validation.Required
+    ValueProvider<String> getOutputFirestoreGeneCacheCollection();
+
+    void setOutputFirestoreGeneCacheCollection(ValueProvider<String> value);
 }

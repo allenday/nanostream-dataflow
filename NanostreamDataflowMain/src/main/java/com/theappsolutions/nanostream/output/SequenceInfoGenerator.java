@@ -1,31 +1,24 @@
 package com.theappsolutions.nanostream.output;
 
-import japsa.seq.Sequence;
-import org.apache.beam.sdk.values.KV;
+import com.theappsolutions.nanostream.probecalculation.SequenceCountAndTaxonomyData;
 
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 public class SequenceInfoGenerator {
 
-    public SequenceInfoResult genereteSequnceInfo(Iterable<KV<String, Sequence>> sequenceSourceData) {
+    public SequenceStatisticResult genereteSequnceInfo(Map<String, SequenceCountAndTaxonomyData> sequenceSourceData) {
         Date date = new Date();
         long startTime = System.currentTimeMillis();
 
-        float totalDataListSize = StreamSupport.stream(sequenceSourceData.spliterator(), false).count();
+        float totalDataListSize = sequenceSourceData.values().stream().mapToInt(it -> Math.toIntExact(it.getCount())).sum();
 
-        Map<String, List<KV<String, Sequence>>> sourceDataGrouped = StreamSupport.stream(sequenceSourceData.spliterator(), false)
-                .collect(Collectors.groupingBy(KV::getKey));
-        List<SequenceInfoResult.SequenceRecord> sequenceRecords = new LinkedList<>();
+        List<SequenceStatisticResult.SequenceRecord> sequenceRecords = new LinkedList<>();
 
-        sourceDataGrouped.forEach((id, value) -> {
-            float sequenceCount = value.size();
-            String sequenceStr = value.stream().findFirst().map(KV::getValue).map(Sequence::toString).orElse(null);
-            sequenceRecords.add(new SequenceInfoResult.SequenceRecord(UUID.randomUUID().toString(), id, sequenceStr, sequenceCount / totalDataListSize));
+        sequenceSourceData.forEach((id, value) -> {
+            sequenceRecords.add(new SequenceStatisticResult.SequenceRecord(UUID.randomUUID().toString(), id, value.getTaxonomy(), value.getCount() / totalDataListSize));
         });
         long finishTime = System.currentTimeMillis();
 
-        return new SequenceInfoResult(date, sequenceRecords, finishTime - startTime);
+        return new SequenceStatisticResult(date, sequenceRecords, finishTime - startTime);
     }
 }

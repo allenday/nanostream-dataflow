@@ -35,8 +35,8 @@ public class NanostreamHttpServiceTest {
 
         Injector injector = Guice.createInjector(
                 new TestModule.Builder()
-                        .setBaseUrl(testBaseUrl)
-                        .setBwaDb(testDatabase)
+                        .setServicesUrl(testBaseUrl)
+                        .setBwaDB(testDatabase)
                         .setBwaEndpoint(testEndpoint)
                         .build()
         );

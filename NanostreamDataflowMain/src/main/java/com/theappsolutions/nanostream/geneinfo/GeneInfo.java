@@ -4,6 +4,7 @@ import japsa.seq.Alphabet;
 import japsa.seq.Sequence;
 import org.apache.beam.sdk.coders.AvroCoder;
 import org.apache.beam.sdk.coders.DefaultCoder;
+import org.apache.beam.sdk.coders.SerializableCoder;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
@@ -11,7 +12,7 @@ import java.util.*;
 /**
  * Gene specification data class
  */
-@DefaultCoder(AvroCoder.class)
+@DefaultCoder(SerializableCoder.class)
 public class GeneInfo {
     public Sequence sequence;
     public Double score;

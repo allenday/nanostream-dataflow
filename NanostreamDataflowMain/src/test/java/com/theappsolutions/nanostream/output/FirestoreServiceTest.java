@@ -3,24 +3,18 @@ package com.theappsolutions.nanostream.output;
 import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.Firestore;
-import com.google.cloud.storage.BlobId;
-import com.google.cloud.storage.Storage;
-import com.theappsolutions.nanostream.gcs.GCSService;
-import com.theappsolutions.nanostream.models.GCloudNotification;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.io.IOException;
-
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.verify;
 
 /**
- * Tests {@link FirebaseDatastoreService} data writing
+ * Tests {@link FirestoreService} data writing
  */
-public class FirebaseDatastoreServiceTest {
+public class FirestoreServiceTest {
 
     @Rule
     public final transient TestPipeline testPipeline = TestPipeline.create().enableAbandonedNodeEnforcement(true);
@@ -37,7 +31,7 @@ public class FirebaseDatastoreServiceTest {
         when(mockFirestore.collection(testCollection)).thenReturn(mockCollectionReference);
         when(mockCollectionReference.document(anyString())).thenReturn(mockDocumentReference);
 
-        FirebaseDatastoreService gcsService = new FirebaseDatastoreService(mockFirestore);
+        FirestoreService gcsService = new FirestoreService(mockFirestore);
         gcsService.writeObjectToFirestoreCollection(testCollection, testObject);
 
         verify(mockFirestore, Mockito.times(1)).collection(testCollection);

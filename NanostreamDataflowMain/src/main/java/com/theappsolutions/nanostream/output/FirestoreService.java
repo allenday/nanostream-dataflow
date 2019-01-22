@@ -3,33 +3,38 @@ package com.theappsolutions.nanostream.output;
 import com.google.api.core.ApiFuture;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.FirestoreOptions;
 import com.google.cloud.firestore.WriteResult;
-import com.google.cloud.storage.*;
+import com.google.cloud.storage.StorageException;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.cloud.FirestoreClient;
 
 import java.io.IOException;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Provides access to {@link Firestore} instance with convenient interface
  */
-public class FirebaseDatastoreService {
+public class FirestoreService {
 
     private final static String FIREBASE_APP_NAME = "NanostreamFirebaseApp";
     private final Firestore firestore;
 
-    public FirebaseDatastoreService(Firestore firestore) {
+    public FirestoreService(Firestore firestore) {
         this.firestore = firestore;
     }
 
-    public static FirebaseDatastoreService initialize(String projectId, String databaseUrl) throws IOException {
+    public static FirestoreService initialize(String projectId, String databaseUrl) throws IOException {
 
+        FirestoreOptions firestoreOptions =
+                FirestoreOptions.newBuilder().setTimestampsInSnapshotsEnabled(true).build();
         FirebaseOptions firebaseOptions = new FirebaseOptions.Builder()
                 .setCredentials(GoogleCredentials.getApplicationDefault())
                 .setDatabaseUrl(databaseUrl)
                 .setProjectId(projectId)
+                .setFirestoreOptions(firestoreOptions)
                 .build();
 
         if (FirebaseApp.getApps().stream().noneMatch(firebaseApp -> firebaseApp.getName().equals(FIREBASE_APP_NAME))){
@@ -38,7 +43,7 @@ public class FirebaseDatastoreService {
             } catch (RuntimeException ignored){
             }
         }
-        return new FirebaseDatastoreService(FirestoreClient.getFirestore(FirebaseApp.getInstance(FIREBASE_APP_NAME)));
+        return new FirestoreService(FirestoreClient.getFirestore(FirebaseApp.getInstance(FIREBASE_APP_NAME)));
     }
 
     public ApiFuture<WriteResult> writeObjectToFirestoreCollection(String firestoreCollection, Object objectToWrite) throws StorageException {
@@ -48,5 +53,10 @@ public class FirebaseDatastoreService {
     public ApiFuture<WriteResult> writeObjectToFirestoreCollection(String firestoreCollection, String documentId, Object objectToWrite) throws StorageException {
         return firestore.collection(firestoreCollection).document(documentId)
                 .set(objectToWrite);
+    }
+
+    public <T> T getObjectByDocumentId(String collectionName, String documentId, Class<T> objectClass)
+            throws ExecutionException, InterruptedException {
+        return firestore.collection(collectionName).document(documentId).get().get().toObject(objectClass);
     }
 }
