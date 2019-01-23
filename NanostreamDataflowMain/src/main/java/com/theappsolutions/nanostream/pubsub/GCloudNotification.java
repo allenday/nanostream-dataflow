@@ -1,4 +1,4 @@
-package com.theappsolutions.nanostream.models;
+package com.theappsolutions.nanostream.pubsub;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

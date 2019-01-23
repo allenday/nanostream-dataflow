@@ -11,17 +11,10 @@ import org.mockito.Mockito;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.withSettings;
 
-public class TestModule extends BaseModule {
+public class TestModule extends NanostreamModule {
 
-    private TestModule(String baseUrl, String bwaDb, String bwaEndpoint, String kalignEndpoint) {
-        super(baseUrl, bwaDb, bwaEndpoint, kalignEndpoint);
-    }
-
-    public static class Builder extends BaseModule.Builder {
-
-        public TestModule build() {
-            return new TestModule(baseUrl, bwaDb, bwaEndpoint, kalignEndpoint);
-        }
+    public TestModule(Builder builder) {
+        super(builder);
     }
 
     @Provides
@@ -39,12 +32,12 @@ public class TestModule extends BaseModule {
 
     @Provides
     public MakeAlignmentViaHttpFn provideMakeAlignmentViaHttpFn(NanostreamHttpService service) {
-        return new MakeAlignmentViaHttpFn(service, bwaDb, bwaEndpoint);
+        return new MakeAlignmentViaHttpFn(service, bwaDB, bwaEndpoint);
     }
 
     @Provides
     public ProceedKAlignmentFn provideProceedKAlignmentFn(NanostreamHttpService service) {
-        return new ProceedKAlignmentFn(service, kalignEndpoint);
+        return new ProceedKAlignmentFn(service, kAlignEndpoint);
     }
 
 }

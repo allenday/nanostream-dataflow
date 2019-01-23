@@ -19,7 +19,11 @@ public class ParseAlignedDataIntoSAMFn extends DoFn<String, KV<String, SAMRecord
     public void processElement(ProcessContext c) {
         String data = c.element();
         List<SAMRecord> results = parseAlignmentResponse(data);
-        results.forEach(sam -> c.output(KV.of(sam.getReferenceName(), sam)));
+        results.forEach(sam -> {
+            if (!sam.getReferenceName().equals("*")) {
+                c.output(KV.of(sam.getReferenceName(), sam));
+            }
+        });
     }
 
     private List<SAMRecord> parseAlignmentResponse(String response) {

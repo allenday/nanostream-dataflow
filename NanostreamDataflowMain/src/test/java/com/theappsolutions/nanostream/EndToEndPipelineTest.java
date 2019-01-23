@@ -6,7 +6,6 @@ import com.theappsolutions.nanostream.aligner.MakeAlignmentViaHttpFn;
 import com.theappsolutions.nanostream.aligner.ParseAlignedDataIntoSAMFn;
 import com.theappsolutions.nanostream.errorcorrection.ErrorCorrectionFn;
 import com.theappsolutions.nanostream.fastq.ParseFastQFn;
-import com.theappsolutions.nanostream.injection.BaseModule;
 import com.theappsolutions.nanostream.injection.MainModule;
 import com.theappsolutions.nanostream.kalign.ExtractSequenceFn;
 import com.theappsolutions.nanostream.kalign.ProceedKAlignmentFn;
@@ -65,9 +64,9 @@ public class EndToEndPipelineTest {
 
         Injector injector = Guice.createInjector(new MainModule.Builder()
                 .setBwaEndpoint("/cgi-bin/bwa.cgi")
-                .setBaseUrl("http://35.241.15.140")
-                .setBwaDb("genomeDB.fasta")
-                .setKalignEndpoint("/cgi-bin/kalign.cgi").build());
+                .setServicesUrl("http://35.241.15.140")
+                .setBwaDB("genomeDB.fasta")
+                .setkAlignEndpoint("/cgi-bin/kalign.cgi").build());
 
         SequenceOnlyDNACoder sequenceOnlyDNACoder = new SequenceOnlyDNACoder();
         testPipeline.getCoderRegistry()

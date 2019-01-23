@@ -2,7 +2,7 @@ package com.theappsolutions.nanostream.gcs;
 
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.StorageException;
-import com.theappsolutions.nanostream.models.GCloudNotification;
+import com.theappsolutions.nanostream.pubsub.GCloudNotification;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

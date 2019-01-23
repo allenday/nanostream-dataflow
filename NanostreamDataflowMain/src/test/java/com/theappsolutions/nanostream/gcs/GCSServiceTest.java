@@ -2,10 +2,8 @@ package com.theappsolutions.nanostream.gcs;
 
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Storage;
-import com.google.gson.Gson;
-import com.theappsolutions.nanostream.models.GCloudNotification;
+import com.theappsolutions.nanostream.pubsub.GCloudNotification;
 import org.apache.beam.sdk.testing.TestPipeline;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -20,13 +18,6 @@ public class GCSServiceTest {
 
     @Rule
     public final transient TestPipeline testPipeline = TestPipeline.create().enableAbandonedNodeEnforcement(true);
-    private Gson gson;
-
-
-    @Before
-    public void setup() {
-        gson = new Gson();
-    }
 
     @Test
     public void testBlobSearchingByBlobId() throws IOException {
