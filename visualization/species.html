@@ -13,76 +13,8 @@
 </head>
 
 <body>
-
-    <script>
-        // Initialize Firebase
-        var config = {
-            apiKey: "AIzaSyDQcC0LgEKiiYClfUFFomcVKZLoeEp8E78",
-            authDomain: "upwork-nano-stream.firebaseapp.com",
-            databaseURL: "https://upwork-nano-stream.firebaseio.com",
-            projectId: "upwork-nano-stream",
-            storageBucket: "upwork-nano-stream.appspot.com",
-            messagingSenderId: "500629989505"
-        };
-        firebase.initializeApp(config);
-        var db = firebase.firestore();
-        db.settings({
-            timestampsInSnapshots: true
-        });
-    </script>
-
     <div id="chart"></div>
-
-    <script>
-        var timerInterval = 1500;
-
-        var donut = donutChart()
-            .width(960)
-            .height(500)
-            .transTime(750) // length of transitions in ms
-            .cornerRadius(3) // sets how rounded the corners are on each slice
-            .padAngle(0.015) // effectively dictates the gap between slices
-            .variable('prob')
-            .category('species');
-
-        var _transform = function (documents) {
-            var docNumber = documents.length;
-            groupped = documents
-                .map(doc => doc.data())
-                .map(data => {
-                    return {
-                        time: data.date.toDate(),
-                        // prob: data.probe,
-                        err: data.error,
-                        species: data.name
-                    }
-                })
-                .reduce(function(rv, x){
-                    rv[x['species']] = rv[x['species']] || {prob: 0};
-                    rv[x['species']].species = x.species;
-                    rv[x['species']].time = x.time;
-                    rv[x['species']].prob += 1/docNumber;
-                    // rv[x['species']].prob = x.prob;
-                    rv[x['species']].err = x.err;
-
-                    return rv;
-                }, {});
-                var keys = Object.keys(groupped);
-                console.log(keys)
-                var items = keys.map(function(k) { return groupped[k]; })
-
-            return items;
-        };
-
-        db.collection("nanostream_results").get().then((querySnapshot) => {
-            console.log(querySnapshot.docs[0].data());
-            results = _transform(querySnapshot.docs);
-            donut.data(results);
-            d3.select('#chart')
-                .call(donut); // draw chart in div
-        });
-    </script>
-
+    <script src="app.js"></script>
 </body>
 
 </html>
