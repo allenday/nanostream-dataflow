@@ -15,7 +15,7 @@ import java.util.Optional;
 /**
  *
  */
-public class GetTaxonomyDataFn extends DoFn<String, KV<String, List<String>>> {
+public class GetSpeciesTaxonomyDataFn extends DoFn<String, KV<String, List<String>>> {
 
     private GeneBankRepository geneBankRepositoryOpt;
 
@@ -23,7 +23,7 @@ public class GetTaxonomyDataFn extends DoFn<String, KV<String, List<String>>> {
     private String firestoreDestCollection;
     private String projectId;
 
-    public GetTaxonomyDataFn(String firestoreDatabaseUrl, String firestoreDestCollection, String projectId) {
+    public GetSpeciesTaxonomyDataFn(String firestoreDatabaseUrl, String firestoreDestCollection, String projectId) {
         this.firestoreDatabaseUrl = firestoreDatabaseUrl;
         this.firestoreDestCollection = firestoreDestCollection;
         this.projectId = projectId;

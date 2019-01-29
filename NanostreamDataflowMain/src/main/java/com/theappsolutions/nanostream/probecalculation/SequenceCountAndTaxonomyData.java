@@ -12,6 +12,11 @@ public class SequenceCountAndTaxonomyData implements Serializable {
     private long count;
     private List<String> taxonomy;
 
+    public SequenceCountAndTaxonomyData(long count, List<String> taxonomy) {
+        this.count = count;
+        this.taxonomy = taxonomy;
+    }
+
     public SequenceCountAndTaxonomyData(List<String> taxonomy) {
         this.count = 1L;
         this.taxonomy = taxonomy;
@@ -35,5 +40,11 @@ public class SequenceCountAndTaxonomyData implements Serializable {
                 "count=" + count +
                 ", taxonomy=" + taxonomy +
                 '}';
+    }
+
+    public static SequenceCountAndTaxonomyData merge(SequenceCountAndTaxonomyData data1,
+                                               SequenceCountAndTaxonomyData data2) {
+        return new SequenceCountAndTaxonomyData(data1.getCount() + data2.getCount(),
+                data2.getTaxonomy());
     }
 }

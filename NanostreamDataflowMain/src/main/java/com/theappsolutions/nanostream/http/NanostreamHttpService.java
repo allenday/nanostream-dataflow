@@ -55,7 +55,6 @@ public class NanostreamHttpService implements Serializable {
 
         HttpUriRequest request = httpHelper.buildRequest(new URI(url.concat(endpoint)), entity);
 
-        @Nonnull
         String responseBody = httpHelper.executeRequest(httpClient, request, new NanostreamResponseHandler());
         httpClient.close();
 

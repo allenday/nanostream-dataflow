@@ -1,31 +1,28 @@
 package com.theappsolutions.nanostream.output;
 
 import com.google.cloud.firestore.WriteResult;
-import japsa.seq.Sequence;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.values.KV;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.concurrent.Future;
 
 /**
- *
+ * Writes data to Firestore Database
  */
-public class WriteSequencesBodyToFirestoreDbFn extends DoFn<KV<String, Sequence>, String> {
+public class WriteDataToFirestoreDbFn<T> extends DoFn<KV<String, T>, String> {
 
-    private Logger LOG = LoggerFactory.getLogger(WriteSequencesBodyToFirestoreDbFn.class);
 
-    private final static String SEQUENCE_BODY_KEY = "sequence_body";
+    private Logger LOG = LoggerFactory.getLogger(WriteDataToFirestoreDbFn.class);
 
     private FirestoreService firebaseDatastoreService;
     private String firestoreDatabaseUrl;
     private String firestoreDestCollection;
     private String projectId;
 
-    public WriteSequencesBodyToFirestoreDbFn(String firestoreDatabaseUrl, String firestoreDestCollection, String projectId) {
+    public WriteDataToFirestoreDbFn(String firestoreDatabaseUrl, String firestoreDestCollection, String projectId) {
         this.firestoreDatabaseUrl = firestoreDatabaseUrl;
         this.firestoreDestCollection = firestoreDestCollection;
         this.projectId = projectId;
@@ -45,10 +42,8 @@ public class WriteSequencesBodyToFirestoreDbFn extends DoFn<KV<String, Sequence>
         if (firebaseDatastoreService == null) {
             return;
         }
-        KV<String, Sequence> sequenceKV = c.element();
-        Future<WriteResult> result = firebaseDatastoreService.writeObjectToFirestoreCollection(firestoreDestCollection, sequenceKV.getKey(), new HashMap<String, String>() {{
-            put(SEQUENCE_BODY_KEY, sequenceKV.getValue().toString());
-        }});
+        Future<WriteResult> result = firebaseDatastoreService.writeObjectToFirestoreCollection(firestoreDestCollection,
+                c.element().getKey(), c.element().getValue());
         c.output(result.toString());
     }
 }

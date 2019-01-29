@@ -43,9 +43,10 @@ public class MakeAlignmentViaHttpFn extends DoFn<Iterable<FastqRecord>, String> 
         content.put(FASTQ_DATA_MULTIPART_KEY, prepareFastQData(data));
 
         try {
-            @Nonnull
             String responseBody = nanostreamHttpService.generateAlignData(endpoint, content);
-            c.output(responseBody);
+            if (responseBody != null && responseBody.length() > 0) {
+                c.output(responseBody);
+            }
         } catch (URISyntaxException | IOException e) {
             LOG.error(e.getMessage());
         }

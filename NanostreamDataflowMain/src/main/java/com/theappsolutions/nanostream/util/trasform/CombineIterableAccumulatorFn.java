@@ -1,6 +1,9 @@
 package com.theappsolutions.nanostream.util.trasform;
 
+import com.theappsolutions.nanostream.util.ObjectSizeFetcher;
 import org.apache.beam.sdk.transforms.Combine;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +15,8 @@ import java.util.stream.StreamSupport;
  * @param <T> type of input values
  */
 public class CombineIterableAccumulatorFn<T> extends Combine.CombineFn<T, List<T>, Iterable<T>> {
+
+    private Logger LOG = LoggerFactory.getLogger(CombineIterableAccumulatorFn.class);
 
     @Override
     public List<T> createAccumulator() {
@@ -33,6 +38,7 @@ public class CombineIterableAccumulatorFn<T> extends Combine.CombineFn<T, List<T
 
     @Override
     public Iterable<T> extractOutput(List<T> accumulator) {
+        LOG.info("CombineIterableAccumulatorFn extractOutput" + ObjectSizeFetcher.sizeOf(accumulator));
         return accumulator;
     }
 }
