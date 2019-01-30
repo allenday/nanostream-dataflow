@@ -20,7 +20,7 @@ gsutil notification create -t (pub_sub_topic_name) -f json -e OBJECT_FINALIZE (a
 6) Create **PubSub subscription** for already created topic
 7) Create **Firestore DB** for saving cache and result data
 8) Start Nanostream Pipeline with following command
-`
+```
 java -cp out/artifacts/NanostreamDataflowMain_jar/NanostreamDataflowMain.jar \
   com.theappsolutions.nanostream.NanostreamApp \
   --runner=org.apache.beam.runners.dataflow.DataflowRunner # Apache Beam Runner (Dataflow for Google Cloud Dataflow running or Direct for local running)
@@ -41,7 +41,7 @@ java -cp out/artifacts/NanostreamDataflowMain_jar/NanostreamDataflowMain.jar \
   --workingBucket=nano-stream-test # Name of GCS bucket that used for storing project data (step 2.a)
   --resistantGenesFastDB=gs://nano-stream-test/gene_info/DB_resistant_formatted.fasta # Path to fasta file with resistant genes database
   --resistantGenesList=gs://nano-stream-test/gene_info/resistant_genes_list.txt # Path to fasta file with resistant genes list
-`
+```
 
 
 
