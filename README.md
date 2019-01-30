@@ -9,8 +9,8 @@
 To run all Nanostream system you shuld make next steps:
 1) Create **Google Cloud Project**
 2) Create two Google Cloud Storage **buckets**
-  a) main bucket for all working files
-  b) bucket for fastq adding simulation
+- a) main bucket for all working files
+- b) bucket for fastq adding simulation
 3) Put source `fastq` files and `tsv` file with fastq files pathes and timings into the main bucket
 4) Start fastq adding **simulator** ([See details](https://github.com/Pseverin/nanostream-dataflow/blob/master/simulator/README.md))
 5) Create **PubSub notifications** for Cloud Storage that used for adding fastq files simulation
@@ -23,27 +23,25 @@ gsutil notification create -t (pub_sub_topic_name) -f json -e OBJECT_FINALIZE (a
 ```
 java -cp out/artifacts/NanostreamDataflowMain_jar/NanostreamDataflowMain.jar \
   com.theappsolutions.nanostream.NanostreamApp \
-  --runner=org.apache.beam.runners.dataflow.DataflowRunner # Apache Beam Runner (Dataflow for Google Cloud Dataflow running or Direct for local running)
-  --project=upwork-nano-stream # Google Cloud Project name
-  --streaming=true # should be true for streaming (infinite) mode
-  --processingMode=resistant_genes # pecifies "species" or "resistant_genes" mode of data processing
-  --inputDataSubscription=projects/upwork-nano-stream/subscriptions/resistant_fastq_paths_emitter_x1_subscription_1 # PubSub subscription name from step 6
-  --alignmentWindow=20 # Size of the window in which FastQ records will be collected for Alignment
-  --statisticUpdatingDelay=30 # Delay between updating output statistic data
-  --servicesUrl=http://130.211.33.64 # Base URL for http services (Aligner and K-Align)
-  --bwaEndpoint=/cgi-bin/bwa.cgi # Aligner endpoint
-  --bwaDatabase=DB.fasta # Aligner DB name
-  --kAlignEndpoint=/cgi-bin/kalign.cgi # K-Aligne endpoin
-  --outputFirestoreDbUrl=https://upwork-nano-stream.firebaseio.com # Firestore DB url from step 7
-  --outputFirestoreSequencesStatisticCollection=resistant_sequences_statistic # Collection name of the Firestore database that will be used for writing output statistic data
-  --outputFirestoreSequencesBodiesCollection=resistant_sequences_bodies # Collection name of the Firestore database that will be used for writing output Sequences Body data
-  --outputFirestoreGeneCacheCollection=resistant_gene_cache # Collection name of the Firestore database that will be used for saving NCBI genome data cache
-  --workingBucket=nano-stream-test # Name of GCS bucket that used for storing project data (step 2.a)
-  --resistantGenesFastDB=gs://nano-stream-test/gene_info/DB_resistant_formatted.fasta # Path to fasta file with resistant genes database
-  --resistantGenesList=gs://nano-stream-test/gene_info/resistant_genes_list.txt # Path to fasta file with resistant genes list
+  --runner=org.apache.beam.runners.dataflow.DataflowRunner `# Apache Beam Runner (Dataflow for Google Cloud Dataflow running or Direct for local running)` \
+  --project=upwork-nano-stream `# Google Cloud Project name` \
+  --streaming=true `# should be true for streaming (infinite) mode` \
+  --processingMode=resistant_genes `# pecifies "species" or "resistant_genes" mode of data processing` \
+  --inputDataSubscription=projects/upwork-nano-stream/subscriptions/resistant_fastq_paths_emitter_x1_subscription_1 `# PubSub subscription name from step 6` \
+  --alignmentWindow=20 `# Size of the window in which FastQ records will be collected for Alignment` \
+  --statisticUpdatingDelay=30 `# Delay between updating output statistic data` \
+  --servicesUrl=http://130.211.33.64 `# Base URL for http services (Aligner and K-Align)` \
+  --bwaEndpoint=/cgi-bin/bwa.cgi `# Aligner endpoint` \
+  --bwaDatabase=DB.fasta `# Aligner DB name` \
+  --kAlignEndpoint=/cgi-bin/kalign.cgi `# K-Aligne endpoin` \
+  --outputFirestoreDbUrl=https://upwork-nano-stream.firebaseio.com `# Firestore DB url from step 7` \
+  --outputFirestoreSequencesStatisticCollection=resistant_sequences_statistic `# Collection name of the Firestore database that will be used for writing output statistic data` \
+  --outputFirestoreSequencesBodiesCollection=resistant_sequences_bodies `# Collection name of the Firestore database that will be used for writing output Sequences Body data` \
+  --outputFirestoreGeneCacheCollection=resistant_gene_cache `# Collection name of the Firestore database that will be used for saving NCBI genome data cache` \
+  --workingBucket=nano-stream-test `# Name of GCS bucket that used for storing project data (step 2.a)` \
+  --resistantGenesFastDB=gs://nano-stream-test/gene_info/DB_resistant_formatted.fasta `# OPTOPNAL Only for resistant_genes mode. Path to fasta file with resistant genes database` \
+  --resistantGenesList=gs://nano-stream-test/gene_info/resistant_genes_list.txt `# OPTOPNAL Only for resistant_genes mode. Path to fasta file with resistant genes list` 
 ```
-
-
 
 
 TODO:
