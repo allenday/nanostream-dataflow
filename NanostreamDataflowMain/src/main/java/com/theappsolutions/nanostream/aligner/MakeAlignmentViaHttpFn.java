@@ -6,11 +6,11 @@ import org.apache.beam.sdk.transforms.DoFn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.StreamSupport;
 
 /**
  * Makes alignment of fastq data via HTTP server and returnes string body of alignment HTTP response
@@ -43,6 +43,8 @@ public class MakeAlignmentViaHttpFn extends DoFn<Iterable<FastqRecord>, String> 
         content.put(FASTQ_DATA_MULTIPART_KEY, prepareFastQData(data));
 
         try {
+            LOG.info(String.format("Sending Alignment request with %d elements...",
+                    StreamSupport.stream(data.spliterator(), false).count()));
             String responseBody = nanostreamHttpService.generateAlignData(endpoint, content);
             if (responseBody != null && responseBody.length() > 0) {
                 c.output(responseBody);

@@ -57,6 +57,7 @@ public class ProceedKAlignmentFn extends DoFn<KV<String, Iterable<Sequence>>, KV
         content.put(FASTA_DATA_MULTIPART_KEY, prepareFastAData(sequenceIterable));
 
         try {
+            LOG.info(String.format("Sending K-Align request with %d elements...", sequenceIterableSize));
             @Nonnull
             String responseBody = nanostreamHttpService.generateAlignData(endpoint, content);
 
