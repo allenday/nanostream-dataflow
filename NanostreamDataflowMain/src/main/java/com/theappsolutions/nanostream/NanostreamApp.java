@@ -40,7 +40,7 @@ import java.util.Map;
 
 /**
  * Main class of the Nanostream Dataflow App that provides dataflow pipeline
- * with transformation from PubsubMessage to FasQ data
+ * with transformation from PubsubMessage to FastQ data
  */
 public class NanostreamApp {
 
@@ -63,7 +63,7 @@ public class NanostreamApp {
                 .apply("Filter only ADD FILE", ParDo.of(new FilterObjectFinalizeMessage()))
                 .apply("Deserialize messages", ParDo.of(new DecodeNotificationJsonMessage()))
                 .apply("Get data from FastQ", ParDo.of(new GetDataFromFastQFile()))
-                .apply("Parse FasQ data", ParDo.of(new ParseFastQFn()))
+                .apply("Parse FastQ data", ParDo.of(new ParseFastQFn()))
                 .apply(
                         options.getDataCollectionWindow() + "s FastQ collect window",
                         Window.into(FixedWindows.of(Duration.standardSeconds(options.getDataCollectionWindow()))))
