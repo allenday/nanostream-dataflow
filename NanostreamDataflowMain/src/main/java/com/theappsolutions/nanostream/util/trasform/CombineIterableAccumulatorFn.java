@@ -1,6 +1,9 @@
 package com.theappsolutions.nanostream.util.trasform;
 
+import com.theappsolutions.nanostream.util.ObjectSizeFetcher;
 import org.apache.beam.sdk.transforms.Combine;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +16,8 @@ import java.util.stream.StreamSupport;
  */
 public class CombineIterableAccumulatorFn<T> extends Combine.CombineFn<T, List<T>, Iterable<T>> {
 
+    private Logger LOG = LoggerFactory.getLogger(CombineIterableAccumulatorFn.class);
+
     @Override
     public List<T> createAccumulator() {
         return new ArrayList<>();
@@ -20,6 +25,7 @@ public class CombineIterableAccumulatorFn<T> extends Combine.CombineFn<T, List<T
 
     @Override
     public List<T> addInput(List<T> accumulator, T input) {
+        LOG.info(String.format("CombineIterableAccumulatorFn addInput %s to accumulator with size %d", input.toString(), accumulator.size()));
         accumulator.add(input);
         return accumulator;
     }
@@ -33,6 +39,10 @@ public class CombineIterableAccumulatorFn<T> extends Combine.CombineFn<T, List<T
 
     @Override
     public Iterable<T> extractOutput(List<T> accumulator) {
+        if (accumulator.size() > 0) {
+            LOG.info("CombineIterableAccumulatorFn extractOutput: " + accumulator.get(0).getClass().getName() + " " + accumulator.toString());
+        }
+        LOG.info("CombineIterableAccumulatorFn extractOutput: " + ObjectSizeFetcher.sizeOf(accumulator));
         return accumulator;
     }
 }

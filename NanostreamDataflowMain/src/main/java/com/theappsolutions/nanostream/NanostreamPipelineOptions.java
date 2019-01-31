@@ -18,17 +18,26 @@ public interface NanostreamPipelineOptions extends DataflowPipelineOptions {
 
     void setInputDataSubscription(String value);
 
-    @Description("The window duration in which FastQ records will be collected")
-    @Default.Integer(60)
-    Integer getDataCollectionWindow();
 
-    void setDataCollectionWindow(Integer value);
+    @Description("Size of the Window in which FastQ records will be collected for Alignment")
+    @Default.Integer(60)
+    Integer getAlignmentWindow();
+
+    void setAlignmentWindow(Integer value);
+
+    @Description("Delay between updating output statistic data")
+    @Default.Integer(60)
+    Integer getStatisticUpdatingDelay();
+
+    void setStatisticUpdatingDelay(Integer value);
+
 
     @Description("Base URL")
     @Validation.Required
     String getServicesUrl();
 
     void setServicesUrl(String value);
+
 
     @Description("BWA Alignment server endpoint to use")
     @Validation.Required
@@ -50,6 +59,7 @@ public interface NanostreamPipelineOptions extends DataflowPipelineOptions {
 
     void setkAlignEndpoint(String value);
 
+
     @Description("Url of the Firebase Datastore database that will be used for writing output data")
     @Validation.Required
     ValueProvider<String> getOutputFirestoreDbUrl();
@@ -57,30 +67,53 @@ public interface NanostreamPipelineOptions extends DataflowPipelineOptions {
     void setOutputFirestoreDbUrl(ValueProvider<String> value);
 
 
-    @Description("Collection name of the Firebase Datastore database that will be used for writing output data")
-    @Validation.Required
-    ValueProvider<String> getOutputFirestoreMainCollection();
-
-    void setOutputFirestoreMainCollection(ValueProvider<String> value);
-
-    //TODO
-    @Description("")
+    @Description("Collection name of the Firestore database that will be used for writing output statistic data")
     @Validation.Required
     ValueProvider<String> getOutputFirestoreSequencesStatisticCollection();
 
     void setOutputFirestoreSequencesStatisticCollection(ValueProvider<String> value);
 
-    //TODO
-    @Description("")
+
+    @Description("Collection name of the Firestore database that will be used for writing output Sequences Body data")
     @Validation.Required
-    ValueProvider<String> getOutputFirestoreSequencesBodyCollection();
+    ValueProvider<String> getOutputFirestoreSequencesBodiesCollection();
 
-    void setOutputFirestoreSequencesBodyCollection(ValueProvider<String> value);
+    void setOutputFirestoreSequencesBodiesCollection(ValueProvider<String> value);
 
-    //TODO
-    @Description("")
+
+    @Description("Collection name of the Firestore database that will be used for saving NCBI genome data cache")
     @Validation.Required
     ValueProvider<String> getOutputFirestoreGeneCacheCollection();
 
     void setOutputFirestoreGeneCacheCollection(ValueProvider<String> value);
+
+
+    @Description("Variable that specifies \"species\" or \"resistant_genes\" mode of data processing")
+    @Validation.Required
+    @Default.String("species")
+    String getProcessingMode();
+
+    void setProcessingMode(String value);
+
+
+    @Description("Path to fasta file with resistant genes database")
+    String getResistantGenesFastDB();
+
+    void setResistantGenesFastDB(String value);
+
+
+    @Description("Path to fasta file with resistant genes list")
+    String getResistantGenesList();
+
+    void setResistantGenesList(String value);
+
+    @Description("Name of GCS bucket that used for storing project data")
+    String getWorkingBucket();
+
+    void setWorkingBucket(String value);
+
+    @Description("Prefix for Firestore collections names that used for output")
+    String getOutputFirestoreCollectionNamePrefix();
+
+    void setOutputFirestoreCollectionNamePrefix(String value);
 }

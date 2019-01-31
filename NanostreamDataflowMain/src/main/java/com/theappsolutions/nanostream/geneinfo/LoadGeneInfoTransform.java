@@ -8,6 +8,8 @@ import org.apache.beam.sdk.transforms.join.CoGbkResult;
 import org.apache.beam.sdk.transforms.join.CoGroupByKey;
 import org.apache.beam.sdk.transforms.join.KeyedPCollectionTuple;
 import org.apache.beam.sdk.values.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -16,6 +18,7 @@ import java.util.Set;
  * Generate {@link GeneInfo} data collection from fasta and gene list files
  */
 public class LoadGeneInfoTransform extends PTransform<PBegin, PCollection<KV<String, GeneInfo>>> {
+    private Logger LOG = LoggerFactory.getLogger(LoadGeneInfoTransform.class);
 
     private final static String GENE_GROUP_PREFIX ="dg=";
     private final static String GENE_ID_PREFIX ="geneID==";
@@ -29,12 +32,10 @@ public class LoadGeneInfoTransform extends PTransform<PBegin, PCollection<KV<Str
 
     @Override
     public PCollection<KV<String, GeneInfo>> expand(PBegin input) {
-
         PCollection<String> fastaData = input.getPipeline()
                 .apply("Read fasta file", TextIO.read().from(fastaFilePath));
         PCollection<String> geneListData = input.getPipeline()
                 .apply("Read gene list file", TextIO.read().from(genesListFilePath));
-
         PCollection<Sequence> fastaDataAsSequnces = fastaData
                 .apply("Parse Sequnce from fasta", ParDo.of(new DoFn<String, Sequence>() {
                     @ProcessElement
@@ -203,7 +204,7 @@ public class LoadGeneInfoTransform extends PTransform<PBegin, PCollection<KV<Str
                             return;
 
                         GeneInfo info = new GeneInfo();
-                        info.sequence = seq;
+                        info.sequence = seq.toString();
                         info.setGroups(gg);
                         info.setNames(gn);
 

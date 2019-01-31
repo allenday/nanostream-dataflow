@@ -4,6 +4,4 @@ target/
 *.iws
 src/.gitignore
 result-*
-resistant_genes_mode_args.txt
-species_mode_args.txt
-src/test/java/com/theappsolutions/nanostream/NanostreamDirectDebug
+src/test/java/com/theappsolutions/nanostream/debugging/

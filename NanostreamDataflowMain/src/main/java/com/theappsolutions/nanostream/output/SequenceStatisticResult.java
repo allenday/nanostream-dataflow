@@ -1,22 +1,24 @@
 package com.theappsolutions.nanostream.output;
 
+import com.theappsolutions.nanostream.probecalculation.SequenceCountAndTaxonomyData;
+import com.theappsolutions.nanostream.util.EntityNamer;
 import org.apache.beam.sdk.coders.DefaultCoder;
 import org.apache.beam.sdk.coders.SerializableCoder;
 
-import java.util.Date;
-import java.util.List;
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * Data class for saving Nanostream output in Firestore Database
  */
 @DefaultCoder(SerializableCoder.class)
-public class SequenceStatisticResult {
+public class SequenceStatisticResult implements Serializable {
 
-    public final static String SEQUENCE_STATISTIC_DOCUMENT_NAME = "resultDocument";
+    public final static String SEQUENCE_STATISTIC_DOCUMENT_NAME = EntityNamer.generateName("resultDocument");
 
-    public final Date date;
-    public final List<SequenceRecord> sequenceRecords;
-    public final long calculationTime;
+    private Date date;
+    private List<SequenceRecord> sequenceRecords;
+    private long calculationTime;
 
     public SequenceStatisticResult(Date date, List<SequenceRecord> sequenceRecords, long calculationTime) {
         this.date = date;
@@ -24,12 +26,24 @@ public class SequenceStatisticResult {
         this.calculationTime = calculationTime;
     }
 
+    public Date getDate() {
+        return date;
+    }
+
+    public List<SequenceRecord> getSequenceRecords() {
+        return sequenceRecords;
+    }
+
+    public long getCalculationTime() {
+        return calculationTime;
+    }
+
     @DefaultCoder(SerializableCoder.class)
-    public static class SequenceRecord {
-        public final String id;
-        public final String name;
-        public final List<String> taxonomy;
-        public final float probe;
+    public static class SequenceRecord implements Serializable{
+        private String id;
+        private String name;
+        private List<String> taxonomy;
+        private float probe;
 
         public SequenceRecord(String id, String name, List<String> taxonomy, float probe) {
             this.id = id;
@@ -37,5 +51,41 @@ public class SequenceStatisticResult {
             this.taxonomy = taxonomy;
             this.probe = probe;
         }
+
+        public String getId() {
+            return id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public List<String> getTaxonomy() {
+            return taxonomy;
+        }
+
+        public float getProbe() {
+            return probe;
+        }
     }
+
+
+    public static class Generator {
+        public SequenceStatisticResult genereteSequnceInfo(Map<String, SequenceCountAndTaxonomyData> sequenceSourceData) {
+            Date date = new Date();
+            long startTime = System.currentTimeMillis();
+
+            float totalDataListSize = sequenceSourceData.values().stream().mapToInt(it -> Math.toIntExact(it.getCount())).sum();
+
+            List<SequenceStatisticResult.SequenceRecord> sequenceRecords = new LinkedList<>();
+
+            sequenceSourceData.forEach((id, value) -> {
+                sequenceRecords.add(new SequenceStatisticResult.SequenceRecord(UUID.randomUUID().toString(), id, value.getTaxonomy(), value.getCount() / totalDataListSize));
+            });
+            long finishTime = System.currentTimeMillis();
+
+            return new SequenceStatisticResult(date, sequenceRecords, finishTime - startTime);
+        }
+    }
+
 }

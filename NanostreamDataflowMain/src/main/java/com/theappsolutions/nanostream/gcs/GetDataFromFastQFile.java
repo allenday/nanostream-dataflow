@@ -2,15 +2,15 @@ package com.theappsolutions.nanostream.gcs;
 
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.StorageException;
-import com.theappsolutions.nanostream.pubsub.GCloudNotification;
 import org.apache.beam.sdk.transforms.DoFn;
+import org.apache.beam.sdk.values.KV;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Gets fastq filename from GCloudNotification and extracts data from this file
  */
-public class GetDataFromFastQFile extends DoFn<GCloudNotification, String> {
+public class GetDataFromFastQFile extends DoFn<KV<String, String>, String> {
 
     private Logger LOG = LoggerFactory.getLogger(GetDataFromFastQFile.class);
 
@@ -23,11 +23,12 @@ public class GetDataFromFastQFile extends DoFn<GCloudNotification, String> {
 
     @ProcessElement
     public void processElement(ProcessContext c) {
-        GCloudNotification gCloudNotification = c.element();
+        KV<String, String> data = c.element();
 
+        LOG.info(data.toString());
         try {
             Blob blob = gcsService.getBlobByGCloudNotificationData(
-                    gCloudNotification.getBucket(), gCloudNotification.getName()
+                    data.getKey(), data.getValue()
             );
             if (blob != null && blob.exists()) {
                 c.output(new String(blob.getContent()));
