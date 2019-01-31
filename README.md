@@ -22,6 +22,7 @@ gsutil notification create -t (pub_sub_topic_name) -f json -e OBJECT_FINALIZE (a
 5) Create **Firestore DB** ([See details](https://firebase.google.com/products/firestore/)) for saving cache and result data
 
 Optional:
+
 6) If you running the pipeline in *resistant_genes* mode you should provide *fasta db* and *gene list* files stored at the GCS bucket
 
 ### Build
