@@ -34,6 +34,7 @@ To build jar from source, follow next steps:
 mvn install:install-file -Dfile=NanostreamDataflowMain/libs/japsa.jar -DgroupId=coin -DartifactId=japsa -Dversion=1.7-10a -Dpackaging=jar
 ```
 3) Build uber-jar file
+... TODO
 
 ### Running
 To start **Nanostream Pipeline** you should run following command:
