@@ -21,7 +21,7 @@ gsutil notification create -t (pub_sub_topic_name) -f json -e OBJECT_FINALIZE (a
 7) Create **Firestore DB** ([See details](https://firebase.google.com/products/firestore/)) for saving cache and result data
 8) Open Terminal and Start **Nanostream Pipeline** from root project directory with following command:
 ```
-java -cp NanostreamDataflowMain/out/artifacts/NanostreamDataflowMain_jar/NanostreamDataflowMain.jar \
+java -cp NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
   com.theappsolutions.nanostream.NanostreamApp \
   --runner=org.apache.beam.runners.dataflow.DataflowRunner `# Apache Beam Runner (Dataflow for Google Cloud Dataflow running or Direct for local running)` \
   --project=upwork-nano-stream `# Google Cloud Project name` \
