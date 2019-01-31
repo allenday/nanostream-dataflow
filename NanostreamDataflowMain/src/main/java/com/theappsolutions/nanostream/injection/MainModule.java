@@ -3,11 +3,12 @@ package com.theappsolutions.nanostream.injection;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.theappsolutions.nanostream.aligner.MakeAlignmentViaHttpFn;
+import com.theappsolutions.nanostream.geneinfo.LoadGeneInfoTransform;
 import com.theappsolutions.nanostream.http.NanostreamHttpService;
 import com.theappsolutions.nanostream.kalign.ProceedKAlignmentFn;
-import com.theappsolutions.nanostream.output.WriteSequencesBodyToFirestoreDbFn;
+import com.theappsolutions.nanostream.output.WriteSequencesBodiesToFirestoreDbFn;
 import com.theappsolutions.nanostream.output.WriteSequencesStatisticToFirestoreDbFn;
-import com.theappsolutions.nanostream.taxonomy.GetTaxonomyDataFn;
+import com.theappsolutions.nanostream.taxonomy.GetSpeciesTaxonomyDataFn;
 import com.theappsolutions.nanostream.util.HttpHelper;
 
 /**
@@ -18,6 +19,7 @@ public class MainModule extends NanostreamModule {
     public MainModule(Builder builder) {
         super(builder);
     }
+
 
     public static class Builder extends NanostreamModule.Builder {
 
@@ -44,17 +46,22 @@ public class MainModule extends NanostreamModule {
     }
 
     @Provides
-    public WriteSequencesStatisticToFirestoreDbFn provideWriteSequencesStatisticToFirestoreDbFn() {
+    public WriteSequencesStatisticToFirestoreDbFn provideWriteDataToFirestoreDbFnStatistic() {
         return new WriteSequencesStatisticToFirestoreDbFn(outputFirestoreDbUrl, outputFirestoreSequencesStatisticCollection, projectId);
     }
 
     @Provides
-    public WriteSequencesBodyToFirestoreDbFn provideWriteSequencesBodyToFirestoreDbFn() {
-        return new WriteSequencesBodyToFirestoreDbFn(outputFirestoreDbUrl, outputFirestoreSequencesBodyCollection, projectId);
+    public WriteSequencesBodiesToFirestoreDbFn provideWriteSequencesBodiesToFirestoreDbFn() {
+        return new WriteSequencesBodiesToFirestoreDbFn(outputFirestoreDbUrl, outputFirestoreSequencesBodiesCollection, projectId);
     }
 
     @Provides
-    public GetTaxonomyDataFn provideGetTaxonomyDataFn() {
-        return new GetTaxonomyDataFn(outputFirestoreDbUrl, outputFirestoreGeneCacheCollection, projectId);
+    public GetSpeciesTaxonomyDataFn provideGetTaxonomyDataFn() {
+        return new GetSpeciesTaxonomyDataFn(outputFirestoreDbUrl, outputFirestoreGeneCacheCollection, projectId);
+    }
+
+    @Provides
+    public LoadGeneInfoTransform provideLoadGeneInfoTransform() {
+        return new LoadGeneInfoTransform(resistantGenesFastDB, resistantGenesList);
     }
 }

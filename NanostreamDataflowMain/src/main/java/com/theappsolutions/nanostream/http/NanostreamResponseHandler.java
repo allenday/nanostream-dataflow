@@ -21,16 +21,26 @@ public class NanostreamResponseHandler implements ResponseHandler<String> {
     @Override
     public String handleResponse(HttpResponse response) throws IOException {
         int status = response.getStatusLine().getStatusCode();
-        LOG.info("Status " + status);
+        StringBuilder logMsg = new StringBuilder();
+        logMsg.append(String.format("Status: %d", status));
         if (status >= 200 && status < 300) {
             HttpEntity responseEntity = response.getEntity();
             if (responseEntity != null){
-                return EntityUtils.toString(responseEntity);
+                String respEntityString = EntityUtils.toString(responseEntity);
+                logMsg.append(String.format(", response length: %d", respEntityString.length()));
+                log(logMsg.toString());
+                return respEntityString;
             } else {
+                log(logMsg.toString());
                 throw new IOException("Response entity is empty");
             }
         } else {
+            log(logMsg.toString());
             throw new ClientProtocolException("Unexpected response status: " + status);
         }
+    }
+
+    private void log(String logMsg){
+        LOG.info(logMsg);
     }
 }

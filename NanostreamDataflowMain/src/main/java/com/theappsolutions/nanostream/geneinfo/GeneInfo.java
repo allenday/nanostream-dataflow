@@ -1,20 +1,18 @@
 package com.theappsolutions.nanostream.geneinfo;
 
-import japsa.seq.Alphabet;
-import japsa.seq.Sequence;
-import org.apache.beam.sdk.coders.AvroCoder;
 import org.apache.beam.sdk.coders.DefaultCoder;
 import org.apache.beam.sdk.coders.SerializableCoder;
 import org.apache.commons.lang.StringUtils;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
  * Gene specification data class
  */
 @DefaultCoder(SerializableCoder.class)
-public class GeneInfo {
-    public Sequence sequence;
+public class GeneInfo implements Serializable {
+    public String sequence;
     public Double score;
     public Long readCounts;
     public Long baseCounts;
@@ -24,7 +22,7 @@ public class GeneInfo {
     public GeneInfo() {
         names = "";
         groups = "";
-        sequence = new Sequence(Alphabet.DNA(), "", "");
+        sequence = "";
         score = -999999D;
         readCounts = 0L;
         baseCounts = 0L;
