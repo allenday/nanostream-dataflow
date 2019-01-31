@@ -19,7 +19,7 @@ gsutil notification create -t (pub_sub_topic_name) -f json -e OBJECT_FINALIZE (a
 ```
 6) Create **PubSub subscription** for topic created at Step 5
 7) Create **Firestore DB** ([See details](https://firebase.google.com/products/firestore/)) for saving cache and result data
-8) Open Terminal and Start Nanostream Pipeline from project directory root with following command
+8) Open Terminal and Start **Nanostream Pipeline** from root project directory with following command:
 ```
 java -cp NanostreamDataflowMain/out/artifacts/NanostreamDataflowMain_jar/NanostreamDataflowMain.jar \
   com.theappsolutions.nanostream.NanostreamApp \
