@@ -7,21 +7,21 @@
 ### Running
 
 To run all Nanostream system you shuld make next steps:
-1) Create **Google Cloud Project**
-2) Create two Google Cloud Storage **buckets**
-- a) main bucket for all working files
-- b) bucket for fastq adding simulation
-3) Put source `fastq` files and `tsv` file with fastq files pathes and timings into the main bucket
+1) Create [Google Cloud Project](https://cloud.google.com/) and enable required APIs (Dataflow, Fire)
+2) Create two [Google Cloud Storage](https://cloud.google.com/storage/) **buckets**
+- a) **main bucket** for all working files
+- b) **simulator dest bucket** for fastq adding simulation
+3) Put *source fastq files* and *tsv file with fastq files pathes and timings* into the **main bucket**
 4) Start fastq adding **simulator** ([See details](https://github.com/Pseverin/nanostream-dataflow/blob/master/simulator/README.md))
-5) Create **PubSub notifications** for Cloud Storage that used for adding fastq files simulation
-`
-gsutil notification create -t (pub_sub_topic_name) -f json -e OBJECT_FINALIZE (adding_fastq_files_simulation_bucket)
-`
-6) Create **PubSub subscription** for already created topic
-7) Create **Firestore DB** for saving cache and result data
-8) Start Nanostream Pipeline with following command
+5) Create **PubSub notifications**  ([See details](https://cloud.google.com/storage/docs/pubsub-notifications)) for **simulator dest bucket** that will be creating notifications when new files will have be added to bucket
 ```
-java -cp out/artifacts/NanostreamDataflowMain_jar/NanostreamDataflowMain.jar \
+gsutil notification create -t (pub_sub_topic_name) -f json -e OBJECT_FINALIZE (adding_fastq_files_simulation_bucket)
+```
+6) Create **PubSub subscription** for topic created at Step 5
+7) Create **Firestore DB** ([See details](https://firebase.google.com/products/firestore/)) for saving cache and result data
+8) Open Terminal and Start Nanostream Pipeline from project directory root with following command
+```
+java -cp NanostreamDataflowMain/out/artifacts/NanostreamDataflowMain_jar/NanostreamDataflowMain.jar \
   com.theappsolutions.nanostream.NanostreamApp \
   --runner=org.apache.beam.runners.dataflow.DataflowRunner `# Apache Beam Runner (Dataflow for Google Cloud Dataflow running or Direct for local running)` \
   --project=upwork-nano-stream `# Google Cloud Project name` \
