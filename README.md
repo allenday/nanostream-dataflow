@@ -26,14 +26,14 @@ Optional:
 6) If you running the pipeline in *resistant_genes* mode you should provide *fasta db* and *gene list* files stored at the GCS bucket
 
 ### Build
-You can't skip this step and run project with [pre-built jar file](https://github.com/Pseverin/nanostream-dataflow/tree/refactoring/NanostreamDataflowMain/build)
-If you want build jar file by yourself, you shuld implement next steps:
+You can skip this step and run project with [pre-built jar file](https://github.com/allenday/nanostream-dataflow/blob/master/NanostreamDataflowMain/build/)
+To build jar from source, follow next steps:
 1) Install [Maven](https://maven.apache.org/install.html)
 2) Add [Japsa](https://github.com/mdcao/japsa) package to local Maven repository. To do this you should run following command from project root:
 ```
 mvn install:install-file -Dfile=NanostreamDataflowMain/libs/japsa.jar -DgroupId=coin -DartifactId=japsa -Dversion=1.7-10a -Dpackaging=jar
 ```
-3) Build fat-jar file
+3) Build uber-jar file
 
 ### Running
 To start **Nanostream Pipeline** you should run following command:
