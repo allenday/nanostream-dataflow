@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Species Visualization</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
+    <script src="https://nvd3.github.io/nvd3/build/nv.d3.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet">
+    <style>
+        html,
+        body,
+        svg {
+            margin: 0px;
+            padding: 0px;
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/5.5.5/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.5.5/firebase-firestore.js"></script>
+</head>
+
+<body>
+    <svg id="chart"></svg>
+    <script>
+        // Initialize Firebase
+        var config = {
+            apiKey: "AIzaSyDQcC0LgEKiiYClfUFFomcVKZLoeEp8E78",
+            authDomain: "upwork-nano-stream.firebaseapp.com",
+            databaseURL: "https://upwork-nano-stream.firebaseio.com",
+            projectId: "upwork-nano-stream",
+            storageBucket: "upwork-nano-stream.appspot.com",
+            messagingSenderId: "500629989505"
+        };
+        firebase.initializeApp(config);
+        var db = firebase.firestore();
+        db.settings({
+            timestampsInSnapshots: true
+        });
+
+        var _findChild = function (node, childName) {
+            var i, child;
+            for (i = 0; i < node.children.length; i++) {
+                child = node.children[i];
+                if (child.name === childName) {
+                    return child;
+                }
+            }
+            return null;
+        };
+
+        var _transform = function (doc) {
+            var i, j;
+
+            var currentNode,
+                record,
+                taxonomyItem;
+
+            var root = {
+                name: 'species',
+                children: []
+            };
+
+            // iterate over records
+            //   assign current node to root
+            //   iterate over record's taxonomy
+            //     for each taxonomy level - search for existence in current node childrens
+            //       if there is no level - create one
+            //       summarize probes for current node and current record
+            //       assign level as a current node
+
+            for (i = 0; i < doc.sequenceRecords.length; i++) {
+                currentNode = root;
+                record = doc.sequenceRecords[i];
+                if (record.name.split('|').length > 3) {
+                    record.name = record.name.split('|')[3];
+                }
+                record.taxonomy.push(record.name);
+                for (j = 0; j < record.taxonomy.length; j++) {
+                    taxonomyItem = record.taxonomy[j];
+                    taxonomyLevel = _findChild(currentNode, taxonomyItem);
+                    if (!taxonomyLevel) {
+                        taxonomyLevel = {
+                            name: taxonomyItem,
+                            size: 0,
+                            children: []
+                        };
+                        currentNode.children.push(taxonomyLevel);
+                    }
+                    taxonomyLevel.size += record.probe;
+                    currentNode = taxonomyLevel;
+                }
+            }
+
+            return [root];
+        };
+
+        var url = new URL(document.location.href);
+        var resistant = url.searchParams.get('resistant');
+        var collection = (!!resistant) ? 'resistant_sequences_statistic' : 'sequences_statistic';
+
+        var chart;
+        var results = [];
+        nv.addGraph(function () {
+            chart = nv.models.sunburstChart();
+
+            chart.color(['gray']);
+            chart.groupColorByParent(false);
+            chart.showLabels(true);
+            chart.mode('value');
+            chart.labelFormat(function (d) { return d.name + ' ' + Math.round(100 * d.value) / 100; })
+            chart.labelThreshold(1);
+            chart.tooltip.valueFormatter(function (d) { return Math.round(100 * d) / 100; });
+
+            d3.select('#chart')
+                .datum(results)
+                .call(chart);
+
+            nv.utils.windowResize(chart.update);
+
+            return chart;
+        });
+
+        // real-time updates
+        db.collection(collection).doc('resultDocument--2019-01-28T14-38-35UTC')
+            .onSnapshot(function (doc) {
+                results = _transform(doc.data());
+                d3.select('#chart')
+                    .datum(results)
+                    .call(chart);
+            });
+    </script>
+</body>
+
+</html>
