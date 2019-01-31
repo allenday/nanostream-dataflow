@@ -98,7 +98,7 @@ public class NanostreamApp {
                 .apply("Parse GCloud notification", ParDo.of(new ParseGCloudNotification()))
 
                 .apply("Get data from FastQ", ParDo.of(new GetDataFromFastQFile()))
-                .apply("Parse FasQ data", ParDo.of(new ParseFastQFn()))
+                .apply("Parse FastQ data", ParDo.of(new ParseFastQFn()))
                 .apply(options.getAlignmentWindow() + "s FastQ collect window",
                         Window.into(FixedWindows.of(Duration.standardSeconds(options.getAlignmentWindow()))))
                 .apply("Accumulate to iterable", Combine.globally(new CombineIterableAccumulatorFn<FastqRecord>())
