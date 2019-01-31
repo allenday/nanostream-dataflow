@@ -33,7 +33,7 @@ java -cp NanostreamDataflowMain/out/artifacts/NanostreamDataflowMain_jar/Nanostr
   --servicesUrl=http://130.211.33.64 `# Base URL for http services (Aligner and K-Align)` \
   --bwaEndpoint=/cgi-bin/bwa.cgi `# Aligner endpoint` \
   --bwaDatabase=DB.fasta `# Aligner DB name` \
-  --kAlignEndpoint=/cgi-bin/kalign.cgi `# K-Aligne endpoin` \
+  --kAlignEndpoint=/cgi-bin/kalign.cgi `# K-Align endpoint` \
   --outputFirestoreDbUrl=https://upwork-nano-stream.firebaseio.com `# Firestore DB url from step 7` \
   --outputFirestoreSequencesStatisticCollection=resistant_sequences_statistic `# Collection name of the Firestore database that will be used for writing output statistic data` \
   --outputFirestoreSequencesBodiesCollection=resistant_sequences_bodies `# Collection name of the Firestore database that will be used for writing output Sequences Body data` \
