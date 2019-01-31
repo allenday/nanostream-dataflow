@@ -2,13 +2,12 @@ package com.theappsolutions.nanostream.injection;
 
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.google.inject.TypeLiteral;
-import com.google.inject.name.Named;
 import com.theappsolutions.nanostream.aligner.MakeAlignmentViaHttpFn;
 import com.theappsolutions.nanostream.geneinfo.LoadGeneInfoTransform;
 import com.theappsolutions.nanostream.http.NanostreamHttpService;
 import com.theappsolutions.nanostream.kalign.ProceedKAlignmentFn;
-import com.theappsolutions.nanostream.output.*;
+import com.theappsolutions.nanostream.output.WriteSequencesBodiesToFirestoreDbFn;
+import com.theappsolutions.nanostream.output.WriteSequencesStatisticToFirestoreDbFn;
 import com.theappsolutions.nanostream.taxonomy.GetSpeciesTaxonomyDataFn;
 import com.theappsolutions.nanostream.util.HttpHelper;
 
@@ -20,6 +19,7 @@ public class MainModule extends NanostreamModule {
     public MainModule(Builder builder) {
         super(builder);
     }
+
 
     public static class Builder extends NanostreamModule.Builder {
 
