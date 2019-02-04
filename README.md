@@ -10,7 +10,7 @@
 
 ### Setup
 
-To run all Nanostream system you shuld make next steps:
+To run all Nanostream system you should make next steps:
 1) Create [Google Cloud Project](https://cloud.google.com/)
 2) Create [Google Cloud Storage](https://cloud.google.com/storage/) **dest bucket** for adding fastq files. 
 You can use ([this python module](https://github.com/Pseverin/nanostream-dataflow/blob/master/simulator)) to provide a simulation of an adding fastq files
