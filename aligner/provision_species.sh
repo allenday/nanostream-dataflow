@@ -3,8 +3,8 @@ set -e
 
 # set environment variables
 export NAME="bwa-species"
-export REGION="asia-northeast1-c"
-export ZONE="${REGION}-b"
+export REGION="asia-northeast1"
+export ZONE="${REGION}-c"
 export MACHINE_TYPE="n1-standard-8"
 export MIN_REPLICAS=1
 export MAX_REPLICAS=3
