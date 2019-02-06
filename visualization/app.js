@@ -1,12 +1,12 @@
 (function () {
     // Initialize Firebase
     var config = {
-        apiKey: "AIzaSyDQcC0LgEKiiYClfUFFomcVKZLoeEp8E78",
-        authDomain: "upwork-nano-stream.firebaseapp.com",
-        databaseURL: "https://upwork-nano-stream.firebaseio.com",
-        projectId: "upwork-nano-stream",
-        storageBucket: "upwork-nano-stream.appspot.com",
-        messagingSenderId: "500629989505"
+        apiKey: "AIzaSyDLtxwk4r3ahh-R7aTGIXlMvgrBi5pc_P0",
+        authDomain: "nano-stream1.firebaseapp.com",
+        databaseURL: "https://nano-stream1.firebaseio.com",
+        projectId: "nano-stream1",
+        storageBucket: "nano-stream1.appspot.com",
+        messagingSenderId: "465460488211"
     };
     firebase.initializeApp(config);
     var db = firebase.firestore();
