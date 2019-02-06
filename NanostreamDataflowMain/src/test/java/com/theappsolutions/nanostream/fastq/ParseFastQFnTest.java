@@ -13,6 +13,8 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.stream.IntStream;
 
 import static com.google.common.base.Charsets.UTF_8;
 
@@ -26,15 +28,21 @@ public class ParseFastQFnTest {
 
     @Test
     public void testFastQDataParsedCorrectly() throws IOException {
-        testFastQDataParsedCorrectly("testFastQFile.fastq");
+        testFastQDataParsedCorrectly("testFastQFile.fastq", 1);
     }
 
     @Test
     public void testFastQDataParsedCorrectlyWithoutTags() throws IOException {
-        testFastQDataParsedCorrectly("testFastQFileWithoutTags.fastq");
+        testFastQDataParsedCorrectly("testFastQFileWithoutTags.fastq", 1);
     }
 
-    private void testFastQDataParsedCorrectly(String sourceDataFilename) throws IOException{
+    @Test
+    public void testFastQDataParsedCorrectlyMultiEntity() throws IOException {
+        testFastQDataParsedCorrectly("testMultiEntityFastQFile.fastq", 2);
+    }
+
+
+    private void testFastQDataParsedCorrectly(String sourceDataFilename, int outputFastqListSize) throws IOException {
         String data = IOUtils.toString(
                 getClass().getClassLoader().getResourceAsStream(sourceDataFilename), UTF_8.name());
         String[] assertData = IOUtils.toString(
@@ -47,16 +55,18 @@ public class ParseFastQFnTest {
 
         PAssert.that(parsedFastQ)
                 .satisfies((SerializableFunction<Iterable<FastqRecord>, Void>) input -> {
-                    FastqRecord fastqRecord = input.iterator().next();
-
-                    Assert.assertEquals(assertData[0],
-                            fastqRecord.getReadName());
-                    Assert.assertEquals(assertData[1],
-                            fastqRecord.getReadString());
-                    Assert.assertEquals(assertData[2],
-                            fastqRecord.getBaseQualityHeader());
-                    Assert.assertEquals(assertData[3],
-                            fastqRecord.getBaseQualityString());
+                    Iterator<FastqRecord> fastqRecordIterator = input.iterator();
+                    IntStream.range(0, outputFastqListSize).forEach(index -> {
+                        FastqRecord fastqRecord = fastqRecordIterator.next();
+                        Assert.assertEquals(assertData[0],
+                                fastqRecord.getReadName());
+                        Assert.assertEquals(assertData[1],
+                                fastqRecord.getReadString());
+                        Assert.assertEquals(assertData[2],
+                                fastqRecord.getBaseQualityHeader());
+                        Assert.assertEquals(assertData[3],
+                                fastqRecord.getBaseQualityString());
+                    });
                     return null;
                 });
 
