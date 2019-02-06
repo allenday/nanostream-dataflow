@@ -2,8 +2,6 @@ requirejs(['db', 'transform'], function (db, transform) {
   let url = new URL(document.location.href);
   let collection = url.searchParams.get('c');
   let docname = url.searchParams.get('d');
-  console.log(collection);
-  console.log(docname);
 
   if (!collection) {
     collection = 'sequences_statistic';
@@ -24,7 +22,6 @@ requirejs(['db', 'transform'], function (db, transform) {
     chart.mode('value');
     chart.groupColorByParent(true);
     chart.labelFormat(function (d) {
-      console.log(d);
       if (typeof d.children === 'undefined') {
         return '    ' + d.parent.name + " > " + d.name + ' ' + Math.round(100 * d.value) / 100;
       }
