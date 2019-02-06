@@ -1,8 +1,8 @@
 # Nanostream Dataflow
 
-### Project tructure
+### Project Structure
 - NanostreamDataflowMain - Apache Beam app that provides all data transformations
-- aligner - scripts to provision autoscaled HTTP service for alignment (based on bwa)
+- aligner - scripts to provision autoscaled HTTP service for alignment (based on `bwa`)
 - simulator - python script that can simulate file uploads to GCS
 - fasta_formatter - python script for formatting fasta files into project readable format
 - visualization - module for the visualization of results
@@ -12,7 +12,7 @@
 
 To run all Nanostream system you should make next steps:
 1) Create [Google Cloud Project](https://cloud.google.com/)
-2) Create [Google Cloud Storage](https://cloud.google.com/storage/) **dest bucket** for adding fastq files. 
+2) Create [Google Cloud Storage](https://cloud.google.com/storage/) **destination bucket** for adding fastq files. 
 You can use ([this python module](https://github.com/Pseverin/nanostream-dataflow/blob/master/simulator)) to provide a simulation of an adding fastq files
 3) Create **PubSub notifications**  ([See details](https://cloud.google.com/storage/docs/pubsub-notifications)) for **simulator dest bucket** that will be creating notifications when new files will have be added to bucket
 ```
