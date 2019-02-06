@@ -10,7 +10,7 @@ export MIN_REPLICAS=1
 export MAX_REPLICAS=3
 export TARGET_CPU_UTILIZATION=0.5
 
-export DOCKER_IMAGE='dockersubtest/nano-larry:http'
+export DOCKER_IMAGE='dockersubtest/nano-gcp-http:latest'
 export BWA_FILES='gs://nano-stream1/NewDatabases/resFinder/*'
 
 source provision.sh
