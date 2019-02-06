@@ -9,7 +9,7 @@
 --bwaEndpoint=/cgi-bin/bwa.cgi
 --bwaDatabase=DB.fasta
 --kAlignEndpoint=/cgi-bin/kalign.cgi
---outputFirestoreDbUrl=https://upwork-nano-stream.firebaseio.com
+--outputFirestoreDbUrl=https://nano-stream1.firebaseio.com
 --outputFirestoreSequencesStatisticCollection=resistant_sequences_statistic
 --outputFirestoreSequencesBodiesCollection=resistant_sequences_bodies
 --outputFirestoreGeneCacheCollection=resistant_gene_cache
