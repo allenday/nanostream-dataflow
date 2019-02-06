@@ -8,7 +8,7 @@ setup () {
     --container-image=${DOCKER_IMAGE} \
     --container-env BWA_FILES=${BWA_FILES} \
     --boot-disk-size=100GB \
-    --tags http-server,http \
+    --tags http-server,http,allow-http \
     --preemptible \
     --machine-type=$MACHINE_TYPE
 
