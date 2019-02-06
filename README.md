@@ -13,7 +13,7 @@
 To run all Nanostream system you should make next steps:
 1) Create [Google Cloud Project](https://cloud.google.com/)
 2) Create [Google Cloud Storage](https://cloud.google.com/storage/) **destination bucket** for adding fastq files. 
-You can use ([this python module](https://github.com/Pseverin/nanostream-dataflow/blob/master/simulator)) to provide a simulation of an adding fastq files
+You can use ([this python module](https://github.com/allenday/nanostream-dataflow/blob/master/simulator)) to provide a simulation of an adding fastq files
 3) Create **PubSub notifications**  ([See details](https://cloud.google.com/storage/docs/pubsub-notifications)) for **simulator dest bucket** that will be creating notifications when new files will have be added to bucket
 ```
 gsutil notification create -t (pub_sub_topic_name) -f json -e OBJECT_FINALIZE (adding_fastq_files_simulation_bucket)
@@ -60,9 +60,23 @@ java -cp (path_to_nanostream_app_jar) \
   --resistantGenesList=gs://nano-stream-test/gene_info/resistant_genes_list.txt `# OPTOPNAL Only for resistant_genes mode. Path to fasta file with resistant genes list(step 6)` 
 ```
 
+### Available databases
+For this project the bucket **nano-stream-data** were created
+with reference databases of species and antibiotic resistant genes.
 
-TODO:
-- simulation of fastq files (Done)
-- change allenday/bwa-http-docker to listen on port 80 without using self-signed certificate (Done)
-- load balancer and autoscaling group for aligner (Done)
-- wrap [minimap2](https://github.com/lh3/minimap2) into HTTP. (Not clear, how to output SAM file)
+There is following structure of files:
+```
+gs://nano-stream-data/
+|- databases
+|-- antibiotic_resistant
+|--- DB.fasta
+|--- DB.fasta.[amb,ann,bwt,pac,sa]
+|-- species
+|--- DB.fasta
+|--- DB.fasta.[amb,ann,bwt,pac,sa]
+```
+where:
+- DB.fasta - FASTA file with reference sequences
+- DB.fasta.amb, DB.fasta.ann, DB.fasta.bwt, DB.fasta.pac, DB.fasta.sa - files generated and used by `bwa` in order to improve performance, see details in [this SEQanswers answer](http://seqanswers.com/forums/showpost.php?s=06f0dadc73bdf687f265a94c8217d0bd&p=90992&postcount=2)
+
+**nano-stream-data** - is a public bucket with [requester pays](https://cloud.google.com/storage/docs/requester-pays) option enabled.
