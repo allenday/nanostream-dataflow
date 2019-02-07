@@ -73,21 +73,21 @@ java -cp (path_to_nanostream_app_jar) \
 ```
 java -cp /home/coingroupimb/git larry 2019-02-06/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
   com.theappsolutions.nanostream.NanostreamApp \
-  --runner=org.apache.beam.runners.dataflow.DataflowRunner `# Apache Beam Runner (Dataflow for Google Cloud Dataflow running or Direct for local running)` \
-  --project=nano-stream1 `# Google Cloud Project name` \
-  --streaming=true `# should be true for streaming (infinite) mode` \
-  --processingMode=species `# specifies "species" or "resistant_genes" mode of data processing` \
-  --inputDataSubscription=projects/nano-stream1/topics/file_upload `# PubSub subscription name from step 4` \
-  --alignmentWindow=20 `# Size of the window in which FastQ records will be collected for Alignment` \
-  --statisticUpdatingDelay=30 `# Delay between updating output statistic data` \
-  --servicesUrl=http://34.85.27.91 `# Base URL for http services (Aligner and K-Align)` \ 
-  --bwaEndpoint=/cgi-bin/bwa.cgi `# Aligner endpoint` \
-  --bwaDatabase=DB.fasta `# Aligner DB name` \
-  --kAlignEndpoint=/cgi-bin/kalign.cgi `# K-Align endpoint` \
-  --outputFirestoreDbUrl=https://nano-stream1.firebaseio.com `# Firestore DB url from step 5` \
-  --outputFirestoreSequencesStatisticCollection=resistant_sequences_statistic `# Collection name of the Firestore database that will be used for writing output statistic data` \
-  --outputFirestoreSequencesBodiesCollection=resistant_sequences_bodies `# Collection name of the Firestore database that will be used for writing output Sequences Body data` \
-  --outputFirestoreGeneCacheCollection=resistant_gene_cache `# Collection name of the Firestore database that will be used for saving NCBI genome data cache` \
+  --runner=org.apache.beam.runners.dataflow.DataflowRunner \
+  --project=nano-stream1 \
+  --streaming=true \
+  --processingMode=species \
+  --inputDataSubscription=projects/nano-stream1/topics/file_upload \
+  --alignmentWindow=20 \
+  --statisticUpdatingDelay=30 \
+  --servicesUrl=http://34.85.27.91 \
+  --bwaEndpoint=/cgi-bin/bwa.cgi \
+  --bwaDatabase=DB.fasta \
+  --kAlignEndpoint=/cgi-bin/kalign.cgi \
+  --outputFirestoreDbUrl=https://nano-stream1.firebaseio.com \
+  --outputFirestoreSequencesStatisticCollection=resistant_sequences_statistic \
+  --outputFirestoreSequencesBodiesCollection=resistant_sequences_bodies \
+  --outputFirestoreGeneCacheCollection=resistant_gene_cache \
 ```
   
 </p></details>
