@@ -52,7 +52,7 @@ java -cp (path_to_nanostream_app_jar) \
   --inputDataSubscription=projects/nano-stream1/topics/file_upload `# PubSub subscription name from step 4` \
   --alignmentWindow=20 `# Size of the window in which FastQ records will be collected for Alignment` \
   --statisticUpdatingDelay=30 `# Delay between updating output statistic data` \
-  --servicesUrl=http://130.211.33.64 `# Base URL for http services (Aligner and K-Align)` TODOTODO \ 
+  --servicesUrl=http://34.85.27.91 `# Base URL for http services (Aligner and K-Align)` TODOTODO \ 
   --bwaEndpoint=/cgi-bin/bwa.cgi `# Aligner endpoint` \
   --bwaDatabase=DB.fasta `# Aligner DB name` \
   --kAlignEndpoint=/cgi-bin/kalign.cgi `# K-Align endpoint` \
