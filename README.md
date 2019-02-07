@@ -71,7 +71,7 @@ java -cp (path_to_nanostream_app_jar) \
 <details><summary>species</summary><p>
   
 ```
-java -cp /home/coingroupimb/git larry 2019-02-06/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
+java -cp /home/coingroupimb/git_larry_2019-02-06/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
   com.theappsolutions.nanostream.NanostreamApp \
   --runner=org.apache.beam.runners.dataflow.DataflowRunner \
   --project=nano-stream1 \
@@ -95,7 +95,7 @@ java -cp /home/coingroupimb/git larry 2019-02-06/NanostreamDataflowMain/build/Na
 <details><summary>resistance</summary><p>
   
 ```
-java -cp /home/coingroupimb/git larry 2019-02-06/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
+java -cp /home/coingroupimb/git_larry_2019-02-06/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
   com.theappsolutions.nanostream.NanostreamApp \
   --runner=org.apache.beam.runners.dataflow.DataflowRunner `# Apache Beam Runner (Dataflow for Google Cloud Dataflow running or Direct for local running)` \
   --project=nano-stream1 `# Google Cloud Project name` \
