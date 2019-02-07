@@ -69,6 +69,7 @@ java -cp (path_to_nanostream_app_jar) \
 ```
 
 <details><summary>species</summary><p>
+  
 ```
 java -cp /home/coingroupimb/git larry 2019-02-06/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
   com.theappsolutions.nanostream.NanostreamApp \
@@ -88,9 +89,11 @@ java -cp /home/coingroupimb/git larry 2019-02-06/NanostreamDataflowMain/build/Na
   --outputFirestoreSequencesBodiesCollection=resistant_sequences_bodies `# Collection name of the Firestore database that will be used for writing output Sequences Body data` \
   --outputFirestoreGeneCacheCollection=resistant_gene_cache `# Collection name of the Firestore database that will be used for saving NCBI genome data cache` \
 ```
+  
 </p></details>
 
 <details><summary>resistance</summary><p>
+  
 ```
 java -cp /home/coingroupimb/git larry 2019-02-06/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
   com.theappsolutions.nanostream.NanostreamApp \
@@ -112,6 +115,7 @@ java -cp /home/coingroupimb/git larry 2019-02-06/NanostreamDataflowMain/build/Na
   --resistantGenesFastDB=gs://nano-stream-1/NewDatabases/DB_resistant_formatted.fasta `# OPTIONAL Only for resistant_genes mode. Path to fasta file with resistant genes database (step 6)` \
   --resistantGenesList=gs://nano-stream1/NewDatabases/resistant_genes_list.txt `# OPTIONAL Only for resistant_genes mode. Path to fasta file with resistant genes list(step 6)`
 ```
+
 </p></details>
 
 ### Cleanup
