@@ -13,6 +13,5 @@
 --outputFirestoreSequencesStatisticCollection=resistant_sequences_statistic
 --outputFirestoreSequencesBodiesCollection=resistant_sequences_bodies
 --outputFirestoreGeneCacheCollection=resistant_gene_cache
---workingBucket=nano-stream-test
 --resistantGenesFastDB=gs://nano-stream-test/gene_info/DB_resistant_formatted.fasta
 --resistantGenesList=gs://nano-stream-test/gene_info/resistant_genes_list.txt

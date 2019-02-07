@@ -19,7 +19,6 @@ public class NanostreamModule extends AbstractModule {
     protected String outputFirestoreGeneCacheCollection;
     protected String resistantGenesFastDB;
     protected String resistantGenesList;
-    protected String workingBucket;
 
     public NanostreamModule(Builder builder) {
         this.projectId = builder.projectId;
@@ -33,7 +32,6 @@ public class NanostreamModule extends AbstractModule {
         this.outputFirestoreGeneCacheCollection = builder.outputFirestoreGeneCacheCollection;
         this.resistantGenesFastDB = builder.resistantGenesFastDB;
         this.resistantGenesList = builder.resistantGenesList;
-        this.workingBucket = builder.workingBucket;
     }
 
     public static class Builder {
@@ -49,7 +47,6 @@ public class NanostreamModule extends AbstractModule {
         protected String outputFirestoreGeneCacheCollection;
         protected String resistantGenesFastDB;
         protected String resistantGenesList;
-        protected String workingBucket;
 
         public Builder setProjectId(String projectId) {
             this.projectId = projectId;
@@ -106,11 +103,6 @@ public class NanostreamModule extends AbstractModule {
             return this;
         }
 
-        public Builder setWorkingBucket(String workingBucket) {
-            this.workingBucket = workingBucket;
-            return this;
-        }
-
         public String getProjectId() {
             return projectId;
         }
@@ -159,7 +151,6 @@ public class NanostreamModule extends AbstractModule {
             setOutputFirestoreGeneCacheCollection(nanostreamPipelineOptions.getOutputFirestoreGeneCacheCollection().get());
             setResistantGenesFastDB(nanostreamPipelineOptions.getResistantGenesFastDB());
             setResistantGenesList(nanostreamPipelineOptions.getResistantGenesList());
-            setWorkingBucket(nanostreamPipelineOptions.getWorkingBucket());
             return build();
         }
 

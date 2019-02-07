@@ -41,8 +41,8 @@ public class AlignmentTests implements Serializable {
 
     @Test
     public void testFastQHttpAlignment() {
-
-        Injector injector = Guice.createInjector(new TestModule.Builder().build());
+        TestModule testModule = new TestModule.Builder().build();
+        Injector injector = Guice.createInjector(testModule);
 
         try {
             String[] fastqData = IOUtils.toString(

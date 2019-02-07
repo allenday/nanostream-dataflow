@@ -43,7 +43,8 @@ public class KAlignmentFnTests implements Serializable {
 
     @Test
     public void testSingleItemKAlignment() {
-        Injector injector = Guice.createInjector(new TestModule.Builder().build());
+        TestModule testModule = new TestModule.Builder().build();
+        Injector injector = Guice.createInjector(testModule);
 
         String geneId = "test_gene_id";
         String sequesnceName = "test_sequnce_name";
@@ -64,7 +65,8 @@ public class KAlignmentFnTests implements Serializable {
 
     @Test
     public void testMultipleItemKAlignment() {
-        Injector injector = Guice.createInjector(new TestModule.Builder().build());
+        TestModule testModule = new TestModule.Builder().build();
+        Injector injector = Guice.createInjector(testModule);
 
         String geneId = "test_gene_id";
         String sequesnceName = "test_sequnce_name";
