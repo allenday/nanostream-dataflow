@@ -21,7 +21,7 @@ public class ParseFastQFn extends DoFn<String, FastqRecord> {
 
     @ProcessElement
     public void processElement(ProcessContext c) {
-        List<Integer> fatqStarts = new ArrayList<>();
+        List<Integer> fastqStarts = new ArrayList<>();
 
         String data = c.element();
 
