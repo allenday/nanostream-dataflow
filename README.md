@@ -1,6 +1,6 @@
 # Nanostream Dataflow
 
-### Project tructure
+### Project structure
 - NanostreamDataflowMain - Apache Beam app that provides all data transformations
 - aligner - scripts to provision autoscaled HTTP service for alignment (based on bwa)
 - simulator - python script that can simulate file uploads to GCS
@@ -9,7 +9,6 @@
 - doc - additional files for documentation
 
 ### Setup
-
 To run all Nanostream system you should make next steps:
 1) Create [Google Cloud Project](https://cloud.google.com/)
 2) Create [Google Cloud Storage](https://cloud.google.com/storage/) **dest bucket** for adding fastq files. 
@@ -21,7 +20,6 @@ gsutil notification create \
 -t FILE_UPLOAD -f json \
 -e OBJECT_FINALIZE \
 -p <sub-folder>/ gs://<project_id>
-
 ```
 5) Create **Firestore DB** ([See details](https://firebase.google.com/products/firestore/)) for saving cache and result data
 
