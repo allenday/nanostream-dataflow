@@ -124,6 +124,7 @@ To previosly-generated services and remnants,
 See steps 6 - 8 above, except `bash provision_species.sh -c` or `bash provision_gene_resistance.sh -c`
 
 TODO: 
+1) docker build with recipe
 1) mnt gs bucket references instead of cp
 2) minimap2 pipeline
 3) sessioning?
