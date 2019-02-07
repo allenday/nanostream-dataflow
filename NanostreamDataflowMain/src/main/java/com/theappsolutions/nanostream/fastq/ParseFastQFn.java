@@ -30,7 +30,7 @@ public class ParseFastQFn extends DoFn<String, FastqRecord> {
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine();
             if (line.contains(NEW_FASTQ_INDICATION)) {
-                fatqStarts.add(position);
+                fastqStarts.add(position);
             }
             position += line.length()+"\n".length();
         }
