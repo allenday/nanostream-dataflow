@@ -38,7 +38,7 @@ public class ParseFastQFn extends DoFn<String, FastqRecord> {
 
         IntStream.range(0, fatqStarts.size()).forEach(index -> {
             int startFastqEntityPosition = fatqStarts.get(index);
-            int endFastqEntityPosition = (fatqStarts.size() > index + 1)
+            int endFastqEntityPosition = (fastqStarts.size() > index + 1)
                     ? fatqStarts.get(index + 1) : data.length();
             String payload = data.substring(startFastqEntityPosition, endFastqEntityPosition);
             String[] payloadAsLines = StringUtils.split(payload, "\n");
