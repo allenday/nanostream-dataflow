@@ -2,7 +2,7 @@
 
 ### Project Structure
 - NanostreamDataflowMain - Apache Beam app that provides all data transformations
-- aligner - scripts to provision autoscaled HTTP service for alignment (based on `bwa`)
+- aligner - scripts to provision auto-scaled HTTP service for alignment (based on `bwa`)
 - simulator - python script that can simulate file uploads to GCS
 - fasta_formatter - python script for formatting fasta files into project readable format
 - visualization - module for the visualization of results
@@ -34,10 +34,15 @@ To build jar from source, follow next steps:
 mvn install:install-file -Dfile=NanostreamDataflowMain/libs/japsa.jar -DgroupId=coin -DartifactId=japsa -Dversion=1.7-10a -Dpackaging=jar
 ```
 3) Build uber-jar file
-... TODO
+```
+cd NanostreamDataflowMain
+mvn clean package
+```
+after running this command successfully, there should be a file:
+"NanostreamDataflowMain/target/NanostreamDataflowMain-1.0-SNAPSHOT.jar"
 
 ### Running
-To start **Nanostream Pipeline** you should run following command:
+To start **Nanostream Pipeline** run following command:
 ```
 java -cp (path_to_nanostream_app_jar) \
   com.theappsolutions.nanostream.NanostreamApp \
