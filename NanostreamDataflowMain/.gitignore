@@ -5,3 +5,6 @@ target/
 src/.gitignore
 result-*
 src/test/java/com/theappsolutions/nanostream/debugging/
+
+# maven temporary
+dependency-reduced-pom.xml
