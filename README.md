@@ -60,7 +60,7 @@ java -cp (path_to_nanostream_app_jar) \
   --project=nano-stream1 `# Google Cloud Project name` \
   --streaming=true `# should be true for streaming (infinite) mode` \
   --processingMode=species `# specifies "species" or "resistant_genes" mode of data processing` \
-  --inputDataSubscription=projects/nano-stream1/subscriptions/file_upload `# PubSub subscription name from step 4` \
+  --inputDataSubscription=projects/nano-stream1/subscriptions/upload_watcher `# PubSub subscription name from step 4` \
   --alignmentWindow=20 `# Size of the window in which FastQ records will be collected for Alignment` \
   --statisticUpdatingDelay=30 `# Delay between updating output statistic data` \
   --servicesUrl=http://34.85.27.91 `# Base URL for http services (Aligner and K-Align)` TODOTODO \
