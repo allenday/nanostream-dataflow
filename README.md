@@ -135,7 +135,6 @@ java -cp /home/coingroupimb/git_larry_2019-02-08/NanostreamDataflowMain/build/Na
 
 </p></details>
 
-### Cleanup
 
 ### Available databases
 For this project the bucket **nano-stream-data** were created
@@ -158,10 +157,12 @@ where:
 
 **nano-stream-data** - is a public bucket with [requester pays](https://cloud.google.com/storage/docs/requester-pays) option enabled.
 
+### Cleanup
+
 To clear previously-generated services and remnants, 
 See steps 6 - 8 above, except `bash provision_species.sh -c` or `bash provision_gene_resistance.sh -c`
 
-TODO:
+### TODO:
 1) docker build with recipe
 1) mnt gs bucket references instead of cp
 2) minimap2 pipeline
