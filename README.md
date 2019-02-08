@@ -28,6 +28,9 @@ Run provisioning scripts:
 7) `cd /nanostream-dataflow/aligner/`
 8) `bash provision_species.sh` or `bash provision_gene_resistance.sh`
 
+9) install java8 on Gcloud
+[instructions here](https://tecadmin.net/install-java-8-on-debian/)
+
 Optional:
 
 9) If you running the pipeline in *resistant_genes* mode you should provide *fasta db* and *gene list* files stored at the GCS bucket
@@ -57,7 +60,7 @@ java -cp (path_to_nanostream_app_jar) \
   --project=nano-stream1 `# Google Cloud Project name` \
   --streaming=true `# should be true for streaming (infinite) mode` \
   --processingMode=species `# specifies "species" or "resistant_genes" mode of data processing` \
-  --inputDataSubscription=projects/nano-stream1/topics/file_upload `# PubSub subscription name from step 4` \
+  --inputDataSubscription=projects/nano-stream1/subscriptions/file_upload `# PubSub subscription name from step 4` \
   --alignmentWindow=20 `# Size of the window in which FastQ records will be collected for Alignment` \
   --statisticUpdatingDelay=30 `# Delay between updating output statistic data` \
   --servicesUrl=http://34.85.27.91 `# Base URL for http services (Aligner and K-Align)` TODOTODO \
@@ -81,7 +84,7 @@ java -cp /home/coingroupimb/git_larry_2019-02-06/NanostreamDataflowMain/build/Na
   --project=nano-stream1 \
   --streaming=true \
   --processingMode=species \
-  --inputDataSubscription=projects/nano-stream1/topics/file_upload \
+  --inputDataSubscription=projects/nano-stream1/subscriptions/file_upload \
   --alignmentWindow=20 \
   --statisticUpdatingDelay=30 \
   --servicesUrl=http://34.85.27.91 \
@@ -105,7 +108,7 @@ java -cp /home/coingroupimb/git_larry_2019-02-06/NanostreamDataflowMain/build/Na
   --project=nano-stream1 `# Google Cloud Project name` \
   --streaming=true `# should be true for streaming (infinite) mode` \
   --processingMode=species `# specifies "species" or "resistant_genes" mode of data processing` \
-  --inputDataSubscription=projects/nano-stream1/topics/file_upload `# PubSub subscription name from step 4` \
+  --inputDataSubscription=projects/nano-stream1/subscriptions/file_upload `# PubSub subscription name from step 4` \
   --alignmentWindow=20 `# Size of the window in which FastQ records will be collected for Alignment` \
   --statisticUpdatingDelay=30 `# Delay between updating output statistic data` \
   --servicesUrl=http://34.85.27.91 `# Base URL for http services (Aligner and K-Align)` \
