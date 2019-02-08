@@ -1,6 +1,6 @@
 # Nanostream Dataflow
 
-### Project tructure
+### Project structure
 - NanostreamDataflowMain - Apache Beam app that provides all data transformations
 - aligner - scripts to provision autoscaled HTTP service for alignment (based on bwa)
 - simulator - python script that can simulate file uploads to GCS
@@ -9,7 +9,6 @@
 - doc - additional files for documentation
 
 ### Setup
-
 To run all Nanostream system you should make next steps:
 1) Create [Google Cloud Project](https://cloud.google.com/)
 2) Create [Google Cloud Storage](https://cloud.google.com/storage/) **dest bucket** for adding fastq files. 
@@ -21,13 +20,18 @@ gsutil notification create \
 -t FILE_UPLOAD -f json \
 -e OBJECT_FINALIZE \
 -p <sub-folder>/ gs://<project_id>
-
 ```
 5) Create **Firestore DB** ([See details](https://firebase.google.com/products/firestore/)) for saving cache and result data
 
+Run provisioning scripts: 
+
+6) On Google Cloud Shell, `git clone https://github.com/Firedrops/nanostream-dataflow.git`.
+7) `cd /nanostream-dataflow/aligner/`
+8) `bash provision_species.sh` or `bash provision_gene_resistance.sh`
+
 Optional:
 
-6) If you running the pipeline in *resistant_genes* mode you should provide *fasta db* and *gene list* files stored at the GCS bucket
+9) If you running the pipeline in *resistant_genes* mode you should provide *fasta db* and *gene list* files stored at the GCS bucket
 
 ### Build
 You can skip this step and run project with [pre-built jar file](https://github.com/allenday/nanostream-dataflow/blob/master/NanostreamDataflowMain/build/)
@@ -48,11 +52,11 @@ java -cp (path_to_nanostream_app_jar) \
   --runner=org.apache.beam.runners.dataflow.DataflowRunner `# Apache Beam Runner (Dataflow for Google Cloud Dataflow running or Direct for local running)` \
   --project=nano-stream1 `# Google Cloud Project name` \
   --streaming=true `# should be true for streaming (infinite) mode` \
-  --processingMode=species `# pecifies "species" or "resistant_genes" mode of data processing` \
+  --processingMode=species `# specifies "species" or "resistant_genes" mode of data processing` \
   --inputDataSubscription=projects/nano-stream1/topics/file_upload `# PubSub subscription name from step 4` \
   --alignmentWindow=20 `# Size of the window in which FastQ records will be collected for Alignment` \
   --statisticUpdatingDelay=30 `# Delay between updating output statistic data` \
-  --servicesUrl=http://130.211.33.64 `# Base URL for http services (Aligner and K-Align)` TODOTODO \ 
+  --servicesUrl=http://34.85.27.91 `# Base URL for http services (Aligner and K-Align)` TODOTODO \ 
   --bwaEndpoint=/cgi-bin/bwa.cgi `# Aligner endpoint` \
   --bwaDatabase=DB.fasta `# Aligner DB name` \
   --kAlignEndpoint=/cgi-bin/kalign.cgi `# K-Align endpoint` \
@@ -60,18 +64,67 @@ java -cp (path_to_nanostream_app_jar) \
   --outputFirestoreSequencesStatisticCollection=resistant_sequences_statistic `# Collection name of the Firestore database that will be used for writing output statistic data` \
   --outputFirestoreSequencesBodiesCollection=resistant_sequences_bodies `# Collection name of the Firestore database that will be used for writing output Sequences Body data` \
   --outputFirestoreGeneCacheCollection=resistant_gene_cache `# Collection name of the Firestore database that will be used for saving NCBI genome data cache` \
-  --resistantGenesFastDB=gs://nano-stream-test/gene_info/DB_resistant_formatted.fasta `# OPTOPNAL Only for resistant_genes mode. Path to fasta file with resistant genes database (step 6)` \
-  --resistantGenesList=gs://nano-stream-test/gene_info/resistant_genes_list.txt `# OPTOPNAL Only for resistant_genes mode. Path to fasta file with resistant genes list(step 6)` 
+  --resistantGenesFastDB=gs://nano-stream-test/gene_info/DB_resistant_formatted.fasta `# OPTIONAL Only for resistant_genes mode. Path to fasta file with resistant genes database (step 6)` \
+  --resistantGenesList=gs://nano-stream-test/gene_info/resistant_genes_list.txt `# OPTIPNAL Only for resistant_genes mode. Path to fasta file with resistant genes list(step 6)` 
 ```
 
+<details><summary>species</summary><p>
+  
+```
+java -cp /home/coingroupimb/git_larry_2019-02-06/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
+  com.theappsolutions.nanostream.NanostreamApp \
+  --runner=org.apache.beam.runners.dataflow.DataflowRunner \
+  --project=nano-stream1 \
+  --streaming=true \
+  --processingMode=species \
+  --inputDataSubscription=projects/nano-stream1/topics/file_upload \
+  --alignmentWindow=20 \
+  --statisticUpdatingDelay=30 \
+  --servicesUrl=http://34.85.27.91 \
+  --bwaEndpoint=/cgi-bin/bwa.cgi \
+  --bwaDatabase=DB.fasta \
+  --kAlignEndpoint=/cgi-bin/kalign.cgi \
+  --outputFirestoreDbUrl=https://nano-stream1.firebaseio.com \
+  --outputFirestoreSequencesStatisticCollection=resistant_sequences_statistic \
+  --outputFirestoreSequencesBodiesCollection=resistant_sequences_bodies \
+  --outputFirestoreGeneCacheCollection=resistant_gene_cache \
+```
+  
+</p></details>
 
-To delete managed instance services (generated by provision_species.sh, for example), you need to 
-1) delete load balancer (search load in the top central search bar)
-2) delete its back-end services:
-`gcloud compute backend-services delete bwa-species-backend-service --global`
-3) delete Compute Engine -> Instance groups
-4) delete Compute Engine -> Instance templates
-5) delete Compute Engine -> Health checks
-6) delete firewall rule (search VPC in the top central search bar), delete allow-http.
+<details><summary>resistance</summary><p>
+  
+```
+java -cp /home/coingroupimb/git_larry_2019-02-06/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
+  com.theappsolutions.nanostream.NanostreamApp \
+  --runner=org.apache.beam.runners.dataflow.DataflowRunner `# Apache Beam Runner (Dataflow for Google Cloud Dataflow running or Direct for local running)` \
+  --project=nano-stream1 `# Google Cloud Project name` \
+  --streaming=true `# should be true for streaming (infinite) mode` \
+  --processingMode=species `# specifies "species" or "resistant_genes" mode of data processing` \
+  --inputDataSubscription=projects/nano-stream1/topics/file_upload `# PubSub subscription name from step 4` \
+  --alignmentWindow=20 `# Size of the window in which FastQ records will be collected for Alignment` \
+  --statisticUpdatingDelay=30 `# Delay between updating output statistic data` \
+  --servicesUrl=http://34.85.27.91 `# Base URL for http services (Aligner and K-Align)` \ 
+  --bwaEndpoint=/cgi-bin/bwa.cgi `# Aligner endpoint` \
+  --bwaDatabase=DB.fasta `# Aligner DB name` \
+  --kAlignEndpoint=/cgi-bin/kalign.cgi `# K-Align endpoint` \
+  --outputFirestoreDbUrl=https://nano-stream1.firebaseio.com `# Firestore DB url from step 5` \
+  --outputFirestoreSequencesStatisticCollection=resistant_sequences_statistic `# Collection name of the Firestore database that will be used for writing output statistic data` \
+  --outputFirestoreSequencesBodiesCollection=resistant_sequences_bodies `# Collection name of the Firestore database that will be used for writing output Sequences Body data` \
+  --outputFirestoreGeneCacheCollection=resistant_gene_cache `# Collection name of the Firestore database that will be used for saving NCBI genome data cache` \
+  --resistantGenesFastDB=gs://nano-stream-1/NewDatabases/DB_resistant_formatted.fasta `# OPTIONAL Only for resistant_genes mode. Path to fasta file with resistant genes database (step 6)` \
+  --resistantGenesList=gs://nano-stream1/NewDatabases/resistant_genes_list.txt `# OPTIONAL Only for resistant_genes mode. Path to fasta file with resistant genes list(step 6)`
+```
 
-This will need to be done before each deployment otherwise the provisioning scripts will stop once it encounters pre-existing stuff. Very annoying.
+</p></details>
+
+### Cleanup
+
+To previosly-generated services and remnants, 
+See steps 6 - 8 above, except `bash provision_species.sh -c` or `bash provision_gene_resistance.sh -c`
+
+TODO: 
+1) docker build with recipe
+1) mnt gs bucket references instead of cp
+2) minimap2 pipeline
+3) sessioning?
