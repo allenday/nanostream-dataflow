@@ -47,8 +47,7 @@ public class NanostreamHttpServiceTest {
         HttpEntity mockHttpEntity = mock(HttpEntity.class);
         HttpUriRequest mockHttpUriRequest = mock(HttpUriRequest.class);
 
-        when(mockHttpHelper.createHttpClient())
-                .thenReturn(mockClient);
+        doReturn(mockClient).when(mockHttpHelper).createHttpClient();
         when(mockHttpHelper.buildStringContentBody(anyString()))
                 .thenReturn(mock(ContentBody.class));
         when(mockHttpHelper.createMultipartHttpEntity(any()))

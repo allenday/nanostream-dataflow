@@ -107,11 +107,6 @@ public interface NanostreamPipelineOptions extends DataflowPipelineOptions {
 
     void setResistantGenesList(String value);
 
-    @Description("Name of GCS bucket that used for storing project data")
-    String getWorkingBucket();
-
-    void setWorkingBucket(String value);
-
     @Description("Prefix for Firestore collections names that used for output")
     String getOutputFirestoreCollectionNamePrefix();
 

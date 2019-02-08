@@ -13,8 +13,16 @@ import static org.mockito.Mockito.withSettings;
 
 public class TestModule extends NanostreamModule {
 
-    public TestModule(Builder builder) {
+    public TestModule(TestModule.Builder builder) {
         super(builder);
+    }
+
+    public static class Builder extends NanostreamModule.Builder {
+
+        @Override
+        public TestModule build() {
+            return new TestModule(this);
+        }
     }
 
     @Provides
