@@ -21,7 +21,7 @@ public class ParseFastQFn extends DoFn<String, FastqRecord> {
 
     @ProcessElement
     public void processElement(ProcessContext c) {
-        List<Integer> fatqStarts = new ArrayList<>();
+        List<Integer> fastqStarts = new ArrayList<>();
 
         String data = c.element();
 
@@ -30,16 +30,16 @@ public class ParseFastQFn extends DoFn<String, FastqRecord> {
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine();
             if (line.contains(NEW_FASTQ_INDICATION)) {
-                fatqStarts.add(position);
+                fastqStarts.add(position);
             }
             position += line.length()+"\n".length();
         }
         scanner.close();
 
-        IntStream.range(0, fatqStarts.size()).forEach(index -> {
-            int startFastqEntityPosition = fatqStarts.get(index);
-            int endFastqEntityPosition = (fatqStarts.size() > index + 1)
-                    ? fatqStarts.get(index + 1) : data.length();
+        IntStream.range(0, fastqStarts.size()).forEach(index -> {
+            int startFastqEntityPosition = fastqStarts.get(index);
+            int endFastqEntityPosition = (fastqStarts.size() > index + 1)
+                    ? fastqStarts.get(index + 1) : data.length();
             String payload = data.substring(startFastqEntityPosition, endFastqEntityPosition);
             String[] payloadAsLines = StringUtils.split(payload, "\n");
             List<String> linesList = Arrays.stream(payloadAsLines)
