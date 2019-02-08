@@ -56,6 +56,8 @@ To start **Nanostream Pipeline** run following command:
 ```
 java -cp (path_to_nanostream_app_jar) \
   com.theappsolutions.nanostream.NanostreamApp \
+  --region=asia-northeast1 \
+  --zone=c \
   --runner=org.apache.beam.runners.dataflow.DataflowRunner `# Apache Beam Runner (Dataflow for Google Cloud Dataflow running or Direct for local running)` \
   --project=nano-stream1 `# Google Cloud Project name` \
   --streaming=true `# should be true for streaming (infinite) mode` \
@@ -80,6 +82,8 @@ java -cp (path_to_nanostream_app_jar) \
 ```
 java -cp /home/coingroupimb/git_larry_2019-02-08/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
   com.theappsolutions.nanostream.NanostreamApp \
+  --region=asia-northeast1 \
+  --zone=c \
   --runner=org.apache.beam.runners.dataflow.DataflowRunner \
   --project=nano-stream1 \
   --streaming=true \
@@ -104,6 +108,8 @@ java -cp /home/coingroupimb/git_larry_2019-02-08/NanostreamDataflowMain/build/Na
 ```
 java -cp /home/coingroupimb/git_larry_2019-02-08/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
   com.theappsolutions.nanostream.NanostreamApp \
+  --region=asia-northeast1 \
+  --zone=c \
   --runner=org.apache.beam.runners.dataflow.DataflowRunner `# Apache Beam Runner (Dataflow for Google Cloud Dataflow running or Direct for local running)` \
   --project=nano-stream1 `# Google Cloud Project name` \
   --streaming=true `# should be true for streaming (infinite) mode` \
