@@ -1,5 +1,8 @@
 # Nanostream Dataflow
 
+[Visualiser](https://nano-stream1.appspot.com/)
+[PubSub Diagnostics](https://upload-watcher-dot-nano-stream1.appspot.com/)
+
 ### Project Structure
 - NanostreamDataflowMain - Apache Beam app that provides all data transformations
 - aligner - scripts to provision auto-scaled HTTP service for alignment (based on `bwa`)
