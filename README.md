@@ -31,7 +31,7 @@ To build jar from source, follow next steps:
 1) Install [Maven](https://maven.apache.org/install.html)
 2) Add [Japsa](https://github.com/mdcao/japsa) package to local Maven repository. To do this you should run following command from project root:
 ```
-mvn install:install-file -Dfile=NanostreamDataflowMain/libs/japsa.jar -DgroupId=coin -DartifactId=japsa -Dversion=1.7-10a -Dpackaging=jar
+mvn install:install-file -Dfile=NanostreamDataflowMain/libs/japsa.jar -DgroupId=coin -DartifactId=japsa -Dversion=1.9-2b -Dpackaging=jar
 ```
 3) Build uber-jar file
 ```
