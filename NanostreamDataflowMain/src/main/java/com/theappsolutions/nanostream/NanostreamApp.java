@@ -28,7 +28,6 @@ import com.theappsolutions.nanostream.util.trasform.RemoveValueDoFn;
 import htsjdk.samtools.fastq.FastqRecord;
 import japsa.seq.Sequence;
 import org.apache.beam.sdk.Pipeline;
-import org.apache.beam.sdk.PipelineResult;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
@@ -136,7 +135,6 @@ public class NanostreamApp {
                         ParDo.of(injector.getInstance(WriteSequencesBodiesToFirestoreDbFn.class)));
 
 
-        PipelineResult result = pipeline.run();
-        result.waitUntilFinish();
+        pipeline.run();
     }
 }

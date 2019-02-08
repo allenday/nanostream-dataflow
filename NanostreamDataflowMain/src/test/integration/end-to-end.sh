@@ -2,8 +2,11 @@
 # fail on error
 set -e
 
-java -cp NanostreamDataflowMain.jar \
-    com.theappsolutions.nanostream.NanostreamApp \
+mvn clean install exec:java \
+  -f ../../../pom.xml \
+  -Dexec.mainClass="com.theappsolutions.nanostream.NanostreamApp" \
+  -Dmaven.test.skip=true \
+  -Dexec.args=" \
   --runner=org.apache.beam.runners.dataflow.DataflowRunner `#Apache Beam Runner (Dataflow for Google Cloud Dataflow running or Direct for local running)` \
   --project=upwork-nano-stream `# Google Cloud Project name` \
   --streaming=true `# should be true for streaming (infinite) mode` \
@@ -19,6 +22,5 @@ java -cp NanostreamDataflowMain.jar \
   --outputFirestoreSequencesStatisticCollection=resistant_sequences_statistic `# Collection name of the Firestore database that will be used for writing output statistic data` \
   --outputFirestoreSequencesBodiesCollection=resistant_sequences_bodies `# Collection name of the Firestore database that will be used for writing output Sequences Body data` \
   --outputFirestoreGeneCacheCollection=resistant_gene_cache `# Collection name of the Firestore database that will be used for saving NCBI genome data cache` \
-  --workingBucket=nano-stream-test `# Name of GCS bucket that used for storing project data (step 2.a)` \
   --resistantGenesFastDB=gs://nano-stream-test/gene_info/DB_resistant_formatted.fasta `# OPTOPNAL Only for resistant_genes mode. Path to fasta file with resistant genes database` \
-  --resistantGenesList=gs://nano-stream-test/gene_info/resistant_genes_list.txt `# OPTOPNAL Only for resistant_genes mode. Path to fasta file with resistant genes list`
+  --resistantGenesList=gs://nano-stream-test/gene_info/resistant_genes_list.txt" `# OPTOPNAL Only for resistant_genes mode. Path to fasta file with resistant genes list`
