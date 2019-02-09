@@ -87,7 +87,6 @@ java -cp (path_to_nanostream_app_jar) \
 java -cp /home/coingroupimb/git_larry_2019-02-08/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
   com.theappsolutions.nanostream.NanostreamApp \
   --region=asia-northeast1 \
-  --zone=c \
   --runner=org.apache.beam.runners.dataflow.DataflowRunner \
   --project=nano-stream1 \
   --streaming=true \
@@ -113,7 +112,6 @@ java -cp /home/coingroupimb/git_larry_2019-02-08/NanostreamDataflowMain/build/Na
 java -cp /home/coingroupimb/git_larry_2019-02-08/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
   com.theappsolutions.nanostream.NanostreamApp \
   --region=asia-northeast1 \
-  --zone=c \
   --runner=org.apache.beam.runners.dataflow.DataflowRunner \
   --project=nano-stream1 \
   --streaming=true \
