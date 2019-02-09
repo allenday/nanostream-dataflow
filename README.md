@@ -66,7 +66,7 @@ java -cp (path_to_nanostream_app_jar) \
   --project=nano-stream1 `# Google Cloud Project name` \
   --streaming=true `# should be true for streaming (infinite) mode` \
   --processingMode=species `# specifies "species" or "resistant_genes" mode of data processing` \
-  --inputDataSubscription=projects/nano-stream1/subscriptions/upload_watcher `# PubSub subscription name from step 4` \
+  --inputDataSubscription=projects/nano-stream1/subscriptions/dataflow `# PubSub subscription name from step 4` \
   --alignmentWindow=20 `# Size of the window in which FastQ records will be collected for Alignment` \
   --statisticUpdatingDelay=30 `# Delay between updating output statistic data` \
   --servicesUrl=http://34.85.27.91 `# Base URL for http services (Aligner and K-Align)` TODOTODO \
@@ -92,7 +92,7 @@ java -cp /home/coingroupimb/git_larry_2019-02-08/NanostreamDataflowMain/build/Na
   --project=nano-stream1 \
   --streaming=true \
   --processingMode=species \
-  --inputDataSubscription=projects/nano-stream1/subscriptions/upload_watcher \
+  --inputDataSubscription=projects/nano-stream1/subscriptions/dataflow \
   --alignmentWindow=20 \
   --statisticUpdatingDelay=30 \
   --servicesUrl=http://34.85.27.91 \
@@ -114,23 +114,23 @@ java -cp /home/coingroupimb/git_larry_2019-02-08/NanostreamDataflowMain/build/Na
   com.theappsolutions.nanostream.NanostreamApp \
   --region=asia-northeast1 \
   --zone=c \
-  --runner=org.apache.beam.runners.dataflow.DataflowRunner `# Apache Beam Runner (Dataflow for Google Cloud Dataflow running or Direct for local running)` \
-  --project=nano-stream1 `# Google Cloud Project name` \
-  --streaming=true `# should be true for streaming (infinite) mode` \
-  --processingMode=species `# specifies "species" or "resistant_genes" mode of data processing` \
-  --inputDataSubscription=projects/nano-stream1/subscriptions/upload_watcher `# PubSub subscription name from step 4` \
-  --alignmentWindow=20 `# Size of the window in which FastQ records will be collected for Alignment` \
-  --statisticUpdatingDelay=30 `# Delay between updating output statistic data` \
-  --servicesUrl=http://34.85.27.91 `# Base URL for http services (Aligner and K-Align)` \
-  --bwaEndpoint=/cgi-bin/bwa.cgi `# Aligner endpoint` \
-  --bwaDatabase=DB.fasta `# Aligner DB name` \
-  --kAlignEndpoint=/cgi-bin/kalign.cgi `# K-Align endpoint` \
-  --outputFirestoreDbUrl=https://nano-stream1.firebaseio.com `# Firestore DB url from step 5` \
-  --outputFirestoreSequencesStatisticCollection=resistant_sequences_statistic `# Collection name of the Firestore database that will be used for writing output statistic data` \
-  --outputFirestoreSequencesBodiesCollection=resistant_sequences_bodies `# Collection name of the Firestore database that will be used for writing output Sequences Body data` \
-  --outputFirestoreGeneCacheCollection=resistant_gene_cache `# Collection name of the Firestore database that will be used for saving NCBI genome data cache` \
-  --resistantGenesFastDB=gs://nano-stream-1/NewDatabases/DB_resistant_formatted.fasta `# OPTIONAL Only for resistant_genes mode. Path to fasta file with resistant genes database (step 6)` \
-  --resistantGenesList=gs://nano-stream1/NewDatabases/resistant_genes_list.txt `# OPTIONAL Only for resistant_genes mode. Path to fasta file with resistant genes list(step 6)`
+  --runner=org.apache.beam.runners.dataflow.DataflowRunner \
+  --project=nano-stream1 \
+  --streaming=true \
+  --processingMode=species \
+  --inputDataSubscription=projects/nano-stream1/subscriptions/dataflow \
+  --alignmentWindow=20 \
+  --statisticUpdatingDelay=30 \
+  --servicesUrl=http://34.85.27.91 \
+  --bwaEndpoint=/cgi-bin/bwa.cgi \
+  --bwaDatabase=DB.fasta \
+  --kAlignEndpoint=/cgi-bin/kalign.cgi \
+  --outputFirestoreDbUrl=https://nano-stream1.firebaseio.com \
+  --outputFirestoreSequencesStatisticCollection=resistant_sequences_statistic \
+  --outputFirestoreSequencesBodiesCollection=resistant_sequences_bodies \
+  --outputFirestoreGeneCacheCollection=resistant_gene_cache \
+  --resistantGenesFastDB=gs://nano-stream-1/NewDatabases/DB_resistant_formatted.fasta \
+  --resistantGenesList=gs://nano-stream1/NewDatabases/resistant_genes_list.txt
 ```
 
 </p></details>
