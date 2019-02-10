@@ -48,25 +48,23 @@ docker run \
 
 #### Docker run locally
 
-To run locally you need a [service account key](https://cloud.google.com/iam/docs/creating-managing-service-account-keys).
-
-```
-docker run \
-    -v (your_google_credentials_file_path):/gcloud_keys/
-    -e GOOGLE_APPLICATION_CREDENTIALS='/gcloud_keys/(google_credentials_file_name)' \
-    -e SOURCE_FILE='(source_data_file_path)' \
-    -e DESTINATION_BUCKET='(bucket for simulated uploads)' \
-    -e PUBLISHING_SPEED=(publishing_speed_rate) \
-    (container_name)
-```
-
-for example:
+To run locally you need a [service account key](https://cloud.google.com/iam/docs/creating-managing-service-account-keys), then:
 ``` 
 docker run \
     -v $(pwd)/gcloud_keys:/gcloud_keys/ \
+    \
+    `# path to Google credentials JSON file` \
     -e GOOGLE_APPLICATION_CREDENTIALS='/gcloud_keys/gcloud_credentials.json' \
+    \
+    `# source of the read URIs and timing data` \
     -e SOURCE_FILE='gs://nanostream-dataflow-demo-data/simulator/20170320_GN_179_timestamped_60x.dilate_60x.tsv' \
+    \
+    `# bucket for simulated uploads` \
     -e DESTINATION_BUCKET='simulator-temporary-aerohs8s' \
+    \
+    `# accelerate publication rate of reads to the queue` \
     -e PUBLISHING_SPEED=1 \
-    nanostream-simulator
+    \
+    `# use your own container name if desired` \
+    allenday/nanostream-dataflow-simulator
 ```
