@@ -25,25 +25,11 @@ Optional:
 
 6) If you running the pipeline in *resistant_genes* mode you should provide *fasta db* and *gene list* files stored at the GCS bucket
 
-### Build
-You can skip this step and run project with [pre-built jar file](https://github.com/allenday/nanostream-dataflow/blob/master/NanostreamDataflowMain/build/)
-To build jar from source, follow next steps:
-1) Install [Maven](https://maven.apache.org/install.html)
-2) Add [Japsa](https://github.com/mdcao/japsa) package to local Maven repository. To do this you should run following command from project root:
-```
-mvn install:install-file -Dfile=NanostreamDataflowMain/libs/japsa.jar -DgroupId=coin -DartifactId=japsa -Dversion=1.7-10a -Dpackaging=jar
-```
-3) Build uber-jar file
-```
-cd NanostreamDataflowMain
-mvn clean package
-```
-after running this command successfully, there should be a file:
-"NanostreamDataflowMain/target/NanostreamDataflowMain-1.0-SNAPSHOT.jar"
+### Running the Pipeline
 
-### Running
+We provide a [pre-built jar file](https://github.com/allenday/nanostream-dataflow/blob/master/NanostreamDataflowMain/build/). See below if you want to build the jar yourself.
 
-First define variables for configuration:
+To run the pipeline, first define variables for configuration:
 ```
 PROJECT=``
 # specify mode of data processing (species, resistance_genes)
@@ -128,3 +114,19 @@ where:
 - DB.fasta.amb, DB.fasta.ann, DB.fasta.bwt, DB.fasta.pac, DB.fasta.sa - files generated and used by `bwa` in order to improve performance, see details in [this SEQanswers answer](http://seqanswers.com/forums/showpost.php?s=06f0dadc73bdf687f265a94c8217d0bd&p=90992&postcount=2)
 
 **nanostream-dataflow-demo-data** - is a public bucket with [requester pays](https://cloud.google.com/storage/docs/requester-pays) option enabled.
+
+### Building from Source
+
+To build jar from source, follow next steps:
+1) Install [Maven](https://maven.apache.org/install.html)
+2) Add [Japsa](https://github.com/mdcao/japsa) package to local Maven repository. To do this you should run following command from project root:
+```
+mvn install:install-file -Dfile=NanostreamDataflowMain/libs/japsa.jar -DgroupId=coin -DartifactId=japsa -Dversion=1.7-10a -Dpackaging=jar
+```
+3) Build uber-jar file
+```
+cd NanostreamDataflowMain
+mvn clean package
+```
+after running this command successfully, there should be a file:
+"NanostreamDataflowMain/target/NanostreamDataflowMain-1.0-SNAPSHOT.jar"
