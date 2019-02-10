@@ -42,6 +42,45 @@ after running this command successfully, there should be a file:
 "NanostreamDataflowMain/target/NanostreamDataflowMain-1.0-SNAPSHOT.jar"
 
 ### Running
+
+First define variables for configuration:
+```
+PROJECT=``
+# specify mode of data processing (species, resistance_genes)
+PROCESSING_MODE=resistance_genes
+
+# PubSub subscription name from step 4
+INPUT_PUBSUB=projects/upwork-nano-stream/subscriptions/resistant_fastq_paths_emitter_x1_subscription_1
+
+# size of the window (in wallclock seconds) in which FastQ records will be collected for alignment
+ALIGNMENT_WINDOW=20
+# how frequently (in wallclock seconds) are statistics updated for dashboard visualizaiton?
+STATS_UPDATE_FREQUENCY=30
+
+# base URL for http services (bwa and kalign)
+SERVICES_HOST=http://130.211.33.64
+# bwa path
+BWA_ENDPOINT=/cgi-bin/bwa.cgi
+# bwa database name
+BWA_DATABASE=DB.fasta
+# kalign path
+KALIGN_ENDPOINT=/cgi-bin/kalign.cgi
+
+# Firestore DB url from step 5
+FIRESTORE_URL=https://upwork-nano-stream.firebaseio.com
+# Collection name of the Firestore database that will be used for writing output statistic data
+FIRESTORE_COLLECTION_STATS=resistance_sequences_statistic
+# Collection name of the Firestore database that will be used for writing output Sequences Body data
+FIRESTORE_COLLECTION_RESISTANCE_BODIES=resistance_sequences_bodies
+# Collection name of the Firestore database that will be used for saving NCBI genome data cache
+FIRESTORE_TAXONOMY_CACHE=resistance_gene_cache
+
+# [optional] Only used in resistance_genes mode. Path to fasta file with resistance genes database (step 6)
+RESISTANCE_GENES_FASTA=gs://nanostream-dataflow-demo-data/gene-info/DB_resistant_formatted.fasta
+# [optional] Only used in resistance_genes mode. Path to fasta file with resistant genes list (step 6)
+RESISTANCE_GENES_LIST=gs://nanostream-dataflow-demo-data/gene-info/resistance_genes_list.txt
+```
+
 To start **Nanostream Pipeline** run following command:
 ```
 java -cp (path_to_nanostream_app_jar) \
@@ -51,52 +90,22 @@ java -cp (path_to_nanostream_app_jar) \
   --runner=org.apache.beam.runners.dataflow.DataflowRunner \
   \
   `# Google Cloud Project name` \
-  --project=upwork-nano-stream \
-  \
-  `# should be true for streaming (infinite) mode` \
+  --project=$PROJECT \
   --streaming=true \
-  \
-  `# pecifies "species" or "resistant_genes" mode of data processing` \
-  --processingMode=resistant_genes \
-  \
-  `# PubSub subscription name from step 4` \
-  --inputDataSubscription=projects/upwork-nano-stream/subscriptions/resistant_fastq_paths_emitter_x1_subscription_1 \
-  \
-  `# Size of the window in which FastQ records will be collected for Alignment` \
-  --alignmentWindow=20 \
-  \
-  `# Delay between updating output statistic data` \
-  --statisticUpdatingDelay=30 \
-  \
-  `# Base URL for http services (Aligner and K-Align)` \
-  --servicesUrl=http://130.211.33.64 \
-  \
-  `# Aligner endpoint` \
-  --bwaEndpoint=/cgi-bin/bwa.cgi \
-  \
-  `# Aligner DB name` \
-  --bwaDatabase=DB.fasta \ 
-  \
-  `# K-Align endpoint` \
-  --kAlignEndpoint=/cgi-bin/kalign.cgi \
-  \
-  `# Firestore DB url from step 5` \
-  --outputFirestoreDbUrl=https://upwork-nano-stream.firebaseio.com \
-  \
-  `# Collection name of the Firestore database that will be used for writing output statistic data` \
-  --outputFirestoreSequencesStatisticCollection=resistant_sequences_statistic \
-  \
-  `# Collection name of the Firestore database that will be used for writing output Sequences Body data` \
-  --outputFirestoreSequencesBodiesCollection=resistant_sequences_bodies \
-  \
-  `# Collection name of the Firestore database that will be used for saving NCBI genome data cache` \
-  --outputFirestoreGeneCacheCollection=resistant_gene_cache \
-  \
-  `# [optional] Only for resistant_genes mode. Path to fasta file with resistant genes database (step 6)` \
-  --resistantGenesFastDB=gs://nano-stream-test/gene_info/DB_resistant_formatted.fasta \
-  \
-  `# [optional] Only for resistant_genes mode. Path to fasta file with resistant genes list (step 6)` \
-  --resistantGenesList=gs://nano-stream-test/gene_info/resistant_genes_list.txt 
+  --processingMode=$PROCESSING_MODE \
+  --inputDataSubscription=$INPUT_PUBSUB \
+  --alignmentWindow=$ALIGNMENT_WINDOW \
+  --statisticUpdatingDelay=$STATS_UPDATE_FREQUENCY \
+  --servicesUrl=$SERVICES_HOST \
+  --bwaEndpoint=$BWA_ENDPOINT \
+  --bwaDatabase=$BWA_DATABASE \ 
+  --kAlignEndpoint=$KALIGN_ENDPOINT \
+  --outputFirestoreDbUrl=$FIRESTORE_URL \
+  --outputFirestoreSequencesStatisticCollection=$FIRESTORE_COLLECTION_STATS \
+  --outputFirestoreSequencesBodiesCollection=$FIRESTORE_COLLECTION_RESISTANCE_BODIES \
+  --outputFirestoreGeneCacheCollection=$FIRESTORE_TAXONOMY_CACHE \
+  --resistanceGenesFastDB=$RESISTANCE_GENES_FASTA \
+  --resistanceGenesList=$RESISTANCE_GENES_LIST
 ```
 
 ### Available databases
@@ -106,11 +115,11 @@ with reference databases of species and antibiotic resistance genes.
 The bucket has a structure like:
 ```
 gs://nanostream-dataflow-demo-data/
-|- databases
-|-- antibiotic-resistance-genes
+|- reference-sequences/
+|-- antibiotic-resistance-genes/
 |--- DB.fasta
 |--- DB.fasta.[amb,ann,bwt,pac,sa]
-|-- species
+|-- species/
 |--- DB.fasta
 |--- DB.fasta.[amb,ann,bwt,pac,sa]
 ```
