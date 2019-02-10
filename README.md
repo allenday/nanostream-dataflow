@@ -100,14 +100,14 @@ java -cp (path_to_nanostream_app_jar) \
 ```
 
 ### Available databases
-For this project the bucket **nano-stream-data** were created
-with reference databases of species and antibiotic resistant genes.
+For this project the bucket **nanostream-dataflow-demo-data** were created
+with reference databases of species and antibiotic resistance genes.
 
-There is following structure of files:
+The bucket has a structure like:
 ```
-gs://nano-stream-data/
+gs://nanostream-dataflow-demo-data/
 |- databases
-|-- antibiotic_resistant
+|-- antibiotic-resistance-genes
 |--- DB.fasta
 |--- DB.fasta.[amb,ann,bwt,pac,sa]
 |-- species
@@ -118,4 +118,4 @@ where:
 - DB.fasta - FASTA file with reference sequences
 - DB.fasta.amb, DB.fasta.ann, DB.fasta.bwt, DB.fasta.pac, DB.fasta.sa - files generated and used by `bwa` in order to improve performance, see details in [this SEQanswers answer](http://seqanswers.com/forums/showpost.php?s=06f0dadc73bdf687f265a94c8217d0bd&p=90992&postcount=2)
 
-**nano-stream-data** - is a public bucket with [requester pays](https://cloud.google.com/storage/docs/requester-pays) option enabled.
+**nanostream-dataflow-demo-data** - is a public bucket with [requester pays](https://cloud.google.com/storage/docs/requester-pays) option enabled.
