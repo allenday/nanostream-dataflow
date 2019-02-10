@@ -1,5 +1,34 @@
 # Nanostream Dataflow
 
+In a healthcare setting, being able to access data quickly is vital. For example, a sepsis patient’s survival rate decreases by 6% for every hour we fail to diagnose the species causing the infection and its antibiotic resistance profile.
+
+Typical genomic analyses are too slow, taking weeks or months to complete. You transport DNA samples from the collection point to a centralized facility to be sequenced and analyzed in a batch process. Recently, nanopore DNA sequencers have become commercially available, such as those from Oxford Nanopore Technologies, streaming raw signal-level data as they are collected and providing immediate access to it. However, processing the data in real-time remains challenging,  requiring substantial compute and storage resources, as well as a dedicated bioinformatician. Not only is the process is too slow, it’s also failure-prone, expensive, and doesn’t scale.
+
+This source repo contains a prototype implementation of a scalable, reliable, and cost effective end-to-end pipeline for fast DNA sequence analysis using Dataflow on Google Cloud.
+
+## Design
+
+
+
+### Setup
+
+To run the pipeline take the following steps:
+
+1. Create a [Google Cloud Project](https://cloud.google.com/)
+2. Create a [Google Cloud Storage](https://cloud.google.com/storage/) `$UPLOAD_BUCKET` **upload_bucket for FastQ files**.
+ - You can use our [simulator](https://github.com/allenday/nanostream-dataflow/blob/master/simulator) to upload FastQ for testing, or if you don't have a real dataset.
+3. Configure [file upload notifications]((https://cloud.google.com/storage/docs/pubsub-notifications)). This creates PubSub messages when new files will are uploaded. With our placeholder name `$UPLOAD_EVENTS`, set up PubSub like this:
+```
+gsutil notification create -t $UPLOAD_EVENTS -f json -e OBJECT_FINALIZE $UPLOAD_BUCKET
+```
+4. Create a **PubSub subscription** for `$UPLOAD_EVENTS`
+```
+TODO
+```
+5. Create a **Firestore DB** ([See details](https://firebase.google.com/products/firestore/)) for saving cache and result data.
+
+6. *optional* If you running the pipeline in `resistance_genes` mode you should provide "FASTA DB" and "gene list" files stored in GCS.
+
 ### Project Structure
 - NanostreamDataflowMain - Apache Beam app that provides all data transformations
 - aligner - scripts to provision auto-scaled HTTP service for alignment (based on `bwa`)
@@ -8,22 +37,6 @@
 - visualization - module for the visualization of results
 - doc - additional files for documentation
 
-### Setup
-
-To run all Nanostream system you should make next steps:
-1) Create [Google Cloud Project](https://cloud.google.com/)
-2) Create [Google Cloud Storage](https://cloud.google.com/storage/) **destination bucket** for adding fastq files. 
-You can use ([this python module](https://github.com/allenday/nanostream-dataflow/blob/master/simulator)) to provide a simulation of an adding fastq files
-3) Create **PubSub notifications**  ([See details](https://cloud.google.com/storage/docs/pubsub-notifications)) for **simulator dest bucket** that will be creating notifications when new files will have be added to bucket
-```
-gsutil notification create -t (pub_sub_topic_name) -f json -e OBJECT_FINALIZE (adding_fastq_files_simulation_bucket)
-```
-4) Create **PubSub subscription** for topic created at Step 3
-5) Create **Firestore DB** ([See details](https://firebase.google.com/products/firestore/)) for saving cache and result data
-
-Optional:
-
-6) If you running the pipeline in *resistant_genes* mode you should provide *fasta db* and *gene list* files stored at the GCS bucket
 
 ### Running the Pipeline
 
