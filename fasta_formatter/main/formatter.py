@@ -58,15 +58,15 @@ def work_with_line(work_line):
     # Clear from redundant tags
     work_line = work_line.replace("\n", "").replace("\t", "")
     if is_start_of_new_sequence_item(line):
-        accumulate_data_and_upload_to_gsc_if_needed(True)
+        accumulate_data_and_upload_to_gcs_if_needed(True)
         sequence_item_data = work_line + NAME_CONTENT_SEPARATOR
     else:
         sequence_item_data += work_line
 
 
-def accumulate_data_and_upload_to_gsc_if_needed(with_limit):
+def accumulate_data_and_upload_to_gcs_if_needed(with_limit):
     """
-    Concatenate gathered sequence data to file data and upload it to GSC if needed
+    Concatenate gathered sequence data to file data and upload it to GCS if needed
     """
     global output_file_data, destination_gcs_folder, file_index, bucket_name, sequence_item_data
 
@@ -90,11 +90,11 @@ if __name__ == '__main__':
 
     if len(sys.argv) < 3:
         print(
-            'Script must be called with 3 arguments - bucket name, source source file name and destination GSC folder.')
+            'Script must be called with 3 arguments - bucket name, source source file name and destination GCS folder.')
         print('Example: "python nano-stream-test formatter.py /data/DB.fasta fasta_output/resistant/"')
         exit(1)
 
-    # Reads destination bucket name, source source file name and destination GSC folder from arguments
+    # Reads destination bucket name, source source file name and destination GCS folder from arguments
     bucket_name = sys.argv[1]
     source_filename = sys.argv[2]
     destination_gcs_folder = sys.argv[3]
@@ -112,6 +112,6 @@ if __name__ == '__main__':
             else:
                 empty_line_count += 1
             if is_end_of_file(empty_line_count):
-                accumulate_data_and_upload_to_gsc_if_needed(False)
+                accumulate_data_and_upload_to_gcs_if_needed(False)
                 break
         print("Output file names: {}".format(file_list), flush=True)
