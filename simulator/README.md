@@ -22,43 +22,46 @@ Build like this. You can use a different image name instead of `nanostream-simul
 docker build -t nanostream-simulator .
 ```
 
-#### Docker run on GCP
+### Docker run
 
-Like this:
+First define some variables:
+```
+# docker image to use
+IMAGE=allenday/nanostream-dataflow-simulator
+# this is the path to the TSV as described above
+SOURCE_FILE=gs://nanostream-dataflow-demo-data/simulator/20170320_GN_179_timestamped_60x.dilate_60x.tsv
+# to which bucket will simulated reads be uploaded?
+DESTINATION_BUCKET='nanostream-dataflow-qc-simulator'
+# [optional] acceleration factor for timestamps
+PUBLISHING_SPEED=1
+```
+
+#### on GCP
+
+Then run it like this on GCP:
 ``` 
 docker run \
-    `# source of the read URIs and timing data` \
-    -e SOURCE_FILE='gs://nanostream-dataflow-demo-data/simulator/20170320_GN_179_timestamped_60x.dilate_60x.tsv' \
-    \
-    `# bucket for simulated uploads` \
-    -e DESTINATION_BUCKET='simulator-temporary-aerohs8s' \
-    \
-    `# accelerate publication rate of reads to the queue` \
-    -e PUBLISHING_SPEED=1 \
-    \
-    `# use your own container name if desired` \
-    allenday/nanostream-dataflow-simulator
+    -e SOURCE_FILE=$SOURCE_FILE \
+    -e DESTINATION_BUCKET=$DESTINATION_BUCKET \
+    -e PUBLISHING_SPEED=$PUBLISHING_SPEED \
+    $IMAGE
 ```
 
 #### Docker run locally
 
-To run locally you need a [service account key](https://cloud.google.com/iam/docs/creating-managing-service-account-keys), then:
+To run locally you need another variable. Get a [service account key](https://cloud.google.com/iam/docs/creating-managing-service-account-keys), then:
+
+```
+GOOGLE_APPLICATION_CREDENTIALS=/gcloud_keys/gcloud_credentials.json
+```
+
+Then run it like this locally:
 ``` 
 docker run \
     -v $(pwd)/gcloud_keys:/gcloud_keys/ \
-    \
-    `# path to Google credentials JSON file` \
-    -e GOOGLE_APPLICATION_CREDENTIALS='/gcloud_keys/gcloud_credentials.json' \
-    \
-    `# source of the read URIs and timing data` \
-    -e SOURCE_FILE='gs://nanostream-dataflow-demo-data/simulator/20170320_GN_179_timestamped_60x.dilate_60x.tsv' \
-    \
-    `# bucket for simulated uploads` \
-    -e DESTINATION_BUCKET='simulator-temporary-aerohs8s' \
-    \
-    `# accelerate publication rate of reads to the queue` \
-    -e PUBLISHING_SPEED=1 \
-    \
-    `# use your own container name if desired` \
-    allenday/nanostream-dataflow-simulator
+    -e GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS \
+    -e SOURCE_FILE=$SOURCE_FILE \
+    -e DESTINATION_BUCKET=$DESTINATION_BUCKET \
+    -e PUBLISHING_SPEED=$PUBLISHING_SPEED \
+    $IMAGE
 ```
