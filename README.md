@@ -106,11 +106,11 @@ with reference databases of species and antibiotic resistance genes.
 The bucket has a structure like:
 ```
 gs://nanostream-dataflow-demo-data/
-|- databases
-|-- antibiotic-resistance-genes
+|- reference-sequences/
+|-- antibiotic-resistance-genes/
 |--- DB.fasta
 |--- DB.fasta.[amb,ann,bwt,pac,sa]
-|-- species
+|-- species/
 |--- DB.fasta
 |--- DB.fasta.[amb,ann,bwt,pac,sa]
 ```
