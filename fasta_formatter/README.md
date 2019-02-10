@@ -45,7 +45,7 @@ SOURCE_MOUNT=/data
 # it needs to be in or below `pwd`.
 SOURCE_FOLDER=eg
 # this is the path to the TSV as described above.
-SOURCE_FILE=in.fq
+SOURCE_FILE=in.fa
 # to which bucket will records be written?
 DESTINATION_BUCKET='nanostream-dataflow-qc-fasta-formatter'
 # to which folder will records be written?
