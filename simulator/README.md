@@ -12,8 +12,9 @@ Example source file content, containing two sequences to be uploaded at 0 second
 0	gs://bucket-name/0/read50_strand.fast5
 0.483051	gs://bucket-name/0/read55_strand.fast5
 ```
+A complete file is located [here](https://storage.cloud.google.com/nanostream-dataflow-demo-data/simulator/20170320_GN_179_timestamped_60x.dilate_60x.tsv)
 
-You can use Docker to run simulator
+You can use Docker to run simulator as follows.
 
 #### Docker build
 
@@ -40,7 +41,7 @@ docker run \
 for example:
 ``` 
 docker run \
-    -e SOURCE_FILE='gs://nano-stream-test/20170320_GN_179_timestamped_60x.dilate_60x.tsv' \
+    -e SOURCE_FILE='gs://nanostream-dataflow-demo-data/simulator/20170320_GN_179_timestamped_60x.dilate_60x.tsv' \
     -e DESTINATION_BUCKET='simulator-temporary-aerohs8s' \
     -e PUBLISHING_SPEED=1 \
     nanostream-simulator
@@ -65,7 +66,7 @@ for example:
 docker run \
     -v $(pwd)/gcloud_keys:/gcloud_keys/ \
     -e GOOGLE_APPLICATION_CREDENTIALS='/gcloud_keys/gcloud_credentials.json' \
-    -e SOURCE_FILE='gs://nano-stream-test/20170320_GN_179_timestamped_60x.dilate_60x.tsv' \
+    -e SOURCE_FILE='gs://nanostream-dataflow-demo-data/simulator/20170320_GN_179_timestamped_60x.dilate_60x.tsv' \
     -e DESTINATION_BUCKET='simulator-temporary-aerohs8s' \
     -e PUBLISHING_SPEED=1 \
     nanostream-simulator
