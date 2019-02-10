@@ -34,7 +34,7 @@ docker build -t nanostream-simulator .
 docker run \
     -e SOURCE_FILE='(source_data_file_path)' \
     -e DESTINATION_BUCKET='(bucket for simulated uploads)' \
-    -e PUBLISHING_SPEED=(publishing_speed_multiplicator) \
+    -e PUBLISHING_SPEED=(publishing_speed_rate) \
     (container_name)
 ```
 
@@ -57,7 +57,7 @@ docker run \
     -e GOOGLE_APPLICATION_CREDENTIALS='/gcloud_keys/(google_credentials_file_name)' \
     -e SOURCE_FILE='(source_data_file_path)' \
     -e DESTINATION_BUCKET='(bucket for simulated uploads)' \
-    -e PUBLISHING_SPEED=(publishing_speed_multiplicator) \
+    -e PUBLISHING_SPEED=(publishing_speed_rate) \
     (container_name)
 ```
 
