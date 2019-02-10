@@ -8,7 +8,7 @@ This source repo contains a prototype implementation of a scalable, reliable, an
 
 ## Design
 
-
+![architecture](doc/Taxonomy%20Counting.png)
 
 ### Setup
 
@@ -16,17 +16,17 @@ To run the pipeline take the following steps:
 
 1. Create a [Google Cloud Project](https://cloud.google.com/)
 2. Create a [Google Cloud Storage](https://cloud.google.com/storage/) `$UPLOAD_BUCKET` **upload_bucket for FastQ files**.
-2. 1. You can use our [simulator](https://github.com/allenday/nanostream-dataflow/blob/master/simulator) to upload FastQ for testing, or if you don't have a real dataset.
-3. Configure [file upload notifications]((https://cloud.google.com/storage/docs/pubsub-notifications)). This creates PubSub messages when new files will are uploaded. With our placeholder name `$UPLOAD_EVENTS`, set up PubSub like this:
+3. You can use our [simulator](https://github.com/allenday/nanostream-dataflow/blob/master/simulator) to upload FastQ for testing, or if you don't have a real dataset.
+4. Configure [file upload notifications]((https://cloud.google.com/storage/docs/pubsub-notifications)). This creates PubSub messages when new files will are uploaded. With our placeholder name `$UPLOAD_EVENTS`, set up PubSub like this:
 ```
 gsutil notification create -t $UPLOAD_EVENTS -f json -e OBJECT_FINALIZE $UPLOAD_BUCKET
 ```
-4. Create a **PubSub subscription** for `$UPLOAD_EVENTS`
+5. Create a **PubSub subscription** for `$UPLOAD_EVENTS`
 ```
 TODO
 ```
-5. Create a **Firestore DB** ([See details](https://firebase.google.com/products/firestore/)) for saving cache and result data.
-6. *optional* If you running the pipeline in `resistance_genes` mode you should provide "FASTA DB" and "gene list" files stored in GCS.
+6. Create a **Firestore DB** ([See details](https://firebase.google.com/products/firestore/)) for saving cache and result data.
+7. *optional* If you running the pipeline in `resistance_genes` mode you should provide "FASTA DB" and "gene list" files stored in GCS.
 
 ### Project Structure
 - NanostreamDataflowMain - Apache Beam app that provides all data transformations
@@ -51,7 +51,7 @@ RUNNER=org.apache.beam.runners.dataflow.DataflowRunner
 # specify mode of data processing (species, resistance_genes)
 PROCESSING_MODE=resistance_genes
 
-# PubSub subscription name from step 4
+# PubSub subscription defined above
 INPUT_PUBSUB=projects/upwork-nano-stream/subscriptions/resistant_fastq_paths_emitter_x1_subscription_1
 
 # size of the window (in wallclock seconds) in which FastQ records will be collected for alignment
@@ -68,7 +68,7 @@ BWA_DATABASE=DB.fasta
 # kalign path
 KALIGN_ENDPOINT=/cgi-bin/kalign.cgi
 
-# Firestore DB url from step 5
+# Firestore DB url defined above
 FIRESTORE_URL=https://upwork-nano-stream.firebaseio.com
 # Collection name of the Firestore database that will be used for writing output statistic data
 FIRESTORE_COLLECTION_STATS=resistance_sequences_statistic
@@ -77,9 +77,9 @@ FIRESTORE_COLLECTION_RESISTANCE_BODIES=resistance_sequences_bodies
 # Collection name of the Firestore database that will be used for saving NCBI genome data cache
 FIRESTORE_TAXONOMY_CACHE=resistance_gene_cache
 
-# [optional] Only used in resistance_genes mode. Path to fasta file with resistance genes database (step 6)
+# [optional] Only used in resistance_genes mode. Path to fasta file with resistance genes database
 RESISTANCE_GENES_FASTA=gs://nanostream-dataflow-demo-data/gene-info/DB_resistant_formatted.fasta
-# [optional] Only used in resistance_genes mode. Path to fasta file with resistant genes list (step 6)
+# [optional] Only used in resistance_genes mode. Path to fasta file with resistant genes list
 RESISTANCE_GENES_LIST=gs://nanostream-dataflow-demo-data/gene-info/resistance_genes_list.txt
 ```
 
