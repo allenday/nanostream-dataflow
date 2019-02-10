@@ -1,52 +1,38 @@
 ## Fasta file formatter
 
-This module reorganize fasta file from multyline sequnce format to format 
-where each sequence separates by new line tag ("\n").
+This module reformats fasta file from multi-line sequence format to a 2-column TSV format.
 Formatted date uploads to GCS in `(file_index).fasta` format. Maximum size of dest file - 1GB.
-Result files may be concatenated using `gsuitil` command:
+Result files may be concatenated using `gsutil` command:
 ```
 gsutil compose (component-obj-1, component-obj-2, component-obj-3, ...)
 ```
 
-Example source file content:
-
+Example input file content:
 ```
 >JSA_0 NZ_LAZK01000019.1:82188-83212
 AGCTTTTCTATAAAATTTAACTTACATTTTTGATATCTAATAATTGATCTACTCAAGTTA
-CATTAATTAGCTAAACTTCAAATTCAATCTTATAAGTCTTATGAACATTAAAGCACTCTT
 >JSA_1 NZ_LAKP01000081.1:988-1898
 GCACCTATCCTTGGAGCGTTGAGTGACCGATTTGGACGTCGACCTGTATTAATTATTTCA
-ATTGCTGGTGCAACGGCTGATTATCTCCTAATGGCTGCTGCTCCTTCTCTATTGTGGCTA
 ```
 
-Example dest file content:
-
+Example output file content:
 ```
->JSA_1 NZ_LAKP01000081.1:988-1898	GCACCTATCCTTGGAGCGTTGAGTGACCGATTTGGAC
->JSA_2 NZ_CP008707.1:30723-31786 -	GTGACGCACACCGTGGAAACGGATGAAGGCACGAACCCAGTTGACATA
+>JSA_0 NZ_LAZK01000019.1:82188-83212	AGCTTTTCTATAAAATTTAACTTACATTTTTGATATCTAATAATTGATCTACTCAAGTTA
+>JSA_1 NZ_LAKP01000081.1:988-1898	GCACCTATCCTTGGAGCGTTGAGTGACCGATTTGGACGTCGACCTGTATTAATTATTTCA
 ```
 
-
-You can use Docker to run this module
+You can use Docker to run this module as follows.
 
 #### Docker build
 
-
-Build with:
-
-```
-docker build -t (container_name) .
-```
-
-for example:
-
+Build like this, using your own image name if desired.
 ```     
-docker build -t nanostream-fasta-formatter .
+docker build -t allenday/nanostream-dataflow-fasta-formatter .
 ```
 
 #### Docker run
 
-To run locally you need google service account key, see: https://cloud.google.com/iam/docs/creating-managing-service-account-keys
+To run locally you need a [service account key](https://cloud.google.com/iam/docs/creating-managing-service-account-keys).
 
 ```
 docker run \
@@ -71,21 +57,3 @@ docker run \
     -e DEST_GSC_FOLDER='fasta_output/resistant/' \
     nanostream-fasta-formatter
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
