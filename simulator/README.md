@@ -34,6 +34,7 @@ SOURCE_FILE=gs://nanostream-dataflow-demo-data/simulator/20170320_GN_179_timesta
 DESTINATION_BUCKET='nanostream-dataflow-qc-simulator'
 # [optional] acceleration factor for timestamps
 PUBLISHING_SPEED=1
+GOOGLE_CLOUD_PROJECT=`gcloud config get-value project`
 ```
 
 #### on GCP
@@ -41,6 +42,7 @@ PUBLISHING_SPEED=1
 Then run it like this on GCP:
 ``` 
 docker run \
+    -e GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT \
     -e SOURCE_FILE=$SOURCE_FILE \
     -e DESTINATION_BUCKET=$DESTINATION_BUCKET \
     -e PUBLISHING_SPEED=$PUBLISHING_SPEED \
@@ -59,6 +61,7 @@ Then run it like this locally:
 ``` 
 docker run \
     -v $(pwd)/gcloud_keys:/gcloud_keys/ \
+    -e GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT \
     -e GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS \
     -e SOURCE_FILE=$SOURCE_FILE \
     -e DESTINATION_BUCKET=$DESTINATION_BUCKET \
