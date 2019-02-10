@@ -52,7 +52,7 @@ RUNNER=org.apache.beam.runners.dataflow.DataflowRunner
 PROCESSING_MODE=resistance_genes
 
 # PubSub subscription defined above
-INPUT_PUBSUB=projects/upwork-nano-stream/subscriptions/resistant_fastq_paths_emitter_x1_subscription_1
+UPLOAD_EVENTS=$UPLOAD_EVENTS
 
 # size of the window (in wallclock seconds) in which FastQ records will be collected for alignment
 ALIGNMENT_WINDOW=20
@@ -91,7 +91,7 @@ java -cp (path_to_nanostream_app_jar) \
   --project=$PROJECT \
   --streaming=true \
   --processingMode=$PROCESSING_MODE \
-  --inputDataSubscription=$INPUT_PUBSUB \
+  --inputDataSubscription=$UPLOAD_EVENTS \
   --alignmentWindow=$ALIGNMENT_WINDOW \
   --statisticUpdatingDelay=$STATS_UPDATE_FREQUENCY \
   --servicesUrl=$SERVICES_HOST \
