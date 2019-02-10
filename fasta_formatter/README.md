@@ -39,8 +39,11 @@ Then define some variables:
 GOOGLE_CLOUD_PROJECT=`gcloud config get-value project`
 # docker image to use
 IMAGE=allenday/nanostream-dataflow-fasta-formatter
-# this is the path to the TSV as described above
-SOURCE_FILE=/data/DB.fasta
+# directory where input FASTA files can be found.
+# it needs to be in or below `pwd`.
+SOURCE_FOLDER=eg
+# this is the path to the TSV as described above.
+SOURCE_FILE=eg/in.fq
 # to which bucket will records be written?
 DESTINATION_BUCKET='nanostream-dataflow-qc-fasta-formatter'
 # to which folder will records be written?
@@ -50,7 +53,7 @@ DESTINATION_FOLDER=fasta_output/resistant/
 Then run it:
 ``` 
 docker run \
-    -v $(pwd)/fasta_data:/fasta_data/ \
+    -v $(pwd)/$SOURCE_FOLDER:/data/ \
     -v $(pwd)/gcloud_keys:/gcloud_keys/ \
     -e GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT \
     -e GOOGLE_APPLICATION_CREDENTIALS='/gcloud_keys/gcloud_credentials.json' \
