@@ -23,37 +23,39 @@ Example output file content:
 
 You can use Docker to run this module as follows.
 
-#### Docker build
+## Docker build
 
 Build like this, using your own image name if desired.
 ```     
 docker build -t allenday/nanostream-dataflow-fasta-formatter .
 ```
 
-#### Docker run
+## Docker run
 
 To run locally you need a [service account key](https://cloud.google.com/iam/docs/creating-managing-service-account-keys).
 
+Then define some variables:
 ```
-docker run \
-    -v (your_fasta_file_path):/fasta_data/ \
-    -v (your_google_credentials_file_path):/gcloud_keys/
-    -e GOOGLE_APPLICATION_CREDENTIALS='/gcloud_keys/(google_credentials_file_name)' \
-    -e BUCKET_NAME='(dest_bucket_name)' \
-    -e SOURCE_FILENAME='(source_data_file_path)' \
-    -e DEST_GSC_FOLDER='(destination_GCS_folder)' \
-    (container_name)
+GOOGLE_CLOUD_PROJECT=`gcloud config get-value project`
+# docker image to use
+IMAGE=allenday/nanostream-dataflow-fasta-formatter
+# this is the path to the TSV as described above
+SOURCE_FILE=/data/DB.fasta
+# to which bucket will records be written?
+DESTINATION_BUCKET='nanostream-dataflow-qc-fasta-formatter'
+# to which folder will records be written?
+DESTINATION_FOLDER=fasta_output/resistant/
 ```
 
-for example :
-
+Then run it:
 ``` 
 docker run \
     -v $(pwd)/fasta_data:/fasta_data/ \
     -v $(pwd)/gcloud_keys:/gcloud_keys/ \
+    -e GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT \
     -e GOOGLE_APPLICATION_CREDENTIALS='/gcloud_keys/gcloud_credentials.json' \
-    -e BUCKET_NAME='nano-stream-test' \
-    -e SOURCE_FILENAME='/data/DB.fasta' \
-    -e DEST_GSC_FOLDER='fasta_output/resistant/' \
-    nanostream-fasta-formatter
+    -e SOURCE_FILE=$SOURCE_FILE \
+    -e DESTINATION_BUCKET=$DESTINATION_BUCKET \
+    -e DESTINATION_FOLDER=$DESTINATION_FOLDER \
+    $IMAGE
 ```
