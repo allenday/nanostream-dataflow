@@ -77,12 +77,11 @@ def download_gcs_file(bucket_name, source_file_name, destination_file_name):
     bucket = storage_client.get_bucket(bucket_name)
     blob = bucket.blob(source_file_name)
 
-    blob.download_to_filename(destination_file_name)
-
-    print('File {} downloaded to {}.'.format(
+    print('Downloading file {} to {}.'.format(
         get_shortened_file_name(source_file_name),
         destination_file_name))
-
+    
+    blob.download_to_filename(destination_file_name)
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
