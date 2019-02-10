@@ -12,11 +12,11 @@ import java.util.Map;
 /**
  *
  */
-public class GetResistantGenesTaxonomyDataFn extends DoFn<String, KV<String, List<String>>> {
+public class GetResistanceGenesTaxonomyDataFn extends DoFn<String, KV<String, List<String>>> {
 
     private final PCollectionView<Map<String, GeneInfo>> geneInfoMapPCollectionView;
 
-    public GetResistantGenesTaxonomyDataFn(PCollectionView<Map<String, GeneInfo>> geneInfoMapPCollectionView) {
+    public GetResistanceGenesTaxonomyDataFn(PCollectionView<Map<String, GeneInfo>> geneInfoMapPCollectionView) {
         this.geneInfoMapPCollectionView = geneInfoMapPCollectionView;
     }
 
