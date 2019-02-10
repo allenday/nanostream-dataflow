@@ -31,7 +31,11 @@ We provide a [pre-built jar file](https://github.com/allenday/nanostream-dataflo
 
 To run the pipeline, first define variables for configuration:
 ```
-PROJECT=``
+# Google Cloud project name
+PROJECT=`gcloud config get-value project`
+# Apache Beam Runner (Dataflow for Google Cloud Dataflow running or Direct for local running)
+RUNNER=org.apache.beam.runners.dataflow.DataflowRunner
+
 # specify mode of data processing (species, resistance_genes)
 PROCESSING_MODE=resistance_genes
 
@@ -71,11 +75,7 @@ To start **Nanostream Pipeline** run following command:
 ```
 java -cp (path_to_nanostream_app_jar) \
   com.theappsolutions.nanostream.NanostreamApp \
-  \
-  `# Apache Beam Runner (Dataflow for Google Cloud Dataflow running or Direct for local running)` \
-  --runner=org.apache.beam.runners.dataflow.DataflowRunner \
-  \
-  `# Google Cloud Project name` \
+  --runner=$RUNNER \
   --project=$PROJECT \
   --streaming=true \
   --processingMode=$PROCESSING_MODE \
