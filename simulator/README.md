@@ -17,33 +17,27 @@ You can use Docker to run simulator as follows.
 
 #### Docker build
 
-Build with:
-```
-docker build -t (container_name) .
-```
-
-for example:
+Build like this. You can use a different image name instead of `nanostream-simulator`:
 ```     
 docker build -t nanostream-simulator .
 ```
 
 #### Docker run on GCP
 
-```
-docker run \
-    -e SOURCE_FILE='(source_data_file_path)' \
-    -e DESTINATION_BUCKET='(bucket for simulated uploads)' \
-    -e PUBLISHING_SPEED=(publishing_speed_rate) \
-    (container_name)
-```
-
-for example:
+Like this:
 ``` 
 docker run \
+    `# source of the read URIs and timing data` \
     -e SOURCE_FILE='gs://nanostream-dataflow-demo-data/simulator/20170320_GN_179_timestamped_60x.dilate_60x.tsv' \
+    \
+    `# bucket for simulated uploads` \
     -e DESTINATION_BUCKET='simulator-temporary-aerohs8s' \
+    \
+    `# accelerate publication rate of reads to the queue` \
     -e PUBLISHING_SPEED=1 \
-    nanostream-simulator
+    \
+    `# use your own container name if desired` \
+    allenday/nanostream-dataflow-simulator
 ```
 
 #### Docker run locally
