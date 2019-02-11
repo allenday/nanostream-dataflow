@@ -21,9 +21,9 @@ To run the pipeline take the following steps:
 ```
 gsutil notification create -t $UPLOAD_EVENTS -f json -e OBJECT_FINALIZE $UPLOAD_BUCKET
 ```
-5. Create a **PubSub subscription** for `$UPLOAD_EVENTS`
+5. Create a **PubSub subscription** for `$UPLOAD_EVENTS`. With our placeholder name `$UPLOAD_SUBSCRIPTION`, run following command:
 ```
-TODO
+gcloud pubsub subscriptions create $UPLOAD_SUBSCRIPTION --topic $UPLOAD_EVENTS
 ```
 6. Create a **Firestore DB** ([See details](https://firebase.google.com/products/firestore/)) for saving cache and result data.
 7. *optional* If you running the pipeline in `resistance_genes` mode you should provide "FASTA DB" and "gene list" files stored in GCS.
@@ -52,7 +52,7 @@ RUNNER=org.apache.beam.runners.dataflow.DataflowRunner
 PROCESSING_MODE=resistance_genes
 
 # PubSub subscription defined above
-UPLOAD_EVENTS=$UPLOAD_EVENTS
+UPLOAD_SUBSCRIPTION=$UPLOAD_SUBSCRIPTION
 
 # size of the window (in wallclock seconds) in which FastQ records will be collected for alignment
 ALIGNMENT_WINDOW=20
@@ -91,7 +91,7 @@ java -cp (path_to_nanostream_app_jar) \
   --project=$PROJECT \
   --streaming=true \
   --processingMode=$PROCESSING_MODE \
-  --inputDataSubscription=$UPLOAD_EVENTS \
+  --inputDataSubscription=$UPLOAD_SUBSCRIPTION \
   --alignmentWindow=$ALIGNMENT_WINDOW \
   --statisticUpdatingDelay=$STATS_UPDATE_FREQUENCY \
   --servicesUrl=$SERVICES_HOST \
