@@ -20,7 +20,7 @@ import com.theappsolutions.nanostream.output.WriteSequencesStatisticToFirestoreD
 import com.theappsolutions.nanostream.probecalculation.KVCalculationAccumulatorFn;
 import com.theappsolutions.nanostream.pubsub.DecodeNotificationJsonMessage;
 import com.theappsolutions.nanostream.pubsub.FilterObjectFinalizeMessage;
-import com.theappsolutions.nanostream.taxonomy.GetResistantGenesTaxonomyDataFn;
+import com.theappsolutions.nanostream.taxonomy.GetResistanceGenesTaxonomyDataFn;
 import com.theappsolutions.nanostream.taxonomy.GetSpeciesTaxonomyDataFn;
 import com.theappsolutions.nanostream.util.EntityNamer;
 import com.theappsolutions.nanostream.util.trasform.CombineIterableAccumulatorFn;
@@ -53,7 +53,7 @@ public class NanostreamApp {
 
     public enum ProcessingMode {
         SPECIES("species"),
-        RESISTANT_GENES("resistant_genes");
+        RESISTANT_GENES("resistance_genes");
 
         public final String label;
 
@@ -112,7 +112,7 @@ public class NanostreamApp {
         errorCorrectedCollection
                 .apply("Remove Sequence part", ParDo.of(new RemoveValueDoFn<>()))
                 .apply("Get Taxonomy data", processingMode == ProcessingMode.RESISTANT_GENES
-                        ? ParDo.of(new GetResistantGenesTaxonomyDataFn(geneInfoMapPCollectionView))
+                        ? ParDo.of(new GetResistanceGenesTaxonomyDataFn(geneInfoMapPCollectionView))
                         .withSideInputs(geneInfoMapPCollectionView)
                         : ParDo.of(injector.getInstance(GetSpeciesTaxonomyDataFn.class)))
                 .apply("Global Window with Repeatedly triggering" + options.getStatisticUpdatingDelay(),

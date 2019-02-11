@@ -88,7 +88,7 @@ public interface NanostreamPipelineOptions extends DataflowPipelineOptions {
     void setOutputFirestoreGeneCacheCollection(ValueProvider<String> value);
 
 
-    @Description("Variable that specifies \"species\" or \"resistant_genes\" mode of data processing")
+    @Description("Variable that specifies \"species\" or \"resistance_genes\" mode of data processing")
     @Validation.Required
     @Default.String("species")
     String getProcessingMode();
@@ -96,16 +96,16 @@ public interface NanostreamPipelineOptions extends DataflowPipelineOptions {
     void setProcessingMode(String value);
 
 
-    @Description("Path to fasta file with resistant genes database")
-    String getResistantGenesFastDB();
+    @Description("Path to fasta file with resistance genes database")
+    String getResistanceGenesFastaDB();
 
-    void setResistantGenesFastDB(String value);
+    void setResistanceGenesFastaDB(String value);
 
 
-    @Description("Path to fasta file with resistant genes list")
-    String getResistantGenesList();
+    @Description("Path to fasta file with resistance genes list")
+    String getResistanceGenesList();
 
-    void setResistantGenesList(String value);
+    void setResistanceGenesList(String value);
 
     @Description("Prefix for Firestore collections names that used for output")
     String getOutputFirestoreCollectionNamePrefix();

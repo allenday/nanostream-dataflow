@@ -62,6 +62,6 @@ public class MainModule extends NanostreamModule {
 
     @Provides
     public LoadGeneInfoTransform provideLoadGeneInfoTransform() {
-        return new LoadGeneInfoTransform(resistantGenesFastDB, resistantGenesList);
+        return new LoadGeneInfoTransform(resistanceGenesFastaDB, resistanceGenesList);
     }
 }

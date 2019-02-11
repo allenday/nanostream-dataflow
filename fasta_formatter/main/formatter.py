@@ -7,20 +7,20 @@ from google.cloud import storage
 
 NAME_CONTENT_SEPARATOR = "\t"
 UPLOAD_FILE_SIZE_LIMIT = 1000000000
-destination_gcs_folder = ""
-bucket_name = ""
+destination_bucket_name = ""
+destination_folder_name = ""
 sequence_item_data = ""
 output_file_data = ""
 file_index = 0
 file_list = []
 
 
-def upload_file(data, filename, content_type, bucket_name):
+def upload_file(data, filename, content_type, destination_bucket_name):
     """
     Uploads a file to a given Cloud Storage bucket and returns the public url
     to the new object.
     """
-    bucket = storage.Client().get_bucket(bucket_name)
+    bucket = storage.Client().get_bucket(destination_bucket_name)
     blob = bucket.blob(filename)
 
     blob.upload_from_string(
@@ -58,17 +58,17 @@ def work_with_line(work_line):
     # Clear from redundant tags
     work_line = work_line.replace("\n", "").replace("\t", "")
     if is_start_of_new_sequence_item(line):
-        accumulate_data_and_upload_to_gsc_if_needed(True)
+        accumulate_data_and_upload_to_gcs_if_needed(True)
         sequence_item_data = work_line + NAME_CONTENT_SEPARATOR
     else:
         sequence_item_data += work_line
 
 
-def accumulate_data_and_upload_to_gsc_if_needed(with_limit):
+def accumulate_data_and_upload_to_gcs_if_needed(with_limit):
     """
-    Concatenate gathered sequence data to file data and upload it to GSC if needed
+    Concatenate gathered sequence data to file data and upload it to GCS if needed
     """
-    global output_file_data, destination_gcs_folder, file_index, bucket_name, sequence_item_data
+    global output_file_data, destination_folder_name, file_index, destination_bucket_name, sequence_item_data
 
     if len(sequence_item_data) == 0:
         return
@@ -78,9 +78,9 @@ def accumulate_data_and_upload_to_gsc_if_needed(with_limit):
     if not with_limit or len(output_file_data) > UPLOAD_FILE_SIZE_LIMIT:
         print("Uploading {} symbols".format(len(output_file_data)), flush=True)
 
-        file_name = destination_gcs_folder + str(file_index) + ".fasta"
-        file_list.append("gs://" + bucket_name + "/" + file_name)
-        upload_file(output_file_data, file_name, "text/plain", bucket_name)
+        file_name = destination_folder_name + str(file_index) + ".fasta"
+        file_list.append("gs://" + destination_bucket_name + "/" + file_name)
+        upload_file(output_file_data, file_name, "text/plain", destination_bucket_name)
         file_index = + 1
         output_file_data = ""
 
@@ -90,14 +90,14 @@ if __name__ == '__main__':
 
     if len(sys.argv) < 3:
         print(
-            'Script must be called with 3 arguments - bucket name, source source file name and destination GSC folder.')
+            'Script must be called with 3 arguments - bucket name, source source file name and destination GCS folder.')
         print('Example: "python nano-stream-test formatter.py /data/DB.fasta fasta_output/resistant/"')
         exit(1)
 
-    # Reads destination bucket name, source source file name and destination GSC folder from arguments
-    bucket_name = sys.argv[1]
-    source_filename = sys.argv[2]
-    destination_gcs_folder = sys.argv[3]
+    # Reads destination bucket name, source source file name and destination GCS folder from arguments
+    source_filename = sys.argv[1]
+    destination_bucket_name = sys.argv[2]
+    destination_folder_name = sys.argv[3]
 
     # Reads Source file
     with open(source_filename, "r") as source_file:
@@ -112,6 +112,6 @@ if __name__ == '__main__':
             else:
                 empty_line_count += 1
             if is_end_of_file(empty_line_count):
-                accumulate_data_and_upload_to_gsc_if_needed(False)
+                accumulate_data_and_upload_to_gcs_if_needed(False)
                 break
         print("Output file names: {}".format(file_list), flush=True)
