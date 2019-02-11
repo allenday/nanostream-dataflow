@@ -20,10 +20,21 @@ You can use ([this python module](https://github.com/allenday/nanostream-dataflo
 3) Create **PubSub notifications**  ([See details](https://cloud.google.com/storage/docs/pubsub-notifications)) for **simulator dest bucket** that will be creating notifications when new files will have be added to bucket
 ```
 gsutil notification create \
--t file_upload FILE_UPLOAD -f json \
+-t <subscription name> -f json \
 -e OBJECT_FINALIZE \
--p Uploads/ gs://<project_id>
+-p <subfolder path> gs://<bucket name>
 ```
+
+<details><summary>CGI</summary><p>
+```
+gsutil notification create \
+-t file_upload -f json \
+-e OBJECT_FINALIZE \
+-p Uploads/ gs://nano-stream1
+```
+</p></details>
+
+
 5) Create **Firestore DB** ([See details](https://firebase.google.com/products/firestore/)) for saving cache and result data
 
 Run provisioning scripts:
