@@ -1,0 +1,19 @@
+service: upload-watcher
+runtime: python
+env: flex
+entrypoint: gunicorn -b :$PORT main:app
+
+runtime_config:
+  python_version: 3
+
+instance_class: B1
+manual_scaling:
+  instances: 1
+  
+# [START gae_flex_pubsub_env]
+env_variables:
+    PROJECT: nano-stream1
+    GOOGLE_CLOUD_PROJECT: nano-stream1
+    PUBSUB_TOPIC: file_upload
+    PUBSUB_VERIFICATION_TOKEN: coingroupimb
+# [END gae_flex_pubsub_env]
