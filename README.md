@@ -144,7 +144,6 @@ java -cp /home/coingroupimb/git_larry_2019_02_11/NanostreamDataflowMain/build/Na
   --outputFirestoreSequencesStatisticCollection=resistant_sequences_statistic \
   --outputFirestoreSequencesBodiesCollection=resistant_sequences_bodies \
   --outputFirestoreGeneCacheCollection=resistant_gene_cache \
-  --timeout=600
 ```
 
 </p></details>
@@ -172,11 +171,11 @@ java -cp /home/coingroupimb/git_larry_2019_02_11/NanostreamDataflowMain/build/Na
   --outputFirestoreGeneCacheCollection=resistant_gene_cache \
   --resistantGenesFastDB=gs://nano-stream-1/NewDatabases/DB_resistant_formatted.fasta \
   --resistantGenesList=gs://nano-stream1/NewDatabases/resistant_genes_list.txt
-  --timeout=600
 ```
 
 </p></details>
 
+10) Separately, run `gcloud compute backend-services update bwa-resistance-genes-backend-service --timeout=600 --global` to increase timeout from the default 30 secondes.
 
 ### Available databases
 For this project the bucket **nanostream-dataflow-demo-data** were created
