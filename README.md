@@ -11,6 +11,7 @@
 - fasta_formatter - python script for formatting fasta files into project readable format
 - visualization - module for the visualization of results
 - doc - additional files for documentation
+- monitoring - monitors whether pubsub messages are working correctly.
 
 ### Setup
 To run all Nanostream system you should make next steps:
@@ -118,6 +119,7 @@ java -cp (path_to_nanostream_app_jar) \
   --outputFirestoreGeneCacheCollection=resistant_gene_cache `# Collection name of the Firestore database that will be used for saving NCBI genome data cache` \
   --resistantGenesFastDB=gs://nano-stream-test/gene_info/DB_resistant_formatted.fasta `# OPTIONAL Only for resistant_genes mode. Path to fasta file with resistant genes database (step 6)` \
   --resistantGenesList=gs://nano-stream-test/gene_info/resistant_genes_list.txt `# OPTIPNAL Only for resistant_genes mode. Path to fasta file with resistant genes list(step 6)`
+  --timeout=600
 ```
 
 <details><summary>species</summary><p>
@@ -141,6 +143,7 @@ java -cp /home/coingroupimb/git_larry_2019-02-08/NanostreamDataflowMain/build/Na
   --outputFirestoreSequencesStatisticCollection=resistant_sequences_statistic \
   --outputFirestoreSequencesBodiesCollection=resistant_sequences_bodies \
   --outputFirestoreGeneCacheCollection=resistant_gene_cache \
+  --timeout=600
 ```
 
 </p></details>
@@ -185,6 +188,7 @@ java -cp /home/coingroupimb/git_larry_2019-02-08/NanostreamDataflowMain/build/Na
   --outputFirestoreGeneCacheCollection=resistant_gene_cache \
   --resistantGenesFastDB=gs://nano-stream-1/NewDatabases/DB_resistant_formatted.fasta \
   --resistantGenesList=gs://nano-stream1/NewDatabases/resistant_genes_list.txt
+  --timeout=600
 ```
 
 </p></details>
