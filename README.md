@@ -126,7 +126,7 @@ java -cp (path_to_nanostream_app_jar) \
 <details><summary>CGI species</summary><p>
 
 ```
-java -cp /home/coingroupimb/git_larry_2019-02-011/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
+java -cp /home/coingroupimb/git_larry_2019_02_11/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
   com.theappsolutions.nanostream.NanostreamApp \
   --region=asia-northeast1 \
   --runner=org.apache.beam.runners.dataflow.DataflowRunner \
@@ -152,7 +152,7 @@ java -cp /home/coingroupimb/git_larry_2019-02-011/NanostreamDataflowMain/build/N
 <details><summary>resistance</summary><p>
 
 ```
-java -cp /home/coingroupimb/git_larry_2019-02-011/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
+java -cp /home/coingroupimb/git_larry_2019_02_11/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
   com.theappsolutions.nanostream.NanostreamApp \
   --region=asia-northeast1 \
   --runner=org.apache.beam.runners.dataflow.DataflowRunner \
