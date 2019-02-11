@@ -18,12 +18,12 @@ def start_infinite_adding_files(dest_gcs_bucket_name, data, publishing_speed):
         for msg_tuple in data:
             worked_time = time.time() - start_time
             time_to_add, file_to_add = msg_tuple
-            time_to_add = time_to_add/publishing_speed
+            time_to_add = time_to_add / publishing_speed
 
             # Wait until add time
             if time_to_add > worked_time:
                 time.sleep(time_to_add - worked_time)
-            src_bucket_name, file_name_to_add = parse_file_to_bucket_and_filename(file_to_add)
+            src_bucket_name, file_name_to_add, _ = parse_file_to_bucket_and_filename(file_to_add)
             logging.info(
                 'Start adding of file "{0}" at {1}'.format(get_shortened_file_name(file_name_to_add), time_to_add))
             add_file_to_bucket(dest_gcs_bucket_name, src_bucket_name, file_name_to_add)
@@ -67,8 +67,12 @@ def parse_file_to_bucket_and_filename(file_path):
             divide_index = main_part.index("/")
             bucket_name = main_part[:divide_index]
             file_name = main_part[divide_index + 1 - len(main_part):]
-            return bucket_name, file_name
-    return "", ""
+
+            # Creates file name for caching gcs file locally"
+            file_name_path_parts = file_name.split("/")
+            gcs_file_download_path = file_name_path_parts[-1]
+            return bucket_name, file_name, gcs_file_download_path
+    return "", "", ""
 
 
 def download_gcs_file(bucket_name, source_file_name, destination_file_name):
@@ -80,8 +84,9 @@ def download_gcs_file(bucket_name, source_file_name, destination_file_name):
     print('Downloading file {} to {}.'.format(
         get_shortened_file_name(source_file_name),
         destination_file_name))
-    
+
     blob.download_to_filename(destination_file_name)
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
@@ -100,12 +105,12 @@ if __name__ == '__main__':
         publishing_speed = float(sys.argv[3])
 
     # Downloads source file filename for GCS bucket
-    source_bucket_name, source_gcs_filename = parse_file_to_bucket_and_filename(source_gcs_filename)
-    source_filename = source_gcs_filename
-    download_gcs_file(source_bucket_name, source_gcs_filename, source_filename)
+    source_bucket_name, source_gcs_filename, gcs_file_download_path = parse_file_to_bucket_and_filename(
+        source_gcs_filename)
+    download_gcs_file(source_bucket_name, source_gcs_filename, gcs_file_download_path)
 
     # Reads Source file
-    with open(source_filename, "r") as source_file:
+    with open(gcs_file_download_path, "r") as source_file:
         # Parses source file and write it to list
         source_data_parsed = list()
         for line in source_file.readlines():
