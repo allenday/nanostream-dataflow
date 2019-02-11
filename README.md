@@ -157,7 +157,7 @@ java -cp /home/coingroupimb/git_larry_2019_02_11/NanostreamDataflowMain/build/Na
   --runner=org.apache.beam.runners.dataflow.DataflowRunner \
   --project=nano-stream1 \
   --streaming=true \
-  --processingMode=species \
+  --processingMode=resistance_genes \
   --inputDataSubscription=projects/nano-stream1/subscriptions/dataflow \
   --alignmentWindow=20 \
   --statisticUpdatingDelay=30 \
