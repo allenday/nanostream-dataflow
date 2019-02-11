@@ -1,7 +1,8 @@
 package com.theappsolutions.nanostream.output;
 
 import japsa.seq.Sequence;
-import javafx.util.Pair;
+// TODO: get rid of javafx.util in order to avoid issues with OpenJDK
+//import javafx.util.Pair;
 import org.apache.beam.sdk.values.KV;
 import org.junit.Test;
 
@@ -20,19 +21,19 @@ public class SequenceStatisticResultTest {
         int sequenceMock1Quantity = 2;
         int sequenceMock2Quantity = 4;
 
-        Pair<String, String> sequenceMock1TestData = new Pair<>("sequenceMock1Name", "sequenceMock1TestValue");
-        Pair<String, String> sequenceMock2TestData = new Pair<>("sequenceMock2Name", "sequenceMock2TestValue");
+//        Pair<String, String> sequenceMock1TestData = new Pair<>("sequenceMock1Name", "sequenceMock1TestValue");
+//        Pair<String, String> sequenceMock2TestData = new Pair<>("sequenceMock2Name", "sequenceMock2TestValue");
+//
+//        Sequence sequenceMock1 = mock(Sequence.class);
+//        when(sequenceMock1.toString()).thenReturn(sequenceMock1TestData.getKey());
+//
+//        Sequence sequenceMock2 = mock(Sequence.class);
+//        when(sequenceMock2.toString()).thenReturn(sequenceMock2TestData.getKey());
 
-        Sequence sequenceMock1 = mock(Sequence.class);
-        when(sequenceMock1.toString()).thenReturn(sequenceMock1TestData.getKey());
-
-        Sequence sequenceMock2 = mock(Sequence.class);
-        when(sequenceMock2.toString()).thenReturn(sequenceMock2TestData.getKey());
-
-        List<KV<String, Sequence>> srcCollection = new ArrayList<>();
-        IntStream.range(0, sequenceMock1Quantity).forEach(index -> srcCollection.add(KV.of(sequenceMock1TestData.getKey(), sequenceMock1)));
-        IntStream.range(0, sequenceMock2Quantity).forEach(index -> srcCollection.add(KV.of(sequenceMock2TestData.getKey(), sequenceMock2)));
-        Collections.shuffle(srcCollection);
+//        List<KV<String, Sequence>> srcCollection = new ArrayList<>();
+//        IntStream.range(0, sequenceMock1Quantity).forEach(index -> srcCollection.add(KV.of(sequenceMock1TestData.getKey(), sequenceMock1)));
+//        IntStream.range(0, sequenceMock2Quantity).forEach(index -> srcCollection.add(KV.of(sequenceMock2TestData.getKey(), sequenceMock2)));
+//        Collections.shuffle(srcCollection);
 
         //TODO finish
        /* Date approximateDate = new Date();
