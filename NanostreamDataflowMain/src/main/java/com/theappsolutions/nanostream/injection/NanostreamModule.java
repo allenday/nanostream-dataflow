@@ -17,8 +17,8 @@ public class NanostreamModule extends AbstractModule {
     protected String outputFirestoreSequencesStatisticCollection;
     protected String outputFirestoreSequencesBodiesCollection;
     protected String outputFirestoreGeneCacheCollection;
-    protected String resistantGenesFastDB;
-    protected String resistantGenesList;
+    protected String resistanceGenesFastaDB;
+    protected String resistanceGenesList;
 
     public NanostreamModule(Builder builder) {
         this.projectId = builder.projectId;
@@ -30,8 +30,8 @@ public class NanostreamModule extends AbstractModule {
         this.outputFirestoreSequencesStatisticCollection = builder.outputFirestoreSequencesStatisticCollection;
         this.outputFirestoreSequencesBodiesCollection = builder.outputFirestoreSequencesBodiesCollection;
         this.outputFirestoreGeneCacheCollection = builder.outputFirestoreGeneCacheCollection;
-        this.resistantGenesFastDB = builder.resistantGenesFastDB;
-        this.resistantGenesList = builder.resistantGenesList;
+        this.resistanceGenesFastaDB = builder.resistanceGenesFastaDB;
+        this.resistanceGenesList = builder.resistanceGenesList;
     }
 
     public static class Builder {
@@ -45,8 +45,8 @@ public class NanostreamModule extends AbstractModule {
         protected String outputFirestoreSequencesStatisticCollection;
         protected String outputFirestoreSequencesBodiesCollection;
         protected String outputFirestoreGeneCacheCollection;
-        protected String resistantGenesFastDB;
-        protected String resistantGenesList;
+        protected String resistanceGenesFastaDB;
+        protected String resistanceGenesList;
 
         public Builder setProjectId(String projectId) {
             this.projectId = projectId;
@@ -93,13 +93,13 @@ public class NanostreamModule extends AbstractModule {
             return this;
         }
 
-        public Builder setResistantGenesFastDB(String resistantGenesFastDB) {
-            this.resistantGenesFastDB = resistantGenesFastDB;
+        public Builder setResistanceGenesFastaDB(String resistanceGenesFastaDB) {
+            this.resistanceGenesFastaDB = resistanceGenesFastaDB;
             return this;
         }
 
-        public Builder setResistantGenesList(String resistantGenesList) {
-            this.resistantGenesList = resistantGenesList;
+        public Builder setResistanceGenesList(String resistanceGenesList) {
+            this.resistanceGenesList = resistanceGenesList;
             return this;
         }
 
@@ -149,8 +149,8 @@ public class NanostreamModule extends AbstractModule {
             setOutputFirestoreSequencesStatisticCollection(nanostreamPipelineOptions.getOutputFirestoreSequencesStatisticCollection().get());
             setOutputFirestoreSequencesBodiesCollection(nanostreamPipelineOptions.getOutputFirestoreSequencesBodiesCollection().get());
             setOutputFirestoreGeneCacheCollection(nanostreamPipelineOptions.getOutputFirestoreGeneCacheCollection().get());
-            setResistantGenesFastDB(nanostreamPipelineOptions.getResistantGenesFastDB());
-            setResistantGenesList(nanostreamPipelineOptions.getResistantGenesList());
+            setResistanceGenesFastaDB(nanostreamPipelineOptions.getResistanceGenesFastaDB());
+            setResistanceGenesList(nanostreamPipelineOptions.getResistanceGenesList());
             return build();
         }
 

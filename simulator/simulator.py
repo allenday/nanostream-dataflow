@@ -71,39 +71,38 @@ def parse_file_to_bucket_and_filename(file_path):
     return "", ""
 
 
-def download_gsc_file(bucket_name, source_file_name, destination_file_name):
+def download_gcs_file(bucket_name, source_file_name, destination_file_name):
     """Downloads a file from the bucket."""
     storage_client = storage.Client()
     bucket = storage_client.get_bucket(bucket_name)
     blob = bucket.blob(source_file_name)
 
-    blob.download_to_filename(destination_file_name)
-
-    print('File {} downloaded to {}.'.format(
+    print('Downloading file {} to {}.'.format(
         get_shortened_file_name(source_file_name),
         destination_file_name))
-
+    
+    blob.download_to_filename(destination_file_name)
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
     if len(sys.argv) < 2:
-        print('Script must be called with 2 arguments - source GCS file name and destination GSC bucket name.')
+        print('Script must be called with 2 arguments - source GCS file name and destination GCS bucket name.')
         print('Example: "python simulator.py gs://bucket/source-file destination-bucket"')
         exit(1)
 
-    # Reads destination GCS bucket name and source GSC filename from arguments
-    source_gsc_filename = sys.argv[1]
+    # Reads destination GCS bucket name and source GCS filename from arguments
+    source_gcs_filename = sys.argv[1]
     destination_gcs_bucket_name = sys.argv[2]
 
     publishing_speed = 1
     if len(sys.argv) > 3:
         publishing_speed = float(sys.argv[3])
 
-    # Downloads source file filename for GSC bucket
-    source_bucket_name, source_gsc_filename = parse_file_to_bucket_and_filename(source_gsc_filename)
-    source_filename = source_gsc_filename
-    download_gsc_file(source_bucket_name, source_gsc_filename, source_filename)
+    # Downloads source file filename for GCS bucket
+    source_bucket_name, source_gcs_filename = parse_file_to_bucket_and_filename(source_gcs_filename)
+    source_filename = source_gcs_filename
+    download_gcs_file(source_bucket_name, source_gcs_filename, source_filename)
 
     # Reads Source file
     with open(source_filename, "r") as source_file:
