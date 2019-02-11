@@ -37,15 +37,15 @@ gsutil notification create \
 </p></details>
 
 
-5) Create **Firestore DB** ([See details](https://firebase.google.com/products/firestore/)) for saving cache and result data
+4) Create **Firestore DB** ([See details](https://firebase.google.com/products/firestore/)) for saving cache and result data
 
 Run provisioning scripts:
 
-6) On Google Cloud Shell, `git clone https://github.com/Firedrops/nanostream-dataflow.git`.
-7) `cd /nanostream-dataflow/aligner/`
-8) `bash provision_species.sh` or `bash provision_gene_resistance.sh`
+5) On Google Cloud Shell, `git clone https://github.com/Firedrops/nanostream-dataflow.git`.
+6) `cd /nanostream-dataflow/aligner/`
+7) `bash provision_species.sh` or `bash provision_gene_resistance.sh`
 
-9) install java8 on Gcloud
+8) install java8 on Gcloud
 [instructions here](https://tecadmin.net/install-java-8-on-debian/)
 
 Optional:
