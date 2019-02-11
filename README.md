@@ -25,13 +25,15 @@ gsutil notification create \
 -p <subfolder path> gs://<bucket name>
 ```
 
-<details><summary>CGI</summary><p>
+<details><summary>CGI example</summary><p>
+  
 ```
 gsutil notification create \
 -t file_upload -f json \
 -e OBJECT_FINALIZE \
 -p Uploads/ gs://nano-stream1
 ```
+
 </p></details>
 
 
