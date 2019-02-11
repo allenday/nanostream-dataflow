@@ -25,7 +25,6 @@ public class CombineIterableAccumulatorFn<T> extends Combine.CombineFn<T, List<T
 
     @Override
     public List<T> addInput(List<T> accumulator, T input) {
-        LOG.info(String.format("CombineIterableAccumulatorFn addInput %s to accumulator with size %d", input.toString(), accumulator.size()));
         accumulator.add(input);
         return accumulator;
     }
@@ -40,7 +39,7 @@ public class CombineIterableAccumulatorFn<T> extends Combine.CombineFn<T, List<T
     @Override
     public Iterable<T> extractOutput(List<T> accumulator) {
         if (accumulator.size() > 0) {
-            LOG.info("CombineIterableAccumulatorFn extractOutput: " + accumulator.get(0).getClass().getName() + " " + accumulator.toString());
+            LOG.info("CombineIterableAccumulatorFn extractOutput: " + accumulator.get(0).getClass().getName());
         }
         LOG.info("CombineIterableAccumulatorFn extractOutput: " + ObjectSizeFetcher.sizeOf(accumulator));
         return accumulator;
