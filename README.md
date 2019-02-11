@@ -20,7 +20,7 @@ You can use ([this python module](https://github.com/allenday/nanostream-dataflo
 3) Create **PubSub notifications**  ([See details](https://cloud.google.com/storage/docs/pubsub-notifications)) for **simulator dest bucket** that will be creating notifications when new files will have be added to bucket
 ```
 gsutil notification create \
--t FILE_UPLOAD -f json \
+-t file_upload FILE_UPLOAD -f json \
 -e OBJECT_FINALIZE \
 -p <sub-folder>/ gs://<project_id>
 ```
