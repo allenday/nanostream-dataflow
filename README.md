@@ -22,7 +22,7 @@ You can use ([this python module](https://github.com/allenday/nanostream-dataflo
 gsutil notification create \
 -t file_upload FILE_UPLOAD -f json \
 -e OBJECT_FINALIZE \
--p <sub-folder>/ gs://<project_id>
+-p Uploads/ gs://<project_id>
 ```
 5) Create **Firestore DB** ([See details](https://firebase.google.com/products/firestore/)) for saving cache and result data
 
