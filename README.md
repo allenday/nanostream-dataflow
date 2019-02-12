@@ -133,7 +133,7 @@ java -cp /home/coingroupimb/git_larry_2019_02_11/NanostreamDataflowMain/build/Na
   --project=nano-stream1 \
   --streaming=true \
   --processingMode=species \
-  --inputDataSubscription=projects/nano-stream1/subscriptions/dataflow \
+  --inputDataSubscription=projects/nano-stream1/subscriptions/dataflow_species \
   --alignmentWindow=20 \
   --statisticUpdatingDelay=30 \
   --servicesUrl=http://35.201.96.177 \
@@ -158,7 +158,7 @@ java -cp /home/coingroupimb/git_larry_2019_02_11/NanostreamDataflowMain/build/Na
   --project=nano-stream1 \
   --streaming=true \
   --processingMode=resistance_genes \
-  --inputDataSubscription=projects/nano-stream1/subscriptions/dataflow \
+  --inputDataSubscription=projects/nano-stream1/subscriptions/dataflow_resistance \
   --alignmentWindow=20 \
   --statisticUpdatingDelay=30 \
   --servicesUrl=http://35.241.45.217 \
