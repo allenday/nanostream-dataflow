@@ -136,7 +136,7 @@ java -cp /home/coingroupimb/git_larry_2019_02_11/NanostreamDataflowMain/build/Na
   --inputDataSubscription=projects/nano-stream1/subscriptions/dataflow \
   --alignmentWindow=20 \
   --statisticUpdatingDelay=30 \
-  --servicesUrl=http://34.85.27.91 \
+  --servicesUrl=http://35.201.96.177 \
   --bwaEndpoint=/cgi-bin/bwa.cgi \
   --bwaDatabase=DB.fasta \
   --kAlignEndpoint=/cgi-bin/kalign.cgi \
@@ -161,7 +161,7 @@ java -cp /home/coingroupimb/git_larry_2019_02_11/NanostreamDataflowMain/build/Na
   --inputDataSubscription=projects/nano-stream1/subscriptions/dataflow \
   --alignmentWindow=20 \
   --statisticUpdatingDelay=30 \
-  --servicesUrl=http://34.85.124.80 \
+  --servicesUrl=http://35.241.45.217 \
   --bwaEndpoint=/cgi-bin/bwa.cgi \
   --bwaDatabase=DB.fasta \
   --kAlignEndpoint=/cgi-bin/kalign.cgi \
