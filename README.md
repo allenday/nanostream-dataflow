@@ -169,9 +169,6 @@ java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/Nan
   --outputFirestoreSequencesStatisticCollection=resistant_sequences_statistic \
   --outputFirestoreSequencesBodiesCollection=resistant_sequences_bodies \
   --outputFirestoreGeneCacheCollection=resistant_gene_cache \
-
-Open a new cloud shell session, run:
-gcloud compute backend-services update bwa-species-backend-service --timeout=600 --global
 ```
 
 </p></details>
