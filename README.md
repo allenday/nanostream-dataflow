@@ -161,7 +161,7 @@ java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/Nan
   --inputDataSubscription=projects/nano-stream1/subscriptions/dataflow_species \
   --alignmentWindow=20 \
   --statisticUpdatingDelay=30 \
-  --servicesUrl=http://35.201.96.177 \
+  --servicesUrl=http://35.201.96.177/ \
   --bwaEndpoint=/cgi-bin/bwa.cgi \
   --bwaDatabase=DB.fasta \
   --kAlignEndpoint=/cgi-bin/kalign.cgi \
