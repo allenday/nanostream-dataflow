@@ -121,6 +121,9 @@ java -cp (path_to_nanostream_app_jar) \
   --resistanceGenesFastDB=$RESISTANCE_GENES_FASTA \
   --resistanceGenesList=$RESISTANCE_GENES_LIST
   --region=REGION
+  
+Open a new cloud shell session, run:
+gcloud compute backend-services update bwa-species-backend-service --timeout=600 --global
 ```
 
 <details><summary>CGI species</summary><p>
@@ -144,6 +147,9 @@ java -cp /home/coingroupimb/git_larry_2019_02_11/NanostreamDataflowMain/build/Na
   --outputFirestoreSequencesStatisticCollection=resistant_sequences_statistic \
   --outputFirestoreSequencesBodiesCollection=resistant_sequences_bodies \
   --outputFirestoreGeneCacheCollection=resistant_gene_cache \
+
+Open a new cloud shell session, run:
+gcloud compute backend-services update bwa-species-backend-service --timeout=600 --global
 ```
 
 </p></details>
@@ -171,11 +177,12 @@ java -cp /home/coingroupimb/git_larry_2019_02_11/NanostreamDataflowMain/build/Na
   --outputFirestoreGeneCacheCollection=resistant_gene_cache \
   --resistantGenesFastDB=gs://nano-stream-1/NewDatabases/DB_resistant_formatted.fasta \
   --resistantGenesList=gs://nano-stream1/NewDatabases/resistant_genes_list.txt
+
+Open a new cloud shell session, run:
+gcloud compute backend-services update bwa-resistance-genes-backend-service --timeout=600 --global
 ```
 
 </p></details>
-
-10) Separately, run `gcloud compute backend-services update bwa-resistance-genes-backend-service --timeout=600 --global` to increase timeout from the default 30 secondes.
 
 ### Available databases
 For this project the bucket **nanostream-dataflow-demo-data** were created
