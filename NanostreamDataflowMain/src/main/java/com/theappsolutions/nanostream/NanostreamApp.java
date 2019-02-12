@@ -5,6 +5,7 @@ import com.google.inject.Injector;
 import com.theappsolutions.nanostream.aligner.GetSequencesFromSamDataFn;
 import com.theappsolutions.nanostream.aligner.MakeAlignmentViaHttpFn;
 import com.theappsolutions.nanostream.errorcorrection.ErrorCorrectionFn;
+import com.theappsolutions.nanostream.fastq.BatchByN;
 import com.theappsolutions.nanostream.fastq.ParseFastQFn;
 import com.theappsolutions.nanostream.gcs.GetDataFromFastQFile;
 import com.theappsolutions.nanostream.gcs.ParseGCloudNotification;
@@ -23,18 +24,13 @@ import com.theappsolutions.nanostream.pubsub.FilterObjectFinalizeMessage;
 import com.theappsolutions.nanostream.taxonomy.GetResistanceGenesTaxonomyDataFn;
 import com.theappsolutions.nanostream.taxonomy.GetSpeciesTaxonomyDataFn;
 import com.theappsolutions.nanostream.util.EntityNamer;
-import com.theappsolutions.nanostream.util.trasform.CombineIterableAccumulatorFn;
 import com.theappsolutions.nanostream.util.trasform.RemoveValueDoFn;
-import htsjdk.samtools.fastq.FastqRecord;
 import japsa.seq.Sequence;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
-import org.apache.beam.sdk.transforms.Combine;
-import org.apache.beam.sdk.transforms.GroupByKey;
-import org.apache.beam.sdk.transforms.ParDo;
-import org.apache.beam.sdk.transforms.View;
+import org.apache.beam.sdk.transforms.*;
 import org.apache.beam.sdk.transforms.windowing.*;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
@@ -50,6 +46,8 @@ import java.util.stream.Stream;
  * with transformation from PubsubMessage to Sequences Statistic and Sequences Bodies
  */
 public class NanostreamApp {
+
+    private static final int FASTQ_GROUPING_BATCH_SIZE = 200;
 
     public enum ProcessingMode {
         SPECIES("species"),
@@ -100,8 +98,8 @@ public class NanostreamApp {
                 .apply("Parse FastQ data", ParDo.of(new ParseFastQFn()))
                 .apply(options.getAlignmentWindow() + "s FastQ collect window",
                         Window.into(FixedWindows.of(Duration.standardSeconds(options.getAlignmentWindow()))))
-                .apply("Accumulate to iterable", Combine.globally(new CombineIterableAccumulatorFn<FastqRecord>())
-                        .withoutDefaults())
+                .apply("Create batches of "+ FASTQ_GROUPING_BATCH_SIZE +" FastQ records",
+                        new BatchByN(FASTQ_GROUPING_BATCH_SIZE))
                 .apply("Alignment", ParDo.of(injector.getInstance(MakeAlignmentViaHttpFn.class)))
                 .apply("Extract Sequences",
                         ParDo.of(new GetSequencesFromSamDataFn()))
