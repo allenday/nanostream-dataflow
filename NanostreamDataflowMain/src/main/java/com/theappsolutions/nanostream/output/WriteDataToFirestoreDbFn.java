@@ -18,12 +18,10 @@ public class WriteDataToFirestoreDbFn<T> extends DoFn<KV<String, T>, String> {
     private Logger LOG = LoggerFactory.getLogger(WriteDataToFirestoreDbFn.class);
 
     private FirestoreService firebaseDatastoreService;
-    private String firestoreDatabaseUrl;
     private String firestoreDestCollection;
     private String projectId;
 
-    public WriteDataToFirestoreDbFn(String firestoreDatabaseUrl, String firestoreDestCollection, String projectId) {
-        this.firestoreDatabaseUrl = firestoreDatabaseUrl;
+    public WriteDataToFirestoreDbFn(String firestoreDestCollection, String projectId) {
         this.firestoreDestCollection = firestoreDestCollection;
         this.projectId = projectId;
     }
@@ -31,7 +29,7 @@ public class WriteDataToFirestoreDbFn<T> extends DoFn<KV<String, T>, String> {
     @Setup
     public void setup() {
         try {
-            firebaseDatastoreService = FirestoreService.initialize(projectId, firestoreDatabaseUrl);
+            firebaseDatastoreService = FirestoreService.initialize(projectId);
         } catch (IOException e) {
             LOG.error(e.getMessage());
         }
