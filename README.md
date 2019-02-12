@@ -154,7 +154,7 @@ gcloud compute backend-services update bwa-species-backend-service --timeout=600
 <details><summary>CGI species</summary><p>
 
 ```
-java -cp /home/coingroupimb/git_larry_2019_02_11/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
+java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
   com.theappsolutions.nanostream.NanostreamApp \
   --region=asia-northeast1 \
   --runner=org.apache.beam.runners.dataflow.DataflowRunner \
@@ -182,7 +182,7 @@ gcloud compute backend-services update bwa-species-backend-service --timeout=600
 <details><summary>resistance</summary><p>
 
 ```
-java -cp /home/coingroupimb/git_larry_2019_02_11/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
+java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
   com.theappsolutions.nanostream.NanostreamApp \
   --region=asia-northeast1 \
   --runner=org.apache.beam.runners.dataflow.DataflowRunner \
