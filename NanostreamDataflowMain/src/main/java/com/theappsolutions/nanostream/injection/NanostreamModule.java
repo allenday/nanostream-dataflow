@@ -13,7 +13,6 @@ public class NanostreamModule extends AbstractModule {
     protected String bwaEndpoint;
     protected String bwaDB;
     protected String kAlignEndpoint;
-    protected String outputFirestoreDbUrl;
     protected String outputFirestoreSequencesStatisticCollection;
     protected String outputFirestoreSequencesBodiesCollection;
     protected String outputFirestoreGeneCacheCollection;
@@ -26,7 +25,6 @@ public class NanostreamModule extends AbstractModule {
         this.bwaEndpoint = builder.bwaEndpoint;
         this.bwaDB = builder.bwaDB;
         this.kAlignEndpoint = builder.kAlignEndpoint;
-        this.outputFirestoreDbUrl = builder.outputFirestoreDbUrl;
         this.outputFirestoreSequencesStatisticCollection = builder.outputFirestoreSequencesStatisticCollection;
         this.outputFirestoreSequencesBodiesCollection = builder.outputFirestoreSequencesBodiesCollection;
         this.outputFirestoreGeneCacheCollection = builder.outputFirestoreGeneCacheCollection;
@@ -41,7 +39,6 @@ public class NanostreamModule extends AbstractModule {
         protected String bwaEndpoint;
         protected String bwaDB;
         protected String kAlignEndpoint;
-        protected String outputFirestoreDbUrl;
         protected String outputFirestoreSequencesStatisticCollection;
         protected String outputFirestoreSequencesBodiesCollection;
         protected String outputFirestoreGeneCacheCollection;
@@ -70,11 +67,6 @@ public class NanostreamModule extends AbstractModule {
 
         public Builder setkAlignEndpoint(String kAlignEndpoint) {
             this.kAlignEndpoint = kAlignEndpoint;
-            return this;
-        }
-
-        public Builder setOutputFirestoreDbUrl(String outputFirestoreDbUrl) {
-            this.outputFirestoreDbUrl = outputFirestoreDbUrl;
             return this;
         }
 
@@ -123,10 +115,6 @@ public class NanostreamModule extends AbstractModule {
             return kAlignEndpoint;
         }
 
-        public String getOutputFirestoreDbUrl() {
-            return outputFirestoreDbUrl;
-        }
-
         public String getOutputFirestoreSequencesStatisticCollection() {
             return outputFirestoreSequencesStatisticCollection;
         }
@@ -145,7 +133,6 @@ public class NanostreamModule extends AbstractModule {
             setBwaEndpoint(nanostreamPipelineOptions.getBwaEndpoint());
             setBwaDB(nanostreamPipelineOptions.getBwaDatabase());
             setkAlignEndpoint(nanostreamPipelineOptions.getkAlignEndpoint());
-            setOutputFirestoreDbUrl(nanostreamPipelineOptions.getOutputFirestoreDbUrl().get());
             setOutputFirestoreSequencesStatisticCollection(nanostreamPipelineOptions.getOutputFirestoreSequencesStatisticCollection().get());
             setOutputFirestoreSequencesBodiesCollection(nanostreamPipelineOptions.getOutputFirestoreSequencesBodiesCollection().get());
             setOutputFirestoreGeneCacheCollection(nanostreamPipelineOptions.getOutputFirestoreGeneCacheCollection().get());

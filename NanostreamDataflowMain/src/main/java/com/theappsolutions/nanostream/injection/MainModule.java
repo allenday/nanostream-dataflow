@@ -47,17 +47,17 @@ public class MainModule extends NanostreamModule {
 
     @Provides
     public WriteSequencesStatisticToFirestoreDbFn provideWriteDataToFirestoreDbFnStatistic() {
-        return new WriteSequencesStatisticToFirestoreDbFn(outputFirestoreDbUrl, outputFirestoreSequencesStatisticCollection, projectId);
+        return new WriteSequencesStatisticToFirestoreDbFn(outputFirestoreSequencesStatisticCollection, projectId);
     }
 
     @Provides
     public WriteSequencesBodiesToFirestoreDbFn provideWriteSequencesBodiesToFirestoreDbFn() {
-        return new WriteSequencesBodiesToFirestoreDbFn(outputFirestoreDbUrl, outputFirestoreSequencesBodiesCollection, projectId);
+        return new WriteSequencesBodiesToFirestoreDbFn(outputFirestoreSequencesBodiesCollection, projectId);
     }
 
     @Provides
     public GetSpeciesTaxonomyDataFn provideGetTaxonomyDataFn() {
-        return new GetSpeciesTaxonomyDataFn(outputFirestoreDbUrl, outputFirestoreGeneCacheCollection, projectId);
+        return new GetSpeciesTaxonomyDataFn(outputFirestoreGeneCacheCollection, projectId);
     }
 
     @Provides

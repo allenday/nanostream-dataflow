@@ -60,13 +60,6 @@ public interface NanostreamPipelineOptions extends DataflowPipelineOptions {
     void setkAlignEndpoint(String value);
 
 
-    @Description("Url of the Firebase Datastore database that will be used for writing output data")
-    @Validation.Required
-    ValueProvider<String> getOutputFirestoreDbUrl();
-
-    void setOutputFirestoreDbUrl(ValueProvider<String> value);
-
-
     @Description("Collection name of the Firestore database that will be used for writing output statistic data")
     @Validation.Required
     ValueProvider<String> getOutputFirestoreSequencesStatisticCollection();

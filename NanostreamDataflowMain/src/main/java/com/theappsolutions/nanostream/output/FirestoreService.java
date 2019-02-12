@@ -26,13 +26,12 @@ public class FirestoreService {
         this.firestore = firestore;
     }
 
-    public static FirestoreService initialize(String projectId, String databaseUrl) throws IOException {
+    public static FirestoreService initialize(String projectId) throws IOException {
 
         FirestoreOptions firestoreOptions =
                 FirestoreOptions.newBuilder().setTimestampsInSnapshotsEnabled(true).build();
         FirebaseOptions firebaseOptions = new FirebaseOptions.Builder()
                 .setCredentials(GoogleCredentials.getApplicationDefault())
-                .setDatabaseUrl(databaseUrl)
                 .setProjectId(projectId)
                 .setFirestoreOptions(firestoreOptions)
                 .build();

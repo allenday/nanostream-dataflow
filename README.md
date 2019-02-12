@@ -26,7 +26,7 @@ gsutil notification create -t $UPLOAD_EVENTS -f json -e OBJECT_FINALIZE $UPLOAD_
 gcloud pubsub subscriptions create $UPLOAD_SUBSCRIPTION --topic $UPLOAD_EVENTS
 ```
 6. Provision an aligner cluster, see [aligner](aligner)
-7. Create a **Firestore DB** ([See details](https://firebase.google.com/products/firestore/)) for saving cache and result data.
+7. Create a **Cloud Firestore DB** ([See details in section Create a Cloud Firestore project](https://cloud.google.com/firestore/docs/quickstart-mobile-web#create_a_project)) for saving cache and result data.
 8. *optional* If you running the pipeline in `resistance_genes` mode you should provide "FASTA DB" and "gene list" files stored in GCS.
 
 ### Project Structure
@@ -46,7 +46,7 @@ To run the pipeline, first define variables for configuration:
 ```
 # Google Cloud project name
 PROJECT=`gcloud config get-value project`
-# Apache Beam Runner (Dataflow for Google Cloud Dataflow running or Direct for local running)
+# Apache Beam Runner (set org.apache.beam.runners.dataflow.DataflowRunner for running in a Google Cloud Dataflow or org.apache.beam.runners.direct.DirectRunner for running locally on your computer)
 RUNNER=org.apache.beam.runners.dataflow.DataflowRunner
 
 # specify mode of data processing (species, resistance_genes)
@@ -74,19 +74,23 @@ BWA_DATABASE=DB.fasta
 # kalign path
 KALIGN_ENDPOINT=/cgi-bin/kalign.cgi
 
-# Firestore DB url defined above
-FIRESTORE_URL=https://upwork-nano-stream.firebaseio.com
 # Collection name of the Firestore database that will be used for writing output statistic data
 FIRESTORE_COLLECTION_STATS=resistance_sequences_statistic
 # Collection name of the Firestore database that will be used for writing output Sequences Body data
 FIRESTORE_COLLECTION_RESISTANCE_BODIES=resistance_sequences_bodies
 # Collection name of the Firestore database that will be used for saving NCBI genome data cache
 FIRESTORE_TAXONOMY_CACHE=resistance_gene_cache
-
-# [optional] Only used in resistance_genes mode. Path to fasta file with resistance genes database
-RESISTANCE_GENES_FASTA=gs://nanostream-dataflow-demo-data/gene-info/DB_resistant_formatted.fasta
-# [optional] Only used in resistance_genes mode. Path to fasta file with resistant genes list
-RESISTANCE_GENES_LIST=gs://nanostream-dataflow-demo-data/gene-info/resistance_genes_list.txt
+```
+If you run the pipeline in the `resistance_genes` mode you should add 2 additional arguments with pathes of files stored in the GCS. With a placeholder name `$FILES_BUCKET` add next arguments:
+1. Path to resistant genes sequence `fasta` list formatted with [fasta formatter](https://github.com/allenday/nanostream-dataflow/tree/master/fasta_formatter):
+```
+# Path to resistant genes sequence fasta list formatted with fasta formatter
+RESISTANCE_GENES_FASTA=gs://$FILES_BUCKET/gene-info/DB_resistant_formatted.fasta
+```
+2. Path to text file with resistant genes references and groups:
+```
+# Path to text file with resistant genes references and groups
+RESISTANCE_GENES_LIST=gs://$FILES_BUCKET/gene-info/resistance_genes_list.txt
 ```
 
 To start **Nanostream Pipeline** run following command:
@@ -104,7 +108,6 @@ java -cp (path_to_nanostream_app_jar) \
   --bwaEndpoint=$BWA_ENDPOINT \
   --bwaDatabase=$BWA_DATABASE \ 
   --kAlignEndpoint=$KALIGN_ENDPOINT \
-  --outputFirestoreDbUrl=$FIRESTORE_URL \
   --outputFirestoreSequencesStatisticCollection=$FIRESTORE_COLLECTION_STATS \
   --outputFirestoreSequencesBodiesCollection=$FIRESTORE_COLLECTION_RESISTANCE_BODIES \
   --outputFirestoreGeneCacheCollection=$FIRESTORE_TAXONOMY_CACHE \
