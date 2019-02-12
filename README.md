@@ -17,7 +17,7 @@ To run the pipeline take the following steps:
 1. Create a [Google Cloud Project](https://cloud.google.com/)
 2. Create a [Google Cloud Storage](https://cloud.google.com/storage/) `$UPLOAD_BUCKET` **upload_bucket for FastQ files**.
 3. You can use our [simulator](https://github.com/allenday/nanostream-dataflow/blob/master/simulator) to upload FastQ for testing, or if you don't have a real dataset.
-4. Configure [file upload notifications]((https://cloud.google.com/storage/docs/pubsub-notifications)). This creates PubSub messages when new files will are uploaded. With our placeholder name `$UPLOAD_EVENTS`, set up PubSub like this:
+4. Configure [file upload notifications]((https://cloud.google.com/storage/docs/pubsub-notifications)). This creates PubSub messages when new files are uploaded. With our placeholder name `$UPLOAD_EVENTS`, set up PubSub notifications in the following way:
 ```
 gsutil notification create -t $UPLOAD_EVENTS -f json -e OBJECT_FINALIZE $UPLOAD_BUCKET
 ```
@@ -25,8 +25,9 @@ gsutil notification create -t $UPLOAD_EVENTS -f json -e OBJECT_FINALIZE $UPLOAD_
 ```
 gcloud pubsub subscriptions create $UPLOAD_SUBSCRIPTION --topic $UPLOAD_EVENTS
 ```
-6. Create a **Cloud Firestore DB** ([See details in section Create a Cloud Firestore project](https://cloud.google.com/firestore/docs/quickstart-mobile-web#create_a_project)) for saving cache and result data.
-7. *optional* If you running the pipeline in `resistance_genes` mode you should provide "FASTA DB" and "gene list" files stored in GCS.
+6. Provision an aligner cluster, see [aligner](aligner)
+7. Create a **Cloud Firestore DB** ([See details in section Create a Cloud Firestore project](https://cloud.google.com/firestore/docs/quickstart-mobile-web#create_a_project)) for saving cache and result data.
+8. *optional* If you running the pipeline in `resistance_genes` mode you should provide "FASTA DB" and "gene list" files stored in GCS.
 
 ### Project Structure
 - NanostreamDataflowMain - Apache Beam app that provides all data transformations
@@ -59,8 +60,13 @@ ALIGNMENT_WINDOW=20
 # how frequently (in wallclock seconds) are statistics updated for dashboard visualizaiton?
 STATS_UPDATE_FREQUENCY=30
 
+# IP address of the aligner cluster created by running aligner/provision_species.sh
+SPECIES_ALIGNER_CLUSTER_IP=$(gcloud compute forwarding-rules describe bwa-species-forward --global --format="value(IPAddress)")
+# IP address of the aligner cluster created by running aligner/provision_resistance_genes.sh
+RESISTANCE_GENES_ALIGNER_CLUSTER_IP=$(gcloud compute forwarding-rules describe bwa-resistance-genes --global --format="value(IPAddress)")
 # base URL for http services (bwa and kalign)
-SERVICES_HOST=http://130.211.33.64
+# value for species, for resistance_genes use 'SERVICES_HOST=http://$RESISTANCE_GENES_ALIGNER_CLUSTER_IP'
+SERVICES_HOST=http://$SPECIES_ALIGNER_CLUSTER_IP
 # bwa path
 BWA_ENDPOINT=/cgi-bin/bwa.cgi
 # bwa database name
@@ -130,9 +136,9 @@ where:
 
 To build jar from source, follow next steps:
 1) Install [Maven](https://maven.apache.org/install.html)
-2) Add [Japsa](https://github.com/mdcao/japsa) package to local Maven repository. To do this you should run following command from project root:
+2) Add [**Japsa 1.9-2b**](https://github.com/mdcao/japsa) package to local Maven repository. To do this you should run following command from project root:
 ```
-mvn install:install-file -Dfile=NanostreamDataflowMain/libs/japsa.jar -DgroupId=coin -DartifactId=japsa -Dversion=1.7-10a -Dpackaging=jar
+mvn install:install-file -Dfile=NanostreamDataflowMain/libs/japsa.jar -DgroupId=coin -DartifactId=japsa -Dversion=1.9-2b -Dpackaging=jar
 ```
 3) Build uber-jar file
 ```
