@@ -146,9 +146,6 @@ java -cp (path_to_nanostream_app_jar) \
   --resistanceGenesFastDB=$RESISTANCE_GENES_FASTA \
   --resistanceGenesList=$RESISTANCE_GENES_LIST
   --region=REGION
-
-Open a new cloud shell session, run:
-gcloud compute backend-services update bwa-species-backend-service --timeout=600 --global
 ```
 
 <details><summary>CGI species</summary><p>
@@ -202,9 +199,6 @@ java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/Nan
   --outputFirestoreGeneCacheCollection=resistant_gene_cache \
   --resistantGenesFastDB=gs://nano-stream-1/NewDatabases/DB_resistant_formatted.fasta \
   --resistantGenesList=gs://nano-stream1/NewDatabases/resistant_genes_list.txt
-
-Open a new cloud shell session, run:
-gcloud compute backend-services update bwa-resistance-genes-backend-service --timeout=600 --global
 ```
 
 </p></details>
