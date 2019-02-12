@@ -6,7 +6,7 @@ setup () {
     gcloud compute instance-templates \
     create-with-container ${NAME}-template \
     --container-image=${DOCKER_IMAGE} \
-    --container-env BWA_FILES=${BWA_FILES} \
+    --container-env BWA_FILES=${BWA_FILES},REQUESTER_PROJECT=${REQUESTER_PROJECT} \
     --boot-disk-size=100GB \
     --tags http-server,http,allow-http \
     --preemptible \
@@ -51,7 +51,8 @@ setup () {
     gcloud compute backend-services \
     create ${NAME}-backend-service \
     --http-health-checks ${NAME}-health-check \
-    --global
+    --global \
+    --timeout=600
 
     # configure load balancer backend service
     gcloud compute backend-services \
@@ -84,6 +85,9 @@ setup () {
     create allow-http \
     --allow tcp:80 \
     --target-tags http-server
+
+    export ALIGNER_CLUSTER_IP_ADDRESS=$(gcloud compute forwarding-rules describe ${NAME}-forward --global --format="value(IPAddress)")
+    echo "All done. Cluster will be available on http://${ALIGNER_CLUSTER_IP_ADDRESS}/ in 5-10 minutes"
 }
 
 cleanup () {

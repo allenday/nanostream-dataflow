@@ -3,6 +3,31 @@
 [Visualiser](https://nano-stream1.appspot.com/)
 
 [PubSub Diagnostics](https://upload-watcher-dot-nano-stream1.appspot.com/)
+Typical genomic analyses are too slow, taking weeks or months to complete. You transport DNA samples from the collection point to a centralized facility to be sequenced and analyzed in a batch process. Recently, nanopore DNA sequencers have become commercially available, such as those from Oxford Nanopore Technologies, streaming raw signal-level data as they are collected and providing immediate access to it. However, processing the data in real-time remains challenging,  requiring substantial compute and storage resources, as well as a dedicated bioinformatician. Not only is the process is too slow, it’s also failure-prone, expensive, and doesn’t scale.
+
+This source repo contains a prototype implementation of a scalable, reliable, and cost effective end-to-end pipeline for fast DNA sequence analysis using Dataflow on Google Cloud.
+
+## Design
+
+![architecture](doc/Taxonomy%20Counting.png)
+
+### Setup
+
+To run the pipeline take the following steps:
+
+1. Create a [Google Cloud Project](https://cloud.google.com/)
+2. Create a [Google Cloud Storage](https://cloud.google.com/storage/) `$UPLOAD_BUCKET` **upload_bucket for FastQ files**.
+3. You can use our [simulator](https://github.com/allenday/nanostream-dataflow/blob/master/simulator) to upload FastQ for testing, or if you don't have a real dataset.
+4. Configure [file upload notifications]((https://cloud.google.com/storage/docs/pubsub-notifications)). This creates PubSub messages when new files are uploaded. With our placeholder name `$UPLOAD_EVENTS`, set up PubSub notifications in the following way:
+```
+gsutil notification create -t $UPLOAD_EVENTS -f json -e OBJECT_FINALIZE $UPLOAD_BUCKET
+```
+5. Create a **PubSub subscription** for `$UPLOAD_EVENTS`. With our placeholder name `$UPLOAD_SUBSCRIPTION`, run following command:
+```
+gcloud pubsub subscriptions create $UPLOAD_SUBSCRIPTION --topic $UPLOAD_EVENTS
+```
+6. Create a **Firestore DB** ([See details](https://firebase.google.com/products/firestore/)) for saving cache and result data.
+7. *optional* If you running the pipeline in `resistance_genes` mode you should provide "FASTA DB" and "gene list" files stored in GCS.
 
 ### Project Structure
 - NanostreamDataflowMain - Apache Beam app that provides all data transformations
@@ -65,7 +90,7 @@ PROCESSING_MODE=species
 
 9) If you running the pipeline in *resistant_genes* mode you should provide *fasta db* and *gene list* files stored at the GCS bucket
 # PubSub subscription defined above
-UPLOAD_EVENTS=$UPLOAD_EVENTS
+UPLOAD_SUBSCRIPTION=$UPLOAD_SUBSCRIPTION
 
 # size of the window (in wallclock seconds) in which FastQ records will be collected for alignment
 ALIGNMENT_WINDOW=20
@@ -107,7 +132,7 @@ java -cp (path_to_nanostream_app_jar) \
   --project=$PROJECT \
   --streaming=true \
   --processingMode=$PROCESSING_MODE \
-  --inputDataSubscription=$UPLOAD_EVENTS \
+  --inputDataSubscription=$UPLOAD_SUBSCRIPTION \
   --alignmentWindow=$ALIGNMENT_WINDOW \
   --statisticUpdatingDelay=$STATS_UPDATE_FREQUENCY \
   --servicesUrl=$SERVICES_HOST \
@@ -121,7 +146,7 @@ java -cp (path_to_nanostream_app_jar) \
   --resistanceGenesFastDB=$RESISTANCE_GENES_FASTA \
   --resistanceGenesList=$RESISTANCE_GENES_LIST
   --region=REGION
-  
+
 Open a new cloud shell session, run:
 gcloud compute backend-services update bwa-species-backend-service --timeout=600 --global
 ```
@@ -221,9 +246,9 @@ See steps 6 - 8 above, except `bash provision_species.sh -c` or `bash provision_
 
 To build jar from source, follow next steps:
 1) Install [Maven](https://maven.apache.org/install.html)
-2) Add [Japsa](https://github.com/mdcao/japsa) package to local Maven repository. To do this you should run following command from project root:
+2) Add [**Japsa 1.9-2b**](https://github.com/mdcao/japsa) package to local Maven repository. To do this you should run following command from project root:
 ```
-mvn install:install-file -Dfile=NanostreamDataflowMain/libs/japsa.jar -DgroupId=coin -DartifactId=japsa -Dversion=1.7-10a -Dpackaging=jar
+mvn install:install-file -Dfile=NanostreamDataflowMain/libs/japsa.jar -DgroupId=coin -DartifactId=japsa -Dversion=1.9-2b -Dpackaging=jar
 ```
 3) Build uber-jar file
 ```

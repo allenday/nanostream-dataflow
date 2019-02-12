@@ -2,8 +2,11 @@
 # fail on error
 set -e
 
-java -cp NanostreamDataflowMain.jar \
-    com.theappsolutions.nanostream.NanostreamApp \
+mvn clean install exec:java \
+  -f ../../../pom.xml \
+  -Dexec.mainClass="com.theappsolutions.nanostream.NanostreamApp" \
+  -Dmaven.test.skip=true \
+  -Dexec.args=" \
   --runner=org.apache.beam.runners.dataflow.DataflowRunner `#Apache Beam Runner (Dataflow for Google Cloud Dataflow running or Direct for local running)` \
   --project=upwork-nano-stream `# Google Cloud Project name` \
   --streaming=true `# should be true for streaming (infinite) mode` \
