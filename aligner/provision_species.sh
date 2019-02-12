@@ -11,7 +11,11 @@ export MAX_REPLICAS=3
 export TARGET_CPU_UTILIZATION=0.5
 
 export DOCKER_IMAGE='allenday/bwa-http-docker:http'
-export BWA_FILES='gs://nano-stream-test/CombinedDatabases/*'
+export BWA_FILES='gs://nanostream-dataflow-demo-data/reference-sequences/species/*'
+
+# REQUESTER_PROJECT - project billed for downloading BWA_FILES
+# this line set it value to the active project ID
+export REQUESTER_PROJECT=$(gcloud config get-value project)
 
 source provision.sh
 
