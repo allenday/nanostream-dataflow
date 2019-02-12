@@ -163,7 +163,7 @@ java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/Nan
   --statisticUpdatingDelay=30 \
   --servicesUrl=http://35.201.96.177/ \
   --bwaEndpoint=/cgi-bin/bwa.cgi \
-  --bwaDatabase=DB.fasta \
+  --bwaDatabase=genomeDB.fasta \
   --kAlignEndpoint=/cgi-bin/kalign.cgi \
   --outputFirestoreDbUrl=https://nano-stream1.firebaseio.com \
   --outputFirestoreSequencesStatisticCollection=resistant_sequences_statistic \
@@ -188,7 +188,7 @@ java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/Nan
   --statisticUpdatingDelay=30 \
   --servicesUrl=http://35.241.45.217 \
   --bwaEndpoint=/cgi-bin/bwa.cgi \
-  --bwaDatabase=DB.fasta \
+  --bwaDatabase=genomeDB.fasta \
   --kAlignEndpoint=/cgi-bin/kalign.cgi \
   --outputFirestoreDbUrl=https://nano-stream1.firebaseio.com \
   --outputFirestoreSequencesStatisticCollection=resistant_sequences_statistic \
