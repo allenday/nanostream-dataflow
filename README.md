@@ -26,8 +26,9 @@ gsutil notification create -t $UPLOAD_EVENTS -f json -e OBJECT_FINALIZE $UPLOAD_
 ```
 gcloud pubsub subscriptions create $UPLOAD_SUBSCRIPTION --topic $UPLOAD_EVENTS
 ```
-6. Create a **Firestore DB** ([See details](https://firebase.google.com/products/firestore/)) for saving cache and result data.
-7. *optional* If you running the pipeline in `resistance_genes` mode you should provide "FASTA DB" and "gene list" files stored in GCS.
+6. Provision an aligner cluster, see [aligner](aligner)
+7. Create a **Cloud Firestore DB** ([See details in section Create a Cloud Firestore project](https://cloud.google.com/firestore/docs/quickstart-mobile-web#create_a_project)) for saving cache and result data.
+8. *optional* If you running the pipeline in `resistance_genes` mode you should provide "FASTA DB" and "gene list" files stored in GCS.
 
 ### Project Structure
 - NanostreamDataflowMain - Apache Beam app that provides all data transformations
@@ -82,7 +83,7 @@ To run the pipeline, first define variables for configuration:
 ```
 # Google Cloud project name
 PROJECT=`gcloud config get-value project`
-# Apache Beam Runner (Dataflow for Google Cloud Dataflow running or Direct for local running)
+# Apache Beam Runner (set org.apache.beam.runners.dataflow.DataflowRunner for running in a Google Cloud Dataflow or org.apache.beam.runners.direct.DirectRunner for running locally on your computer)
 RUNNER=org.apache.beam.runners.dataflow.DataflowRunner
 
 # specify mode of data processing (species, resistance_genes)
@@ -97,8 +98,13 @@ ALIGNMENT_WINDOW=20
 # how frequently (in wallclock seconds) are statistics updated for dashboard visualizaiton?
 STATS_UPDATE_FREQUENCY=30
 
+# IP address of the aligner cluster created by running aligner/provision_species.sh
+SPECIES_ALIGNER_CLUSTER_IP=$(gcloud compute forwarding-rules describe bwa-species-forward --global --format="value(IPAddress)")
+# IP address of the aligner cluster created by running aligner/provision_resistance_genes.sh
+RESISTANCE_GENES_ALIGNER_CLUSTER_IP=$(gcloud compute forwarding-rules describe bwa-resistance-genes --global --format="value(IPAddress)")
 # base URL for http services (bwa and kalign)
-SERVICES_HOST=http://130.211.33.64
+# value for species, for resistance_genes use 'SERVICES_HOST=http://$RESISTANCE_GENES_ALIGNER_CLUSTER_IP'
+SERVICES_HOST=http://$SPECIES_ALIGNER_CLUSTER_IP
 # bwa path
 BWA_ENDPOINT=/cgi-bin/bwa.cgi
 # bwa database name
@@ -106,14 +112,13 @@ BWA_DATABASE=DB.fasta
 # kalign path
 KALIGN_ENDPOINT=/cgi-bin/kalign.cgi
 
-# Firestore DB url defined above
-FIRESTORE_URL=https://upwork-nano-stream.firebaseio.com
 # Collection name of the Firestore database that will be used for writing output statistic data
 FIRESTORE_COLLECTION_STATS=resistance_sequences_statistic
 # Collection name of the Firestore database that will be used for writing output Sequences Body data
 FIRESTORE_COLLECTION_RESISTANCE_BODIES=resistance_sequences_bodies
 # Collection name of the Firestore database that will be used for saving NCBI genome data cache
 FIRESTORE_TAXONOMY_CACHE=resistance_gene_cache
+<<<<<<< HEAD
 
 # [optional] Only used in resistance_genes mode. Path to fasta file with resistance genes database
 RESISTANCE_GENES_FASTA=gs://nanostream-dataflow-demo-data/gene-info/DB_resistant_formatted.fasta
@@ -121,6 +126,19 @@ RESISTANCE_GENES_FASTA=gs://nanostream-dataflow-demo-data/gene-info/DB_resistant
 RESISTANCE_GENES_LIST=gs://nanostream-dataflow-demo-data/gene-info/resistance_genes_list.txt
 # [optional] specify region to host the pipeline
 REGION=asia-northeast1
+=======
+```
+If you run the pipeline in the `resistance_genes` mode you should add 2 additional arguments with pathes of files stored in the GCS. With a placeholder name `$FILES_BUCKET` add next arguments:
+1. Path to resistant genes sequence `fasta` list formatted with [fasta formatter](https://github.com/allenday/nanostream-dataflow/tree/master/fasta_formatter):
+```
+# Path to resistant genes sequence fasta list formatted with fasta formatter
+RESISTANCE_GENES_FASTA=gs://$FILES_BUCKET/gene-info/DB_resistant_formatted.fasta
+```
+2. Path to text file with resistant genes references and groups:
+```
+# Path to text file with resistant genes references and groups
+RESISTANCE_GENES_LIST=gs://$FILES_BUCKET/gene-info/resistance_genes_list.txt
+>>>>>>> 8eaf4102ad31e93db1c7ee266efb56303dda2dd6
 ```
 
 To start **Nanostream Pipeline** run following command:
@@ -139,7 +157,6 @@ java -cp (path_to_nanostream_app_jar) \
   --bwaEndpoint=$BWA_ENDPOINT \
   --bwaDatabase=$BWA_DATABASE \
   --kAlignEndpoint=$KALIGN_ENDPOINT \
-  --outputFirestoreDbUrl=$FIRESTORE_URL \
   --outputFirestoreSequencesStatisticCollection=$FIRESTORE_COLLECTION_STATS \
   --outputFirestoreSequencesBodiesCollection=$FIRESTORE_COLLECTION_RESISTANCE_BODIES \
   --outputFirestoreGeneCacheCollection=$FIRESTORE_TAXONOMY_CACHE \
@@ -236,12 +253,13 @@ See steps 6 - 8 above, except `bash provision_species.sh -c` or `bash provision_
 ### Building from Source
 
 To build jar from source, follow next steps:
-1) Install [Maven](https://maven.apache.org/install.html)
-2) Add [**Japsa 1.9-2b**](https://github.com/mdcao/japsa) package to local Maven repository. To do this you should run following command from project root:
+1) Use Java 1.8. Dataflow does not yet support 1.9 or greater.
+2) Install [Maven](https://maven.apache.org/install.html)
+3) Add [**Japsa 1.9-2b**](https://github.com/mdcao/japsa) package to local Maven repository. To do this you should run following command from project root:
 ```
 mvn install:install-file -Dfile=NanostreamDataflowMain/libs/japsa.jar -DgroupId=coin -DartifactId=japsa -Dversion=1.9-2b -Dpackaging=jar
 ```
-3) Build uber-jar file
+4) Build uber-jar file
 ```
 cd NanostreamDataflowMain
 mvn clean package

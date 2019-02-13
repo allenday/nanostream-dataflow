@@ -5,6 +5,7 @@ import com.google.inject.Injector;
 import com.theappsolutions.nanostream.aligner.GetSequencesFromSamDataFn;
 import com.theappsolutions.nanostream.aligner.MakeAlignmentViaHttpFn;
 import com.theappsolutions.nanostream.errorcorrection.ErrorCorrectionFn;
+import com.theappsolutions.nanostream.fastq.BatchByN;
 import com.theappsolutions.nanostream.fastq.ParseFastQFn;
 import com.theappsolutions.nanostream.injection.MainModule;
 import com.theappsolutions.nanostream.kalign.ProceedKAlignmentFn;
@@ -16,9 +17,7 @@ import com.theappsolutions.nanostream.output.SequenceStatisticResult;
 import com.theappsolutions.nanostream.probecalculation.KVCalculationAccumulatorFn;
 import com.theappsolutions.nanostream.taxonomy.GetSpeciesTaxonomyDataFn;
 import com.theappsolutions.nanostream.util.ResourcesHelper;
-import com.theappsolutions.nanostream.util.trasform.CombineIterableAccumulatorFn;
 import com.theappsolutions.nanostream.util.trasform.RemoveValueDoFn;
-import htsjdk.samtools.fastq.FastqRecord;
 import japsa.seq.Sequence;
 import org.apache.beam.sdk.PipelineResult;
 import org.apache.beam.sdk.testing.PAssert;
@@ -42,6 +41,7 @@ import java.util.stream.StreamSupport;
 public class EndToEndPipelineTest {
 
     private final static int FASTQ_GROUPING_WINDOW_TIME_SEC = 20;
+    private static final int FASTQ_GROUPING_BATCH_SIZE = 10;
     private final static int OUTPUT_TRIGGERING_WINDOW_TIME_SEC = 10;
 
     @Rule
@@ -67,8 +67,7 @@ public class EndToEndPipelineTest {
                 .apply("Parse FasQ data", ParDo.of(new ParseFastQFn()))
                 .apply(FASTQ_GROUPING_WINDOW_TIME_SEC + " Window",
                         Window.into(FixedWindows.of(Duration.standardSeconds(FASTQ_GROUPING_WINDOW_TIME_SEC))))
-                .apply("Accumulate to iterable", Combine.globally(new CombineIterableAccumulatorFn<FastqRecord>())
-                        .withoutDefaults())
+                .apply("Create batches of "+ FASTQ_GROUPING_BATCH_SIZE +" FastQ records", new BatchByN(FASTQ_GROUPING_BATCH_SIZE))
                 .apply("Alignment", ParDo.of(injector.getInstance(MakeAlignmentViaHttpFn.class)))
                 .apply("Extract Sequences",
                         ParDo.of(new GetSequencesFromSamDataFn()))

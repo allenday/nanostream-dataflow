@@ -19,12 +19,10 @@ public class GetSpeciesTaxonomyDataFn extends DoFn<String, KV<String, List<Strin
 
     private GeneBankRepository geneBankRepositoryOpt;
 
-    private String firestoreDatabaseUrl;
     private String firestoreDestCollection;
     private String projectId;
 
-    public GetSpeciesTaxonomyDataFn(String firestoreDatabaseUrl, String firestoreDestCollection, String projectId) {
-        this.firestoreDatabaseUrl = firestoreDatabaseUrl;
+    public GetSpeciesTaxonomyDataFn(String firestoreDestCollection, String projectId) {
         this.firestoreDestCollection = firestoreDestCollection;
         this.projectId = projectId;
     }
@@ -33,7 +31,7 @@ public class GetSpeciesTaxonomyDataFn extends DoFn<String, KV<String, List<Strin
     public void setup() {
         try {
             geneBankRepositoryOpt = new GeneBankRepository(new NCBIDataSource(new HttpHelper()),
-                    new FirestoreGeneCacheDataSource(FirestoreService.initialize(projectId, firestoreDatabaseUrl),
+                    new FirestoreGeneCacheDataSource(FirestoreService.initialize(projectId),
                             firestoreDestCollection));
         } catch (IOException e) {
             e.printStackTrace();
