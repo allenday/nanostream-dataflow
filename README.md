@@ -118,17 +118,8 @@ FIRESTORE_COLLECTION_STATS=resistance_sequences_statistic
 FIRESTORE_COLLECTION_RESISTANCE_BODIES=resistance_sequences_bodies
 # Collection name of the Firestore database that will be used for saving NCBI genome data cache
 FIRESTORE_TAXONOMY_CACHE=resistance_gene_cache
-<<<<<<< HEAD
-
-# [optional] Only used in resistance_genes mode. Path to fasta file with resistance genes database
-RESISTANCE_GENES_FASTA=gs://nanostream-dataflow-demo-data/gene-info/DB_resistant_formatted.fasta
-# [optional] Only used in resistance_genes mode. Path to fasta file with resistant genes list
-RESISTANCE_GENES_LIST=gs://nanostream-dataflow-demo-data/gene-info/resistance_genes_list.txt
-# [optional] specify region to host the pipeline
-REGION=asia-northeast1
-=======
 ```
-If you run the pipeline in the `resistance_genes` mode you should add 2 additional arguments with pathes of files stored in the GCS. With a placeholder name `$FILES_BUCKET` add next arguments:
+If you run the pipeline in the `resistance_genes` mode you should add 2 additional arguments with paths of files stored in the GCS. With a placeholder name `$FILES_BUCKET` add next arguments:
 1. Path to resistant genes sequence `fasta` list formatted with [fasta formatter](https://github.com/allenday/nanostream-dataflow/tree/master/fasta_formatter):
 ```
 # Path to resistant genes sequence fasta list formatted with fasta formatter
@@ -138,7 +129,6 @@ RESISTANCE_GENES_FASTA=gs://$FILES_BUCKET/gene-info/DB_resistant_formatted.fasta
 ```
 # Path to text file with resistant genes references and groups
 RESISTANCE_GENES_LIST=gs://$FILES_BUCKET/gene-info/resistance_genes_list.txt
->>>>>>> 8eaf4102ad31e93db1c7ee266efb56303dda2dd6
 ```
 
 To start **Nanostream Pipeline** run following command:
