@@ -1,6 +1,7 @@
 package com.theappsolutions.nanostream.injection;
 
 import com.google.inject.AbstractModule;
+import com.theappsolutions.nanostream.NanostreamApp;
 import com.theappsolutions.nanostream.NanostreamPipelineOptions;
 
 /**
@@ -13,11 +14,10 @@ public class NanostreamModule extends AbstractModule {
     protected String bwaEndpoint;
     protected String bwaDB;
     protected String kAlignEndpoint;
-    protected String outputFirestoreSequencesStatisticCollection;
-    protected String outputFirestoreSequencesBodiesCollection;
-    protected String outputFirestoreGeneCacheCollection;
     protected String resistanceGenesFastaDB;
     protected String resistanceGenesList;
+    protected String outputFirestoreCollectionNamePrefix;
+    protected NanostreamApp.ProcessingMode processingMode;
 
     public NanostreamModule(Builder builder) {
         this.projectId = builder.projectId;
@@ -25,11 +25,10 @@ public class NanostreamModule extends AbstractModule {
         this.bwaEndpoint = builder.bwaEndpoint;
         this.bwaDB = builder.bwaDB;
         this.kAlignEndpoint = builder.kAlignEndpoint;
-        this.outputFirestoreSequencesStatisticCollection = builder.outputFirestoreSequencesStatisticCollection;
-        this.outputFirestoreSequencesBodiesCollection = builder.outputFirestoreSequencesBodiesCollection;
-        this.outputFirestoreGeneCacheCollection = builder.outputFirestoreGeneCacheCollection;
         this.resistanceGenesFastaDB = builder.resistanceGenesFastaDB;
         this.resistanceGenesList = builder.resistanceGenesList;
+        this.outputFirestoreCollectionNamePrefix = builder.outputFirestoreCollectionNamePrefix;
+        this.processingMode = builder.processingMode;
     }
 
     public static class Builder {
@@ -39,11 +38,11 @@ public class NanostreamModule extends AbstractModule {
         protected String bwaEndpoint;
         protected String bwaDB;
         protected String kAlignEndpoint;
-        protected String outputFirestoreSequencesStatisticCollection;
-        protected String outputFirestoreSequencesBodiesCollection;
-        protected String outputFirestoreGeneCacheCollection;
         protected String resistanceGenesFastaDB;
         protected String resistanceGenesList;
+        protected String outputFirestoreCollectionNamePrefix;
+        protected NanostreamApp.ProcessingMode processingMode;
+
 
         public Builder setProjectId(String projectId) {
             this.projectId = projectId;
@@ -70,21 +69,6 @@ public class NanostreamModule extends AbstractModule {
             return this;
         }
 
-        public Builder setOutputFirestoreSequencesStatisticCollection(String outputFirestoreSequencesStatisticCollection) {
-            this.outputFirestoreSequencesStatisticCollection = outputFirestoreSequencesStatisticCollection;
-            return this;
-        }
-
-        public Builder setOutputFirestoreSequencesBodiesCollection(String outputFirestoreSequencesBodiesCollection) {
-            this.outputFirestoreSequencesBodiesCollection = outputFirestoreSequencesBodiesCollection;
-            return this;
-        }
-
-        public Builder setOutputFirestoreGeneCacheCollection(String outputFirestoreGeneCacheCollection) {
-            this.outputFirestoreGeneCacheCollection = outputFirestoreGeneCacheCollection;
-            return this;
-        }
-
         public Builder setResistanceGenesFastaDB(String resistanceGenesFastaDB) {
             this.resistanceGenesFastaDB = resistanceGenesFastaDB;
             return this;
@@ -92,6 +76,16 @@ public class NanostreamModule extends AbstractModule {
 
         public Builder setResistanceGenesList(String resistanceGenesList) {
             this.resistanceGenesList = resistanceGenesList;
+            return this;
+        }
+
+        public Builder setOutputFirestoreCollectionNamePrefix(String outputFirestoreCollectionNamePrefix) {
+            this.outputFirestoreCollectionNamePrefix = outputFirestoreCollectionNamePrefix;
+            return this;
+        }
+
+        public Builder setProcessingMode(NanostreamApp.ProcessingMode processingMode) {
+            this.processingMode = processingMode;
             return this;
         }
 
@@ -115,17 +109,6 @@ public class NanostreamModule extends AbstractModule {
             return kAlignEndpoint;
         }
 
-        public String getOutputFirestoreSequencesStatisticCollection() {
-            return outputFirestoreSequencesStatisticCollection;
-        }
-
-        public String getOutputFirestoreSequencesBodiesCollection() {
-            return outputFirestoreSequencesBodiesCollection;
-        }
-
-        public String getOutputFirestoreGeneCacheCollection() {
-            return outputFirestoreGeneCacheCollection;
-        }
 
         public NanostreamModule buildFromOptions(NanostreamPipelineOptions nanostreamPipelineOptions) {
             setProjectId(nanostreamPipelineOptions.getProject());
@@ -133,11 +116,10 @@ public class NanostreamModule extends AbstractModule {
             setBwaEndpoint(nanostreamPipelineOptions.getBwaEndpoint());
             setBwaDB(nanostreamPipelineOptions.getBwaDatabase());
             setkAlignEndpoint(nanostreamPipelineOptions.getkAlignEndpoint());
-            setOutputFirestoreSequencesStatisticCollection(nanostreamPipelineOptions.getOutputFirestoreSequencesStatisticCollection().get());
-            setOutputFirestoreSequencesBodiesCollection(nanostreamPipelineOptions.getOutputFirestoreSequencesBodiesCollection().get());
-            setOutputFirestoreGeneCacheCollection(nanostreamPipelineOptions.getOutputFirestoreGeneCacheCollection().get());
             setResistanceGenesFastaDB(nanostreamPipelineOptions.getResistanceGenesFastaDB());
             setResistanceGenesList(nanostreamPipelineOptions.getResistanceGenesList());
+            setOutputFirestoreCollectionNamePrefix(nanostreamPipelineOptions.getOutputFirestoreCollectionNamePrefix());
+            setProcessingMode(NanostreamApp.ProcessingMode.findByLabel(nanostreamPipelineOptions.getProcessingMode()));
             return build();
         }
 

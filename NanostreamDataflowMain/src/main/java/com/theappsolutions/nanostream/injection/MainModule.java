@@ -6,9 +6,11 @@ import com.theappsolutions.nanostream.aligner.MakeAlignmentViaHttpFn;
 import com.theappsolutions.nanostream.geneinfo.LoadGeneInfoTransform;
 import com.theappsolutions.nanostream.http.NanostreamHttpService;
 import com.theappsolutions.nanostream.kalign.ProceedKAlignmentFn;
+import com.theappsolutions.nanostream.other.Constants;
 import com.theappsolutions.nanostream.output.WriteSequencesBodiesToFirestoreDbFn;
 import com.theappsolutions.nanostream.output.WriteSequencesStatisticToFirestoreDbFn;
 import com.theappsolutions.nanostream.taxonomy.GetSpeciesTaxonomyDataFn;
+import com.theappsolutions.nanostream.util.EntityNamer;
 import com.theappsolutions.nanostream.util.HttpHelper;
 
 /**
@@ -47,17 +49,26 @@ public class MainModule extends NanostreamModule {
 
     @Provides
     public WriteSequencesStatisticToFirestoreDbFn provideWriteDataToFirestoreDbFnStatistic() {
-        return new WriteSequencesStatisticToFirestoreDbFn(outputFirestoreSequencesStatisticCollection, projectId);
+        return new WriteSequencesStatisticToFirestoreDbFn(
+                EntityNamer.addPrefixWithProcessingMode(Constants.SEQUENCES_STATISTIC_COLLECTION_NAME_BASE,
+                        processingMode,
+                        outputFirestoreCollectionNamePrefix),
+                projectId);
     }
 
     @Provides
     public WriteSequencesBodiesToFirestoreDbFn provideWriteSequencesBodiesToFirestoreDbFn() {
-        return new WriteSequencesBodiesToFirestoreDbFn(outputFirestoreSequencesBodiesCollection, projectId);
+        return new WriteSequencesBodiesToFirestoreDbFn(
+                EntityNamer.addPrefixWithProcessingMode(Constants.SEQUENCES_BODIES_COLLECTION_NAME_BASE,
+                        processingMode,
+                        outputFirestoreCollectionNamePrefix),
+                projectId);
     }
 
     @Provides
     public GetSpeciesTaxonomyDataFn provideGetTaxonomyDataFn() {
-        return new GetSpeciesTaxonomyDataFn(outputFirestoreGeneCacheCollection, projectId);
+        return new GetSpeciesTaxonomyDataFn(EntityNamer.addPrefix(Constants.GENE_CACHE_COLLECTION_NAME_BASE,
+                processingMode.label), projectId);
     }
 
     @Provides
