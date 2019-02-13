@@ -201,7 +201,7 @@ java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/Nan
   --outputFirestoreSequencesStatisticCollection=resistant_sequences_statistic \
   --outputFirestoreSequencesBodiesCollection=resistant_sequences_bodies \
   --outputFirestoreGeneCacheCollection=resistant_gene_cache \
-  --resistanceGenesFastDB=gs://nano-stream1/NewDatabases/DB_resistant_formatted.fasta \
+  --resistanceGenesFastaDB=gs://nano-stream1/NewDatabases/DB_resistant_formatted.fasta \
   --resistanceGenesList=gs://nano-stream1/NewDatabases/resistant_genes_list.txt
 ```
 
