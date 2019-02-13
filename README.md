@@ -180,7 +180,7 @@ java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/Nan
 
 </p></details>
 
-<details><summary>resistance</summary><p>
+<details><summary>CGI resistance</summary><p>
 
 ```
 java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
@@ -201,8 +201,8 @@ java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/Nan
   --outputFirestoreSequencesStatisticCollection=resistant_sequences_statistic \
   --outputFirestoreSequencesBodiesCollection=resistant_sequences_bodies \
   --outputFirestoreGeneCacheCollection=resistant_gene_cache \
-  --resistantGenesFastDB=gs://nano-stream1/NewDatabases/DB_resistant_formatted.fasta \
-  --resistantGenesList=gs://nano-stream1/NewDatabases/resistant_genes_list.txt
+  --resistanceGenesFastDB=gs://nano-stream1/NewDatabases/DB_resistant_formatted.fasta \
+  --resistanceGenesList=gs://nano-stream1/NewDatabases/resistant_genes_list.txt
 ```
 
 </p></details>
