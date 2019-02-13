@@ -55,7 +55,7 @@ public class EndToEndPipelineTest {
                 .setServicesUrl("http://35.241.15.140")
                 .setBwaDB("genomeDB.fasta")
                 .setkAlignEndpoint("/cgi-bin/kalign.cgi")
-                .setOutputFirestoreGeneCacheCollection("gene_cache")
+                .setProcessingMode(NanostreamApp.ProcessingMode.SPECIES)
                 .build());
 
         SequenceOnlyDNACoder sequenceOnlyDNACoder = new SequenceOnlyDNACoder();

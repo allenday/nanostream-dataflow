@@ -60,27 +60,6 @@ public interface NanostreamPipelineOptions extends DataflowPipelineOptions {
     void setkAlignEndpoint(String value);
 
 
-    @Description("Collection name of the Firestore database that will be used for writing output statistic data")
-    @Validation.Required
-    ValueProvider<String> getOutputFirestoreSequencesStatisticCollection();
-
-    void setOutputFirestoreSequencesStatisticCollection(ValueProvider<String> value);
-
-
-    @Description("Collection name of the Firestore database that will be used for writing output Sequences Body data")
-    @Validation.Required
-    ValueProvider<String> getOutputFirestoreSequencesBodiesCollection();
-
-    void setOutputFirestoreSequencesBodiesCollection(ValueProvider<String> value);
-
-
-    @Description("Collection name of the Firestore database that will be used for saving NCBI genome data cache")
-    @Validation.Required
-    ValueProvider<String> getOutputFirestoreGeneCacheCollection();
-
-    void setOutputFirestoreGeneCacheCollection(ValueProvider<String> value);
-
-
     @Description("Variable that specifies \"species\" or \"resistance_genes\" mode of data processing")
     @Validation.Required
     @Default.String("species")
@@ -101,6 +80,7 @@ public interface NanostreamPipelineOptions extends DataflowPipelineOptions {
     void setResistanceGenesList(String value);
 
     @Description("Prefix for Firestore collections names that used for output")
+    @Validation.Required
     String getOutputFirestoreCollectionNamePrefix();
 
     void setOutputFirestoreCollectionNamePrefix(String value);
