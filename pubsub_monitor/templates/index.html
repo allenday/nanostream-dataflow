@@ -25,10 +25,10 @@
   <p>1. No messages: Either PubSub or GSC Object Change Notifications aren't working, or the app deploy environment has changed. </p>
   <p>   Test if you can send any messages from the message box (scroll all the way down). </p>
   <p>   Send message, click back, and refresh. </p>
-  <p>       If the new message appears, it's Google's fault. </p>
+  <p>       If the new message appears, check object notifications. If working, probably Google bug.</p>
   <p>       If no new messages appear, go back to cloud shell and re-deploy the app. This sometimes happen when you git clone to a newer version. </p>
 
-  <p>2. Duplicates: Doesn't seem to be anything we can do about this, it's a common bug that occurs when Google pushes new features. </p>
+  <p>2. Duplicates: Doesn't seem to be anything we can do about this, it's a bug that sometimes occurs when Google pushes new features. </p>
   <p>Messages received by this instance:</p>
   <ul>
     {% for message in messages: %}
