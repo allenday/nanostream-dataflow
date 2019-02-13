@@ -5,10 +5,10 @@ set -e
 export NAME="bwa-resistance-genes"
 export REGION="asia-northeast1"
 export ZONE="${REGION}-c"
-export MACHINE_TYPE="n1-standard-1"
+export MACHINE_TYPE="n1-standard-8"
 export MIN_REPLICAS=1
 export MAX_REPLICAS=3
-export TARGET_CPU_UTILIZATION=0.5
+export TARGET_CPU_UTILIZATION=0.7
 
 export DOCKER_IMAGE='allenday/bwa-http-docker:http'
 export BWA_FILES='gs://nano-stream1/NewDatabases/resFinder/*'

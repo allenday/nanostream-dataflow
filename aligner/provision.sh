@@ -20,6 +20,7 @@ setup () {
     --template ${NAME}-template \
     --zone $ZONE
 
+
     # create HTTP health check
     gcloud compute http-health-checks \
     create ${NAME}-health-check \
