@@ -5,7 +5,7 @@ set -e
 export NAME="bwa-resistance-genes"
 export REGION="asia-northeast1"
 export ZONE="${REGION}-c"
-export MACHINE_TYPE="n1-standard-8"
+export MACHINE_TYPE="n1-standard-2"
 export MIN_REPLICAS=1
 export MAX_REPLICAS=3
 export TARGET_CPU_UTILIZATION=0.7
@@ -20,3 +20,7 @@ export REQUESTER_PROJECT=$(gcloud config get-value project)
 source provision.sh
 
 [[ $1 = '-c' ]] && cleanup || setup
+
+gcloud compute --health-check \
+create larrytest \
+--request-path /cgi-bin/bwa.cgi
