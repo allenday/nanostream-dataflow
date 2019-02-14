@@ -28,6 +28,7 @@ import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.joda.time.Duration;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -47,6 +48,7 @@ public class EndToEndPipelineTest {
     @Rule
     public final transient TestPipeline testPipeline = TestPipeline.create();
 
+    @Ignore
     @Test
     public void testEndToEndPipelineSpeciesMode() {
         Injector injector = Guice.createInjector(new MainModule.Builder()
