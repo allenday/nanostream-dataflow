@@ -11,7 +11,7 @@ import org.apache.beam.sdk.values.PCollection;
 import java.util.Random;
 
 public class BatchByN extends PTransform<PCollection<FastqRecord>, PCollection<Iterable<FastqRecord>>> {
-    private static final int DEFAULT_SHARDS_NUMBER = 20;
+    private static final int DEFAULT_SHARDS_NUMBER = 1;
     private int batchSize;
 
     public BatchByN(int batchSize) {
