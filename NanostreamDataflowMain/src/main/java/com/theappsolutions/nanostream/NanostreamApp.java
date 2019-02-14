@@ -9,6 +9,7 @@ import com.theappsolutions.nanostream.fastq.BatchByN;
 import com.theappsolutions.nanostream.fastq.ParseFastQFn;
 import com.theappsolutions.nanostream.gcs.GetDataFromFastQFile;
 import com.theappsolutions.nanostream.gcs.ParseGCloudNotification;
+import com.theappsolutions.nanostream.geneinfo.GeneData;
 import com.theappsolutions.nanostream.geneinfo.GeneInfo;
 import com.theappsolutions.nanostream.geneinfo.LoadGeneInfoTransform;
 import com.theappsolutions.nanostream.injection.MainModule;
@@ -30,14 +31,16 @@ import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
-import org.apache.beam.sdk.transforms.*;
+import org.apache.beam.sdk.transforms.Combine;
+import org.apache.beam.sdk.transforms.GroupByKey;
+import org.apache.beam.sdk.transforms.ParDo;
+import org.apache.beam.sdk.transforms.View;
 import org.apache.beam.sdk.transforms.windowing.*;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionView;
 import org.joda.time.Duration;
 
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -81,8 +84,8 @@ public class NanostreamApp {
 
         PCollectionView<Map<String, GeneInfo>> geneInfoMapPCollectionView = null;
         if (processingMode == ProcessingMode.RESISTANT_GENES) {
-            geneInfoMapPCollectionView = pipeline.apply(injector.getInstance(LoadGeneInfoTransform.class))
-                    .apply(View.asMap());
+            PCollection<KV<String, GeneInfo>> geneInfoMapPCollection = pipeline.apply(injector.getInstance(LoadGeneInfoTransform.class));
+            geneInfoMapPCollectionView = geneInfoMapPCollection.apply(View.asMap());
         }
 
         PCollection<PubsubMessage> pubsubMessages = pipeline.apply("Reading PubSub", PubsubIO
@@ -114,15 +117,14 @@ public class NanostreamApp {
                         .withSideInputs(geneInfoMapPCollectionView)
                         : ParDo.of(injector.getInstance(GetSpeciesTaxonomyDataFn.class)))
                 .apply("Global Window with Repeatedly triggering" + options.getStatisticUpdatingDelay(),
-                        Window.<KV<String, List<String>>>into(new GlobalWindows())
+                        Window.<KV<String, GeneData>>into(new GlobalWindows())
                         .triggering(Repeatedly.forever(AfterProcessingTime
                                 .pastFirstElementInPane()
                                 .plusDelayOf(Duration.standardSeconds(options.getStatisticUpdatingDelay()))))
                         .withAllowedLateness(Duration.ZERO)
                         .accumulatingFiredPanes())
                 .apply("Accumulate results to Map", Combine.globally(new KVCalculationAccumulatorFn()))
-                .apply("Prepare sequences statistic to output",
-                        ParDo.of(new PrepareSequencesStatisticToOutputDbFn()))
+                .apply("Prepare sequences statistic to output", ParDo.of(new PrepareSequencesStatisticToOutputDbFn()))
                 .apply("Write sequences statistic to Firestore",
                         ParDo.of(injector.getInstance(WriteSequencesStatisticToFirestoreDbFn.class)));
 

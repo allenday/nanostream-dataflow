@@ -1,5 +1,6 @@
 package com.theappsolutions.nanostream.probecalculation;
 
+import com.theappsolutions.nanostream.geneinfo.GeneData;
 import com.theappsolutions.nanostream.util.ObjectSizeFetcher;
 import org.apache.beam.sdk.transforms.Combine;
 import org.apache.beam.sdk.values.KV;
@@ -8,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -17,7 +17,7 @@ import java.util.stream.StreamSupport;
  *
  */
 public class KVCalculationAccumulatorFn extends Combine.CombineFn<
-        KV<String, List<String>>,
+        KV<String, GeneData>,
         Map<String, SequenceCountAndTaxonomyData>,
         Map<String, SequenceCountAndTaxonomyData>> {
 
@@ -31,7 +31,7 @@ public class KVCalculationAccumulatorFn extends Combine.CombineFn<
     }
 
     @Override
-    public Map<String, SequenceCountAndTaxonomyData> addInput(Map<String, SequenceCountAndTaxonomyData> accumulator, KV<String, List<String>> input) {
+    public Map<String, SequenceCountAndTaxonomyData> addInput(Map<String, SequenceCountAndTaxonomyData> accumulator, KV<String, GeneData> input) {
         if (accumulator.containsKey(input.getKey()) && accumulator.get(input.getKey()) != null) {
             accumulator.get(input.getKey()).increment();
         } else {

@@ -1,25 +1,25 @@
 package com.theappsolutions.nanostream.probecalculation;
 
+import com.theappsolutions.nanostream.geneinfo.GeneData;
 import org.apache.beam.sdk.coders.DefaultCoder;
 import org.apache.beam.sdk.coders.SerializableCoder;
 
 import java.io.Serializable;
-import java.util.List;
 
 @DefaultCoder(SerializableCoder.class)
 public class SequenceCountAndTaxonomyData implements Serializable {
 
     private long count;
-    private List<String> taxonomy;
+    private GeneData geneData;
 
-    public SequenceCountAndTaxonomyData(long count, List<String> taxonomy) {
+    public SequenceCountAndTaxonomyData(long count, GeneData geneData) {
         this.count = count;
-        this.taxonomy = taxonomy;
+        this.geneData = geneData;
     }
 
-    public SequenceCountAndTaxonomyData(List<String> taxonomy) {
+    public SequenceCountAndTaxonomyData(GeneData geneData) {
         this.count = 1L;
-        this.taxonomy = taxonomy;
+        this.geneData = geneData;
     }
 
     public void increment() {
@@ -30,21 +30,21 @@ public class SequenceCountAndTaxonomyData implements Serializable {
         return count;
     }
 
-    public List<String> getTaxonomy() {
-        return taxonomy;
+    public GeneData getGeneData() {
+        return geneData;
     }
 
     @Override
     public String toString() {
         return "SequenceCountAndTaxonomyData{" +
                 "count=" + count +
-                ", taxonomy=" + taxonomy +
+                ", taxonomy=" + geneData +
                 '}';
     }
 
     public static SequenceCountAndTaxonomyData merge(SequenceCountAndTaxonomyData data1,
                                                SequenceCountAndTaxonomyData data2) {
         return new SequenceCountAndTaxonomyData(data1.getCount() + data2.getCount(),
-                data2.getTaxonomy());
+                data2.getGeneData());
     }
 }

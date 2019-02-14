@@ -7,6 +7,7 @@ import com.theappsolutions.nanostream.aligner.MakeAlignmentViaHttpFn;
 import com.theappsolutions.nanostream.errorcorrection.ErrorCorrectionFn;
 import com.theappsolutions.nanostream.fastq.BatchByN;
 import com.theappsolutions.nanostream.fastq.ParseFastQFn;
+import com.theappsolutions.nanostream.geneinfo.GeneData;
 import com.theappsolutions.nanostream.injection.MainModule;
 import com.theappsolutions.nanostream.kalign.ProceedKAlignmentFn;
 import com.theappsolutions.nanostream.kalign.SequenceOnlyDNACoder;
@@ -80,7 +81,7 @@ public class EndToEndPipelineTest {
         PCollection<KV<String, SequenceStatisticResult>> sequnceStatisticResultPCollection = errorCorrectedCollection
                 .apply("Remove Sequence part", ParDo.of(new RemoveValueDoFn<>()))
                 .apply("Get Taxonomy data", ParDo.of(injector.getInstance(GetSpeciesTaxonomyDataFn.class)))
-                .apply(Window.<KV<String, List<String>>>into(new GlobalWindows())
+                .apply(Window.<KV<String, GeneData>>into(new GlobalWindows())
                         .triggering(Repeatedly.forever(AfterProcessingTime
                                 .pastFirstElementInPane()
                                 .plusDelayOf(Duration.standardSeconds(OUTPUT_TRIGGERING_WINDOW_TIME_SEC))))

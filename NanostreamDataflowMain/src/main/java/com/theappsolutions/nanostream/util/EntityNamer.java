@@ -6,6 +6,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class EntityNamer {
+
+    public final static long INITIAL_TIMESTAMP = System.currentTimeMillis();
+
     public static SimpleDateFormat JOB_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH-mm-ssz");
 
     public static String generateJobName(NanostreamApp.ProcessingMode processingMode, String prefix) {
@@ -13,7 +16,11 @@ public class EntityNamer {
     }
 
     public static String generateTimestampedName(String str) {
-        return String.format("%s--%s", str, JOB_DATE_FORMAT.format(new Date())).replace("_", "-");
+        return generateTimestampedName(str, new Date(INITIAL_TIMESTAMP));
+    }
+
+    public static String generateTimestampedName(String str, Date date) {
+        return String.format("%s--%s", str, JOB_DATE_FORMAT.format(date)).replace("_", "-");
     }
 
     public static String addPrefixWithProcessingMode(String base, NanostreamApp.ProcessingMode processingMode, String prefix) {

@@ -14,18 +14,24 @@ import java.util.*;
 @DefaultCoder(SerializableCoder.class)
 public class SequenceStatisticResult implements Serializable {
 
-    private Date date;
+    private Date startDate;
+    private Date resultDate;
     private List<SequenceRecord> sequenceRecords;
     private long calculationTime;
 
-    public SequenceStatisticResult(Date date, List<SequenceRecord> sequenceRecords, long calculationTime) {
-        this.date = date;
+    public SequenceStatisticResult(Date startDate, Date resultDate, List<SequenceRecord> sequenceRecords, long calculationTime) {
+        this.startDate = startDate;
+        this.resultDate = resultDate;
         this.sequenceRecords = sequenceRecords;
         this.calculationTime = calculationTime;
     }
 
-    public Date getDate() {
-        return date;
+    public Date getStartDate() {
+        return startDate;
+    }
+
+    public Date getResultDate() {
+        return resultDate;
     }
 
     public List<SequenceRecord> getSequenceRecords() {
@@ -40,12 +46,18 @@ public class SequenceStatisticResult implements Serializable {
     public static class SequenceRecord implements Serializable{
         private String id;
         private String name;
+        private String localName;
         private List<String> taxonomy;
         private float probe;
 
         public SequenceRecord(String id, String name, List<String> taxonomy, float probe) {
+            this(id, name, name, taxonomy, probe);
+        }
+
+        public SequenceRecord(String id, String name, String localName, List<String> taxonomy, float probe) {
             this.id = id;
             this.name = name;
+            this.localName = localName;
             this.taxonomy = taxonomy;
             this.probe = probe;
         }
@@ -65,6 +77,10 @@ public class SequenceStatisticResult implements Serializable {
         public float getProbe() {
             return probe;
         }
+
+        public String getLocalName() {
+            return localName;
+        }
     }
 
 
@@ -78,11 +94,22 @@ public class SequenceStatisticResult implements Serializable {
             List<SequenceStatisticResult.SequenceRecord> sequenceRecords = new LinkedList<>();
 
             sequenceSourceData.forEach((id, value) -> {
-                sequenceRecords.add(new SequenceStatisticResult.SequenceRecord(UUID.randomUUID().toString(), id, value.getTaxonomy(), value.getCount() / totalDataListSize));
+                Set<String> resistantGenesNamesMap = value.getGeneData().getGeneNames();
+                SequenceRecord sequenceRecord;
+                if (resistantGenesNamesMap != null && resistantGenesNamesMap.size() > 0) {
+                    sequenceRecord = new SequenceRecord(UUID.randomUUID().toString(),
+                            resistantGenesNamesMap.iterator().next(),
+                            id, value.getGeneData().getTaxonomy(), value.getCount() / totalDataListSize);
+                } else {
+                    sequenceRecord = new SequenceRecord(UUID.randomUUID().toString(),
+                            id, value.getGeneData().getTaxonomy(), value.getCount() / totalDataListSize);
+                }
+                sequenceRecords.add(sequenceRecord);
+
             });
             long finishTime = System.currentTimeMillis();
 
-            return new SequenceStatisticResult(date, sequenceRecords, finishTime - startTime);
+            return new SequenceStatisticResult(new Date(EntityNamer.INITIAL_TIMESTAMP), date, sequenceRecords, finishTime - startTime);
         }
     }
 

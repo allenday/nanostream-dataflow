@@ -1,18 +1,18 @@
 package com.theappsolutions.nanostream.taxonomy;
 
+import com.theappsolutions.nanostream.geneinfo.GeneData;
 import com.theappsolutions.nanostream.geneinfo.GeneInfo;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollectionView;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 /**
  *
  */
-public class GetResistanceGenesTaxonomyDataFn extends DoFn<String, KV<String, List<String>>> {
+public class GetResistanceGenesTaxonomyDataFn extends DoFn<String, KV<String, GeneData>> {
 
     private final PCollectionView<Map<String, GeneInfo>> geneInfoMapPCollectionView;
 
@@ -20,18 +20,16 @@ public class GetResistanceGenesTaxonomyDataFn extends DoFn<String, KV<String, Li
         this.geneInfoMapPCollectionView = geneInfoMapPCollectionView;
     }
 
-    @Setup
-    public void setup() {
-    }
-
     @ProcessElement
     public void processElement(ProcessContext c) {
         String geneName = c.element();
         Map<String, GeneInfo> geneInfoMap = c.sideInput(geneInfoMapPCollectionView);
-        List<String> taxonomy = new ArrayList<>();
+        GeneData geneData = new GeneData();
         if (geneInfoMap.containsKey(geneName)) {
-            taxonomy.addAll(geneInfoMap.get(geneName).getGroups());
+            GeneInfo geneInfo = geneInfoMap.get(geneName);
+            geneData.setGeneNames(geneInfo.getNames());
+            geneData.setTaxonomy(new ArrayList<>(geneInfo.getGroups()));
         }
-        c.output(KV.of(geneName, taxonomy));
+        c.output(KV.of(geneName, geneData));
     }
 }
