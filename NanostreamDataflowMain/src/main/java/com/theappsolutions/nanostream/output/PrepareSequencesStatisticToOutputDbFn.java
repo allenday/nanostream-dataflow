@@ -1,6 +1,8 @@
 package com.theappsolutions.nanostream.output;
 
+import com.theappsolutions.nanostream.other.Constants;
 import com.theappsolutions.nanostream.probecalculation.SequenceCountAndTaxonomyData;
+import com.theappsolutions.nanostream.util.EntityNamer;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.values.KV;
 
@@ -18,6 +20,6 @@ public class PrepareSequencesStatisticToOutputDbFn extends DoFn<Map<String, Sequ
         SequenceStatisticResult.Generator sequenceStatisticGenerator = new SequenceStatisticResult.Generator();
 
         SequenceStatisticResult sequenceStatisticResult = sequenceStatisticGenerator.genereteSequnceInfo(sequenceIterableKV);
-        c.output(KV.of(SequenceStatisticResult.SEQUENCE_STATISTIC_DOCUMENT_NAME, sequenceStatisticResult));
+        c.output(KV.of(EntityNamer.generateTimestampedName(Constants.SEQUENCES_STATISTIC_DOCUMENT_NAME_BASE), sequenceStatisticResult));
     }
 }

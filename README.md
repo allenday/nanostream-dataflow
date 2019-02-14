@@ -112,12 +112,8 @@ BWA_DATABASE=DB.fasta
 # kalign path
 KALIGN_ENDPOINT=/cgi-bin/kalign.cgi
 
-# Collection name of the Firestore database that will be used for writing output statistic data
-FIRESTORE_COLLECTION_STATS=resistance_sequences_statistic
-# Collection name of the Firestore database that will be used for writing output Sequences Body data
-FIRESTORE_COLLECTION_RESISTANCE_BODIES=resistance_sequences_bodies
-# Collection name of the Firestore database that will be used for saving NCBI genome data cache
-FIRESTORE_TAXONOMY_CACHE=resistance_gene_cache
+# Collections name prefix of the Firestore database that will be used for writing results
+FIRESTORE_COLLECTION_NAME_PREFIX=new_scanning
 ```
 If you run the pipeline in the `resistance_genes` mode you should add 2 additional arguments with paths of files stored in the GCS. With a placeholder name `$FILES_BUCKET` add next arguments:
 1. Path to resistant genes sequence `fasta` list formatted with [fasta formatter](https://github.com/allenday/nanostream-dataflow/tree/master/fasta_formatter):
@@ -147,9 +143,7 @@ java -cp (path_to_nanostream_app_jar) \
   --bwaEndpoint=$BWA_ENDPOINT \
   --bwaDatabase=$BWA_DATABASE \
   --kAlignEndpoint=$KALIGN_ENDPOINT \
-  --outputFirestoreSequencesStatisticCollection=$FIRESTORE_COLLECTION_STATS \
-  --outputFirestoreSequencesBodiesCollection=$FIRESTORE_COLLECTION_RESISTANCE_BODIES \
-  --outputFirestoreGeneCacheCollection=$FIRESTORE_TAXONOMY_CACHE \
+  --outputFirestoreCollectionNamePrefix=$FIRESTORE_COLLECTION_NAME_PREFIX \
   --resistanceGenesFastDB=$RESISTANCE_GENES_FASTA \
   --resistanceGenesList=$RESISTANCE_GENES_LIST
   --region=REGION

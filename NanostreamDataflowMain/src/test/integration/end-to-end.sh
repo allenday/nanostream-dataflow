@@ -2,26 +2,48 @@
 # fail on error
 set -e
 
-mvn clean install exec:java \
-  -f ../../../pom.xml \
-  -Dexec.mainClass="com.theappsolutions.nanostream.NanostreamApp" \
-  -Dmaven.test.skip=true \
-  -Dexec.args=" \
-  --runner=org.apache.beam.runners.dataflow.DataflowRunner `#Apache Beam Runner (Dataflow for Google Cloud Dataflow running or Direct for local running)` \
-  --project=upwork-nano-stream `# Google Cloud Project name` \
-  --streaming=true `# should be true for streaming (infinite) mode` \
-  --processingMode=resistance_genes `# pecifies "species" or "resistance_genes" mode of data processing` \
-  --inputDataSubscription=projects/upwork-nano-stream/subscriptions/resistance_fastq_paths_emitter_x1_subscription_1 `# PubSub subscription name from step 6` \
-  --alignmentWindow=20 `# Size of the window in which FastQ records will be collected for Alignment` \
-  --statisticUpdatingDelay=30 `# Delay between updating output statistic data` \
-  --servicesUrl=http://130.211.33.64 `# Base URL for http services (Aligner and K-Align)` \
-  --bwaEndpoint=/cgi-bin/bwa.cgi `# Aligner endpoint` \
-  --bwaDatabase=DB.fasta `# Aligner DB name` \
-  --kAlignEndpoint=/cgi-bin/kalign.cgi `# K-Align endpoint` \
-  --outputFirestoreDbUrl=https://upwork-nano-stream.firebaseio.com `# Firestore DB url from step 7` \
-  --outputFirestoreSequencesStatisticCollection=resistance_sequences_statistic `# Collection name of the Firestore database that will be used for writing output statistic data` \
-  --outputFirestoreSequencesBodiesCollection=resistance_sequences_bodies `# Collection name of the Firestore database that will be used for writing output Sequences Body data` \
-  --outputFirestoreGeneCacheCollection=resistance_gene_cache `# Collection name of the Firestore database that will be used for saving NCBI genome data cache` \
-  --workingBucket=nano-stream-test `# Name of GCS bucket that used for storing project data (step 2.a)` \
-  --resistanceGenesFastaDB=gs://nano-stream-test/gene_info/DB_resistance_formatted.fasta `# OPTOPNAL Only for resistance_genes mode. Path to fasta file with resistance genes database` \
-  --resistanceGenesList=gs://nano-stream-test/gene_info/resistance_genes_list.txt `# OPTOPNAL Only for resistance_genes mode. Path to fasta file with resistance genes list`
+# Google Cloud project name
+PROJECT=`gcloud config get-value project`
+# Apache Beam Runner (set org.apache.beam.runners.dataflow.DataflowRunner for running in a Google Cloud Dataflow or org.apache.beam.runners.direct.DirectRunner for running locally on your computer)
+RUNNER=org.apache.beam.runners.dataflow.DataflowRunner
+
+# specify mode of data processing (species, resistance_genes)
+PROCESSING_MODE=species
+
+# PubSub subscription defined above
+UPLOAD_SUBSCRIPTION=$UPLOAD_SUBSCRIPTION
+
+# size of the window (in wallclock seconds) in which FastQ records will be collected for alignment
+ALIGNMENT_WINDOW=20
+# how frequently (in wallclock seconds) are statistics updated for dashboard visualizaiton?
+STATS_UPDATE_FREQUENCY=30
+
+# IP address of the aligner cluster created by running aligner/provision_species.sh
+SPECIES_ALIGNER_CLUSTER_IP=$(gcloud compute forwarding-rules describe bwa-species-forward --global --format="value(IPAddress)")
+# base URL for http services (bwa and kalign)
+# value for species, for resistance_genes use 'SERVICES_HOST=http://$RESISTANCE_GENES_ALIGNER_CLUSTER_IP'
+SERVICES_HOST=http://$SPECIES_ALIGNER_CLUSTER_IP
+# bwa path
+BWA_ENDPOINT=/cgi-bin/bwa.cgi
+# bwa database name
+BWA_DATABASE=DB.fasta
+# kalign path
+KALIGN_ENDPOINT=/cgi-bin/kalign.cgi
+
+# Collections name prefix of the Firestore database that will be used for writing results
+FIRESTORE_COLLECTION_NAME_PREFIX=first_dataset
+
+java -cp @NanostreamDataflowMaintarget/target/NanostreamDataflowMain-1.0-SNAPSHOT.jar \
+  com.theappsolutions.nanostream.NanostreamApp \
+  --runner=$RUNNER \
+  --project=$PROJECT \
+  --streaming=true \
+  --processingMode=$PROCESSING_MODE \
+  --inputDataSubscription=$UPLOAD_SUBSCRIPTION \
+  --alignmentWindow=$ALIGNMENT_WINDOW \
+  --statisticUpdatingDelay=$STATS_UPDATE_FREQUENCY \
+  --servicesUrl=$SERVICES_HOST \
+  --bwaEndpoint=$BWA_ENDPOINT \
+  --bwaDatabase=$BWA_DATABASE \
+  --kAlignEndpoint=$KALIGN_ENDPOINT \
+  --outputFirestoreCollectionNamePrefix=$FIRESTORE_COLLECTION_NAME_PREFIX

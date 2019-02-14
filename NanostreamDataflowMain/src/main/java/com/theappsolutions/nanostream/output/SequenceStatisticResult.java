@@ -14,8 +14,6 @@ import java.util.*;
 @DefaultCoder(SerializableCoder.class)
 public class SequenceStatisticResult implements Serializable {
 
-    public final static String SEQUENCE_STATISTIC_DOCUMENT_NAME = EntityNamer.generateName("resultDocument");
-
     private Date date;
     private List<SequenceRecord> sequenceRecords;
     private long calculationTime;
