@@ -165,12 +165,12 @@ java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/Nan
   --bwaEndpoint=/cgi-bin/bwa.cgi \
   --bwaDatabase=genomeDB.fasta \
   --kAlignEndpoint=/cgi-bin/kalign.cgi \
+  --outputFirestoreCollectionNamePrefix=new_scanning
+```
   --outputFirestoreDbUrl=https://nano-stream1.firebaseio.com \
   --outputFirestoreSequencesStatisticCollection=resistant_sequences_statistic \
   --outputFirestoreSequencesBodiesCollection=resistant_sequences_bodies \
   --outputFirestoreGeneCacheCollection=resistant_gene_cache \
-```
-
 </p></details>
 
 <details><summary>CGI resistance</summary><p>
@@ -190,14 +190,15 @@ java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/Nan
   --bwaEndpoint=/cgi-bin/bwa.cgi \
   --bwaDatabase=genomeDB.fasta \
   --kAlignEndpoint=/cgi-bin/kalign.cgi \
+  --outputFirestoreCollectionNamePrefix=new_scanning
+  --resistanceGenesFastaDB=gs://nano-stream1/NewDatabases/DB_resistant_formatted.fasta \
+  --resistanceGenesList=gs://nano-stream1/NewDatabases/resistant_genes_list.txt \
+  --outputFirestoreCollectionNamePrefix=new_scanning
+```
   --outputFirestoreDbUrl=https://nano-stream1.firebaseio.com \
   --outputFirestoreSequencesStatisticCollection=resistant_sequences_statistic \
   --outputFirestoreSequencesBodiesCollection=resistant_sequences_bodies \
   --outputFirestoreGeneCacheCollection=resistant_gene_cache \
-  --resistanceGenesFastaDB=gs://nano-stream1/NewDatabases/DB_resistant_formatted.fasta \
-  --resistanceGenesList=gs://nano-stream1/NewDatabases/resistant_genes_list.txt
-```
-
 </p></details>
 
 ### Available databases
