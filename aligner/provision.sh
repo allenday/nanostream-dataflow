@@ -93,27 +93,27 @@ setup () {
 
 cleanup () {
     # delete forwarding rule
-    gcloud compute forwarding-rules delete ${NAME}-forward --global
+    yes | gcloud compute forwarding-rules delete ${NAME}-forward --global
 
     # delete target proxy
-    gcloud compute target-http-proxies delete ${NAME}-target-proxy
+    yes | gcloud compute target-http-proxies delete ${NAME}-target-proxy
 
     # delete url-map
-    gcloud compute url-maps delete ${NAME}-url-map
+    yes | gcloud compute url-maps delete ${NAME}-url-map
 
     # delete backend service
-    gcloud compute backend-services delete ${NAME}-backend-service --global
+    yes | gcloud compute backend-services delete ${NAME}-backend-service --global
 
     # delete managed instance group
-    gcloud compute instance-groups managed \
+    yes | gcloud compute instance-groups managed \
     delete ${NAME}-managed-instance-group --zone $ZONE
 
     # delete instance template
-    gcloud compute instance-templates delete ${NAME}-template
+    yes | gcloud compute instance-templates delete ${NAME}-template
 
     # delete HTTP health check
-    gcloud compute http-health-checks delete ${NAME}-health-check
+    yes | gcloud compute http-health-checks delete ${NAME}-health-check
 
     # delete firewall rule
-    gcloud compute firewall-rules delete allow-http
+    yes | gcloud compute firewall-rules delete allow-http
 }
