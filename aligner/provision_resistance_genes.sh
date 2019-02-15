@@ -5,7 +5,7 @@ set -e
 export NAME="bwa-resistance-genes"
 export REGION="asia-northeast1"
 export ZONE="${REGION}-c"
-export MACHINE_TYPE="n1-standard-2"
+export MACHINE_TYPE="n1-standard-4"
 export MIN_REPLICAS=1
 export MAX_REPLICAS=3
 export TARGET_CPU_UTILIZATION=0.7
