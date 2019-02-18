@@ -149,7 +149,7 @@ java -cp (path_to_nanostream_app_jar) \
 ```
 
 <details><summary>CGI species bwa</summary><p>
-  
+
 ```
 java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
   com.theappsolutions.nanostream.NanostreamApp \
@@ -170,7 +170,7 @@ java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/Nan
 </p></details>
 
 <details><summary>CGI species mm2</summary><p>
-  
+
 ```
 java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
   com.theappsolutions.nanostream.NanostreamApp \
@@ -179,12 +179,12 @@ java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/Nan
   --project=nano-stream1 \
   --streaming=true \
   --processingMode=species \
-  --inputDataSubscription=projects/nano-stream1/subscriptions/dataflow_species \
+  --inputDataSubscription=projects/nano-stream1/subscriptions/dataflow_species_mm2 \
   --alignmentWindow=20 \
   --statisticUpdatingDelay=30 \
   --servicesUrl=http://35.241.45.217/ \
   --bwaEndpoint=/cgi-bin/bwa.cgi \
-  --bwaDatabase=genomeDB.mmi \
+  --bwaDatabase=genomeDB.fasta \
   --kAlignEndpoint=/cgi-bin/kalign.cgi \
   --outputFirestoreCollectionNamePrefix=new_scanning
 ```

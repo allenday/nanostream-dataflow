@@ -2,7 +2,7 @@
 set -e
 
 # set environment variables
-export NAME="bwa-resistance-genes"
+export NAME="bwa-resistance-mm2"
 export REGION="asia-northeast1"
 export ZONE="${REGION}-c"
 export MACHINE_TYPE="n1-standard-4"

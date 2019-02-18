@@ -2,7 +2,7 @@
 set -e
 
 # set environment variables
-export NAME="bwa-species"
+export NAME="bwa-species-mm2"
 export REGION="asia-northeast1"
 export ZONE="${REGION}-c"
 export MACHINE_TYPE="n1-standard-8"
