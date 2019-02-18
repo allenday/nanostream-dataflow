@@ -148,8 +148,27 @@ java -cp (path_to_nanostream_app_jar) \
   --region=REGION
 ```
 
-<details><summary>CGI species</summary><p>
+<details><summary>CGI species bwa</summary><p>
+```
+java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
+  com.theappsolutions.nanostream.NanostreamApp \
+  --region=asia-northeast1 \
+  --runner=org.apache.beam.runners.dataflow.DataflowRunner \
+  --project=nano-stream1 \
+  --streaming=true \
+  --processingMode=species \
+  --inputDataSubscription=projects/nano-stream1/subscriptions/dataflow_species \
+  --alignmentWindow=20 \
+  --statisticUpdatingDelay=30 \
+  --servicesUrl=http://35.241.45.217/ \
+  --bwaEndpoint=/cgi-bin/bwa.cgi \
+  --bwaDatabase=genomeDB.fasta \
+  --kAlignEndpoint=/cgi-bin/kalign.cgi \
+  --outputFirestoreCollectionNamePrefix=new_scanning
+```
+</p></details>
 
+<details><summary>CGI species mm2</summary><p>
 ```
 java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
   com.theappsolutions.nanostream.NanostreamApp \
@@ -167,10 +186,6 @@ java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/Nan
   --kAlignEndpoint=/cgi-bin/kalign.cgi \
   --outputFirestoreCollectionNamePrefix=new_scanning
 ```
-  --outputFirestoreDbUrl=https://nano-stream1.firebaseio.com \
-  --outputFirestoreSequencesStatisticCollection=resistant_sequences_statistic \
-  --outputFirestoreSequencesBodiesCollection=resistant_sequences_bodies \
-  --outputFirestoreGeneCacheCollection=resistant_gene_cache \
 </p></details>
 
 <details><summary>CGI resistance</summary><p>
