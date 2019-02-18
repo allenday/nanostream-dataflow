@@ -11,7 +11,7 @@ export MAX_REPLICAS=3
 export TARGET_CPU_UTILIZATION=0.7
 
 export DOCKER_IMAGE='dockersubtest/nano-gcp-http'
-export BWA_FILES='gs://nano-stream1/Databases/CombinedDatabases/resFinder/*'
+export BWA_FILES='gs://nano-stream1/Databases/resFinder/*'
 
 # REQUESTER_PROJECT - project billed for downloading BWA_FILES
 # this line set it value to the active project ID
@@ -20,7 +20,3 @@ export REQUESTER_PROJECT=$(gcloud config get-value project)
 source provision.sh
 
 [[ $1 = '-c' ]] && cleanup || setup
-
-gcloud compute --health-check \
-create larrytest \
---request-path /cgi-bin/bwa.cgi
