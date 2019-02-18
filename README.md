@@ -149,6 +149,7 @@ java -cp (path_to_nanostream_app_jar) \
 ```
 
 <details><summary>CGI species bwa</summary><p>
+  
 ```
 java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
   com.theappsolutions.nanostream.NanostreamApp \
@@ -169,6 +170,7 @@ java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/Nan
 </p></details>
 
 <details><summary>CGI species mm2</summary><p>
+  
 ```
 java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
   com.theappsolutions.nanostream.NanostreamApp \
