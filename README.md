@@ -131,9 +131,10 @@ where:
 To build jar from source, follow next steps:
 1) Use Java 1.8. Dataflow does not yet support 1.9 or greater.
 2) Install [Maven](https://maven.apache.org/install.html)
-3) Add [**Japsa 1.9-2b**](https://github.com/mdcao/japsa) package to local Maven repository. To do this you should run following command from project root:
+3) Add [**Japsa 1.9-3c**](https://github.com/mdcao/japsa) package and it dependencies to local Maven repository. To do this you should run following command from project root:
 ```
-mvn install:install-file -Dfile=NanostreamDataflowMain/libs/japsa.jar -DgroupId=coin -DartifactId=japsa -Dversion=1.9-2b -Dpackaging=jar
+mvn install:install-file -Dfile=NanostreamDataflowMain/libs/japsa.jar -DgroupId=coin -DartifactId=japsa -Dversion=1.9-3c -Dpackaging=jar
+mvn install:install-file -Dfile=NanostreamDataflowMain/libs/pal1.5.1.1.jar -DgroupId=nz.ac.auckland -DartifactId=pal -Dversion=1.5.1.1 -Dpackaging=jar
 ```
 4) Build uber-jar file
 ```

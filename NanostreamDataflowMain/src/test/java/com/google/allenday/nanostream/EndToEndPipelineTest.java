@@ -1,5 +1,6 @@
 package com.google.allenday.nanostream;
 
+import com.google.allenday.nanostream.taxonomy.GetTaxonomyFromTree;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.allenday.nanostream.aligner.GetSequencesFromSamDataFn;
@@ -81,7 +82,8 @@ public class EndToEndPipelineTest {
 
         PCollection<KV<String, SequenceStatisticResult>> sequnceStatisticResultPCollection = errorCorrectedCollection
                 .apply("Remove Sequence part", ParDo.of(new RemoveValueDoFn<>()))
-                .apply("Get Taxonomy data", ParDo.of(injector.getInstance(GetSpeciesTaxonomyDataFn.class)))
+                .apply("Get Taxonomy data", ParDo.of(new GetTaxonomyFromTree(
+                        new ResourcesHelper().getFileContent("common_tree.txt"))))
                 .apply("Global Window with Repeatedly triggering" + OUTPUT_TRIGGERING_WINDOW_TIME_SEC,
                         Window.<KV<String, GeneData>>into(new GlobalWindows())
                                 .triggering(Repeatedly.forever(AfterProcessingTime

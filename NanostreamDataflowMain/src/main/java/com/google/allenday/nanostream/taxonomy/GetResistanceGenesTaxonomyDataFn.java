@@ -29,6 +29,7 @@ public class GetResistanceGenesTaxonomyDataFn extends DoFn<String, KV<String, Ge
             GeneInfo geneInfo = geneInfoMap.get(geneName);
             geneData.setGeneNames(geneInfo.getNames());
             geneData.setTaxonomy(new ArrayList<>(geneInfo.getGroups()));
+            geneData.getTaxonomy().add(geneName);
         }
         c.output(KV.of(geneName, geneData));
     }
