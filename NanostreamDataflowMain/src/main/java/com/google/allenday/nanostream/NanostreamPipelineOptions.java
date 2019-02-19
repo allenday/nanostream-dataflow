@@ -67,12 +67,6 @@ public interface NanostreamPipelineOptions extends DataflowPipelineOptions {
     void setProcessingMode(String value);
 
 
-    @Description("Path to fasta file with resistance genes database")
-    String getResistanceGenesFastaDB();
-
-    void setResistanceGenesFastaDB(String value);
-
-
     @Description("Path to fasta file with resistance genes list")
     String getResistanceGenesList();
 

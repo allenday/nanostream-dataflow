@@ -1,11 +1,11 @@
 package com.google.allenday.nanostream.injection;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
 import com.google.allenday.nanostream.NanostreamApp;
 import com.google.allenday.nanostream.NanostreamPipelineOptions;
 import com.google.allenday.nanostream.util.EntityNamer;
+import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
 
 /**
  * App dependency injection module, that provide graph of main dependencies in app
@@ -17,7 +17,6 @@ public class NanostreamModule extends AbstractModule {
     protected String bwaEndpoint;
     protected String bwaDB;
     protected String kAlignEndpoint;
-    protected String resistanceGenesFastaDB;
     protected String resistanceGenesList;
     protected String outputFirestoreCollectionNamePrefix;
     protected NanostreamApp.ProcessingMode processingMode;
@@ -29,7 +28,6 @@ public class NanostreamModule extends AbstractModule {
         this.bwaEndpoint = builder.bwaEndpoint;
         this.bwaDB = builder.bwaDB;
         this.kAlignEndpoint = builder.kAlignEndpoint;
-        this.resistanceGenesFastaDB = builder.resistanceGenesFastaDB;
         this.resistanceGenesList = builder.resistanceGenesList;
         this.outputFirestoreCollectionNamePrefix = builder.outputFirestoreCollectionNamePrefix;
         this.processingMode = builder.processingMode;
@@ -43,7 +41,6 @@ public class NanostreamModule extends AbstractModule {
         protected String bwaEndpoint;
         protected String bwaDB;
         protected String kAlignEndpoint;
-        protected String resistanceGenesFastaDB;
         protected String resistanceGenesList;
         protected String outputFirestoreCollectionNamePrefix;
         protected NanostreamApp.ProcessingMode processingMode;
@@ -72,11 +69,6 @@ public class NanostreamModule extends AbstractModule {
 
         public Builder setkAlignEndpoint(String kAlignEndpoint) {
             this.kAlignEndpoint = kAlignEndpoint;
-            return this;
-        }
-
-        public Builder setResistanceGenesFastaDB(String resistanceGenesFastaDB) {
-            this.resistanceGenesFastaDB = resistanceGenesFastaDB;
             return this;
         }
 
@@ -127,7 +119,6 @@ public class NanostreamModule extends AbstractModule {
             setBwaEndpoint(nanostreamPipelineOptions.getBwaEndpoint());
             setBwaDB(nanostreamPipelineOptions.getBwaDatabase());
             setkAlignEndpoint(nanostreamPipelineOptions.getkAlignEndpoint());
-            setResistanceGenesFastaDB(nanostreamPipelineOptions.getResistanceGenesFastaDB());
             setResistanceGenesList(nanostreamPipelineOptions.getResistanceGenesList());
             setOutputFirestoreCollectionNamePrefix(nanostreamPipelineOptions.getOutputFirestoreCollectionNamePrefix());
             setProcessingMode(NanostreamApp.ProcessingMode.findByLabel(nanostreamPipelineOptions.getProcessingMode()));

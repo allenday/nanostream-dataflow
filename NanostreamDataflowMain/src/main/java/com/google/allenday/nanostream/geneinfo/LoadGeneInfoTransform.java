@@ -1,111 +1,39 @@
 package com.google.allenday.nanostream.geneinfo;
 
-import japsa.seq.Alphabet;
-import japsa.seq.Sequence;
 import org.apache.beam.sdk.io.TextIO;
-import org.apache.beam.sdk.transforms.*;
+import org.apache.beam.sdk.transforms.DoFn;
+import org.apache.beam.sdk.transforms.GroupByKey;
+import org.apache.beam.sdk.transforms.PTransform;
+import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.join.CoGbkResult;
 import org.apache.beam.sdk.transforms.join.CoGroupByKey;
 import org.apache.beam.sdk.transforms.join.KeyedPCollectionTuple;
-import org.apache.beam.sdk.values.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.beam.sdk.values.KV;
+import org.apache.beam.sdk.values.PBegin;
+import org.apache.beam.sdk.values.PCollection;
+import org.apache.beam.sdk.values.TupleTag;
 
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Generate {@link GeneInfo} data collection from fasta and gene list files
+ * Generate {@link GeneInfo} data collection from gene list files
  */
 public class LoadGeneInfoTransform extends PTransform<PBegin, PCollection<KV<String, GeneInfo>>> {
-    private Logger LOG = LoggerFactory.getLogger(LoadGeneInfoTransform.class);
 
-    private final static String GENE_GROUP_PREFIX ="dg=";
-    private final static String GENE_ID_PREFIX ="geneID==";
+    private String genesListFilePath;
 
-    private String fastaFilePath, genesListFilePath;
-
-    public LoadGeneInfoTransform(String fastaFilePath, String genesListFilePath) {
-        this.fastaFilePath = fastaFilePath;
+    public LoadGeneInfoTransform(String genesListFilePath) {
         this.genesListFilePath = genesListFilePath;
     }
 
     @Override
     public PCollection<KV<String, GeneInfo>> expand(PBegin input) {
-        PCollection<String> fastaData = input.getPipeline()
-                .apply("Read fasta file", TextIO.read().from(fastaFilePath));
+
         PCollection<String> geneListData = input.getPipeline()
                 .apply("Read gene list file", TextIO.read().from(genesListFilePath));
-        PCollection<Sequence> fastaDataAsSequnces = fastaData
-                .apply("Parse Sequnce from fasta", ParDo.of(new DoFn<String, Sequence>() {
-                    @ProcessElement
-                    public void processElement(ProcessContext c) {
-                        String element = c.element();
-                        String[] parts = element.split("\t");
 
-                        String header = parts[0];
-                        String bases = parts[1];
 
-                        header = header.replaceFirst("^>", "");
-                        String[] headerParts = header.split("\\s+", 2);
-
-                        Sequence sequence;
-                        if (headerParts.length > 1) {
-                            sequence = new Sequence(Alphabet.DNA(), bases, headerParts[0]);
-                            sequence.setDesc(headerParts[1]);
-                        } else {
-                            sequence = new Sequence(Alphabet.DNA(), bases, header);
-                        }
-                        c.output(sequence);
-                    }
-                }));
-
-        PCollection<KV<String, Sequence>> sequenceNameSequenceKVcollection = fastaDataAsSequnces.apply(
-                "SequenceName => Sequence",
-                ParDo.of(new DoFn<Sequence, KV<String, Sequence>>() {
-                    @ProcessElement
-                    public void processElement(ProcessContext c) {
-                        Sequence seq = c.element();
-                        c.output(KV.of(seq.getName(), seq));
-                    }
-                })
-        );
-
-        PCollection<KV<String, String>> sequenceNameGeneGroupKVcollection = fastaDataAsSequnces.apply(
-                "Sequence_name => GeneGroup",
-                ParDo.of(new DoFn<Sequence, KV<String, String>>() {
-                    @ProcessElement
-                    public void processElement(ProcessContext c) {
-                        Sequence seq = c.element();
-                        String name = seq.getName();
-                        String[] toks = seq.getDesc().split(";");
-                        for (String tok : toks) {
-                            if (tok.startsWith(GENE_GROUP_PREFIX)) {
-                                String geneGroup = tok.substring(GENE_GROUP_PREFIX.length());
-                                c.output(KV.of(name, geneGroup));
-                            }
-                        }
-                    }
-                })
-        );
-
-        PCollection<KV<String, String>> sequenceNameProteinIdKVcollection = fastaDataAsSequnces.apply(
-                "SequenceName => ProteinId",
-                ParDo.of(new DoFn<Sequence, KV<String, String>>() {
-                    @ProcessElement
-                    public void processElement(ProcessContext c) {
-                        Sequence seq = c.element();
-                        String name = seq.getName();
-                        String[] toks = seq.getDesc().split(";");
-                        for (String tok : toks) {
-                            if (tok.startsWith(GENE_ID_PREFIX)) {
-                                String proteinID = tok.substring(GENE_ID_PREFIX.length());
-                                c.output(KV.of(name, proteinID));
-                            }
-                        }
-                    }
-                })
-        );
         PCollection<KV<String, String>> geneIdGeneGroupKVcollection = geneListData.apply(
                 "GeneId => GeneGroup",
                 ParDo.of(new DoFn<String, KV<String, String>>() {
@@ -138,13 +66,9 @@ public class LoadGeneInfoTransform extends PTransform<PBegin, PCollection<KV<Str
                 })
         );
 
-        PCollection<KV<String, String>> flattenedGeneGroups = PCollectionList.of(sequenceNameGeneGroupKVcollection)
-                .and(geneIdGeneGroupKVcollection).apply(Flatten.pCollections());
-        PCollection<KV<String, String>> flattenedGeneNames = PCollectionList.of(sequenceNameProteinIdKVcollection)
-                .and(geneIdGeneNameKVcollection).apply(Flatten.pCollections());
 
-        PCollection<KV<String, Iterable<String>>> groupedGeneGroups = flattenedGeneGroups.apply("geneID => Iterable<geneGroup>", GroupByKey.<String, String>create());
-        PCollection<KV<String, Iterable<String>>> groupedGeneNames = flattenedGeneNames.apply("geneID => Iterable<geneName>", GroupByKey.<String, String>create());
+        PCollection<KV<String, Iterable<String>>> groupedGeneGroups = geneIdGeneGroupKVcollection.apply("geneID => Iterable<geneGroup>", GroupByKey.create());
+        PCollection<KV<String, Iterable<String>>> groupedGeneNames = geneIdGeneNameKVcollection.apply("geneID => Iterable<geneName>", GroupByKey.create());
 
 
         PCollection<KV<String, Set<String>>> geneGroups = groupedGeneGroups.apply(
@@ -174,17 +98,15 @@ public class LoadGeneInfoTransform extends PTransform<PBegin, PCollection<KV<Str
                 })
         );
 
-        TupleTag<Sequence> geneSequenceTag = new TupleTag<Sequence>();
-        TupleTag<Set<String>> geneGroupTag = new TupleTag<Set<String>>();
-        TupleTag<Set<String>> geneNameTag = new TupleTag<Set<String>>();
+        TupleTag<Set<String>> geneGroupTag = new TupleTag<>();
+        TupleTag<Set<String>> geneNameTag = new TupleTag<>();
 
         PCollection<KV<String, CoGbkResult>> kvCollection = KeyedPCollectionTuple
                 .of(geneGroupTag, geneGroups)
                 .and(geneNameTag, geneNames)
-                .and(geneSequenceTag, sequenceNameSequenceKVcollection)
                 .apply(CoGroupByKey.create());
 
-        PCollection<KV<String, GeneInfo>> geneInfo = kvCollection.apply(
+        return kvCollection.apply(
                 "GeneId => GeneInfo",
                 ParDo.of(new DoFn<KV<String, CoGbkResult>, KV<String, GeneInfo>>() {
                     @ProcessElement
@@ -196,15 +118,10 @@ public class LoadGeneInfoTransform extends PTransform<PBegin, PCollection<KV<Str
 
                         CoGbkResult gbk = c.element().getValue();
 
-                        Sequence seq = gbk.getOnly(geneSequenceTag, null);
                         Set<String> gg = gbk.getOnly(geneGroupTag, new HashSet<>());
                         Set<String> gn = gbk.getOnly(geneNameTag, new HashSet<>());
 
-                        if (seq == null)
-                            return;
-
                         GeneInfo info = new GeneInfo();
-                        info.sequence = seq.toString();
                         info.setGroups(gg);
                         info.setNames(gn);
 
@@ -212,7 +129,6 @@ public class LoadGeneInfoTransform extends PTransform<PBegin, PCollection<KV<Str
                     }
                 })
         );
-        return geneInfo;
     }
 }
 
