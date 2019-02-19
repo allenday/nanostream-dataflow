@@ -94,7 +94,7 @@ RESISTANCE_GENES_LIST=gs://$FILES_BUCKET/gene-info/resistance_genes_list.txt
 To start **Nanostream Pipeline** run following command:
 ```
 java -cp (path_to_nanostream_app_jar) \
-  com.theappsolutions.nanostream.NanostreamApp \
+  com.google.allenday.nanostream.NanostreamApp \
   --runner=$RUNNER \
   --project=$PROJECT \
   --streaming=true \
