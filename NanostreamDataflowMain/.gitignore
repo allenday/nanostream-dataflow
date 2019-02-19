@@ -4,7 +4,7 @@ target/
 *.iws
 src/.gitignore
 result-*
-src/test/java/com/theappsolutions/nanostream/debugging/
+src/test/java/com/google/allenday/nanostream/debugging/
 
 # maven temporary
 dependency-reduced-pom.xml
