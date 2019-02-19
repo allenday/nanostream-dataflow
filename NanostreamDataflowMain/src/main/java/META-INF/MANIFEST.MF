@@ -1,3 +1,3 @@
 Manifest-Version: 1.0
-Main-Class: com.theappsolutions.nanostream.NanostreamApp
+Main-Class: com.google.allenday.nanostream.NanostreamApp
 
