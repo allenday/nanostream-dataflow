@@ -42,20 +42,22 @@ public class MakeAlignmentViaHttpFn extends DoFn<Iterable<FastqRecord>, String> 
         content.put(DATABASE_MULTIPART_KEY, database);
         content.put(FASTQ_DATA_MULTIPART_KEY, prepareFastQData(data));
 
+        try {
+            LOG.info(String.format("Sending Alignment request (#%s) with %d elements...", content.hashCode(),
+                    StreamSupport.stream(data.spliterator(), false).count()));
 
-        LOG.info(String.format("Sending Alignment request (#%s) with %d elements...", content.hashCode(),
-                StreamSupport.stream(data.spliterator(), false).count()));
+            String responseBody = nanostreamHttpService.generateAlignData(endpoint, content);
 
-        String responseBody = nanostreamHttpService.generateAlignData(endpoint, content);
-
-
-        if (responseBody == null) {
-            LOG.info(String.format("Receive NULL Alignment response (#%s)", content.hashCode()));
-        } else if (responseBody.length() == 0) {
-            LOG.info(String.format("Receive EMPTY Alignment response (#%s)", content.hashCode()));
-        } else {
-            LOG.info(String.format("Receive Alignment response (#%s) with %d length", content.hashCode(), responseBody.length()));
-            c.output(responseBody);
+            if (responseBody == null) {
+                LOG.info(String.format("Receive NULL Alignment response (#%s)", content.hashCode()));
+            } else if (responseBody.length() == 0) {
+                LOG.info(String.format("Receive EMPTY Alignment response (#%s)", content.hashCode()));
+            } else {
+                LOG.info(String.format("Receive Alignment response (#%s) with %d length", content.hashCode(), responseBody.length()));
+                c.output(responseBody);
+            }
+        } catch (URISyntaxException | IOException e) {
+            LOG.error(e.getMessage());
         }
     }
 
