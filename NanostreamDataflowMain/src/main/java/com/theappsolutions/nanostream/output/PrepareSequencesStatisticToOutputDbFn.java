@@ -1,13 +1,10 @@
 package com.theappsolutions.nanostream.output;
 
 import com.theappsolutions.nanostream.probecalculation.SequenceCountAndTaxonomyData;
-import com.theappsolutions.nanostream.util.EntityNamer;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.values.KV;
 
 import java.util.Map;
-
-import static com.theappsolutions.nanostream.other.Constants.SEQUENCES_STATISTIC_DOCUMENT_NAME_BASE;
 
 
 /**
@@ -16,12 +13,20 @@ import static com.theappsolutions.nanostream.other.Constants.SEQUENCES_STATISTIC
 public class PrepareSequencesStatisticToOutputDbFn extends DoFn<Map<String, SequenceCountAndTaxonomyData>,
         KV<String, SequenceStatisticResult>> {
 
+    private String statisticDocumentName;
+    private long startTimestamp;
+
+    public PrepareSequencesStatisticToOutputDbFn(String statisticDocumentName, long startTimestamp) {
+        this.statisticDocumentName = statisticDocumentName;
+        this.startTimestamp = startTimestamp;
+    }
+
     @ProcessElement
     public void processElement(ProcessContext c) {
         Map<String, SequenceCountAndTaxonomyData> sequenceIterableKV = c.element();
         SequenceStatisticResult.Generator sequenceStatisticGenerator = new SequenceStatisticResult.Generator();
 
-        SequenceStatisticResult sequenceStatisticResult = sequenceStatisticGenerator.genereteSequnceInfo(sequenceIterableKV);
-        c.output(KV.of(EntityNamer.generateTimestampedName(SEQUENCES_STATISTIC_DOCUMENT_NAME_BASE), sequenceStatisticResult));
+        SequenceStatisticResult sequenceStatisticResult = sequenceStatisticGenerator.genereteSequnceInfo(sequenceIterableKV, startTimestamp);
+        c.output(KV.of(statisticDocumentName, sequenceStatisticResult));
     }
 }

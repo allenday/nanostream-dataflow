@@ -1,7 +1,6 @@
 package com.theappsolutions.nanostream.output;
 
 import com.theappsolutions.nanostream.probecalculation.SequenceCountAndTaxonomyData;
-import com.theappsolutions.nanostream.util.EntityNamer;
 import org.apache.beam.sdk.coders.DefaultCoder;
 import org.apache.beam.sdk.coders.SerializableCoder;
 
@@ -85,7 +84,7 @@ public class SequenceStatisticResult implements Serializable {
 
 
     public static class Generator {
-        public SequenceStatisticResult genereteSequnceInfo(Map<String, SequenceCountAndTaxonomyData> sequenceSourceData) {
+        public SequenceStatisticResult genereteSequnceInfo(Map<String, SequenceCountAndTaxonomyData> sequenceSourceData, long startTimestamp) {
             Date date = new Date();
             long startTime = System.currentTimeMillis();
 
@@ -109,7 +108,7 @@ public class SequenceStatisticResult implements Serializable {
             });
             long finishTime = System.currentTimeMillis();
 
-            return new SequenceStatisticResult(new Date(EntityNamer.INITIAL_TIMESTAMP), date, sequenceRecords, finishTime - startTime);
+            return new SequenceStatisticResult(new Date(startTimestamp), date, sequenceRecords, finishTime - startTime);
         }
     }
 

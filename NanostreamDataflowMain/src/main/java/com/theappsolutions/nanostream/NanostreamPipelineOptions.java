@@ -84,4 +84,10 @@ public interface NanostreamPipelineOptions extends DataflowPipelineOptions {
     String getOutputFirestoreCollectionNamePrefix();
 
     void setOutputFirestoreCollectionNamePrefix(String value);
+
+
+    @Description("Name for Firestore statistic result document")
+    String getOutputFirestoreStatisticDocumentName();
+
+    void setOutputFirestoreStatisticDocumentName(String value);
 }

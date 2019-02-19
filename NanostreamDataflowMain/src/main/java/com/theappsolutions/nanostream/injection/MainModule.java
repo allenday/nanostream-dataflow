@@ -7,11 +7,14 @@ import com.theappsolutions.nanostream.geneinfo.LoadGeneInfoTransform;
 import com.theappsolutions.nanostream.http.NanostreamHttpService;
 import com.theappsolutions.nanostream.kalign.ProceedKAlignmentFn;
 import com.theappsolutions.nanostream.other.Constants;
+import com.theappsolutions.nanostream.output.PrepareSequencesStatisticToOutputDbFn;
 import com.theappsolutions.nanostream.output.WriteSequencesBodiesToFirestoreDbFn;
 import com.theappsolutions.nanostream.output.WriteSequencesStatisticToFirestoreDbFn;
 import com.theappsolutions.nanostream.taxonomy.GetSpeciesTaxonomyDataFn;
 import com.theappsolutions.nanostream.util.EntityNamer;
 import com.theappsolutions.nanostream.util.HttpHelper;
+
+import static com.theappsolutions.nanostream.other.Constants.SEQUENCES_STATISTIC_DOCUMENT_NAME_BASE;
 
 /**
  * App dependency injection module, that provide graph of main dependencies in app
@@ -74,5 +77,13 @@ public class MainModule extends NanostreamModule {
     @Provides
     public LoadGeneInfoTransform provideLoadGeneInfoTransform() {
         return new LoadGeneInfoTransform(resistanceGenesFastaDB, resistanceGenesList);
+    }
+
+    @Provides
+    public PrepareSequencesStatisticToOutputDbFn providePrepareSequencesStatisticToOutputDbFn(EntityNamer entityNamer) {
+        String documentName = outputFirestoreStatiscticDocumentName != null
+                ? outputFirestoreStatiscticDocumentName
+                : entityNamer.generateTimestampedName(SEQUENCES_STATISTIC_DOCUMENT_NAME_BASE);
+        return new PrepareSequencesStatisticToOutputDbFn(documentName, entityNamer.getInitialTimestamp());
     }
 }

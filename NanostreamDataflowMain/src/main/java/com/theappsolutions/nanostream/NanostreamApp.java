@@ -74,9 +74,10 @@ public class NanostreamApp {
                 .withValidation()
                 .as(NanostreamPipelineOptions.class);
         final ProcessingMode processingMode = ProcessingMode.findByLabel(options.getProcessingMode());
-        options.setJobName(EntityNamer.generateJobName(processingMode, options.getOutputFirestoreCollectionNamePrefix()));
         Injector injector = Guice.createInjector(new MainModule.Builder().buildFromOptions(options));
 
+        options.setJobName(injector.getInstance(EntityNamer.class)
+                .generateJobName(processingMode, options.getOutputFirestoreCollectionNamePrefix()));
         Pipeline pipeline = Pipeline.create(options);
         SequenceOnlyDNACoder sequenceOnlyDNACoder = new SequenceOnlyDNACoder();
         pipeline.getCoderRegistry()
@@ -124,7 +125,8 @@ public class NanostreamApp {
                         .withAllowedLateness(Duration.ZERO)
                         .accumulatingFiredPanes())
                 .apply("Accumulate results to Map", Combine.globally(new KVCalculationAccumulatorFn()))
-                .apply("Prepare sequences statistic to output", ParDo.of(new PrepareSequencesStatisticToOutputDbFn()))
+                .apply("Prepare sequences statistic to output",
+                        ParDo.of(injector.getInstance(PrepareSequencesStatisticToOutputDbFn.class)))
                 .apply("Write sequences statistic to Firestore",
                         ParDo.of(injector.getInstance(WriteSequencesStatisticToFirestoreDbFn.class)));
 

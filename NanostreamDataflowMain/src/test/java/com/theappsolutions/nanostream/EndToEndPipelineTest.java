@@ -52,13 +52,14 @@ public class EndToEndPipelineTest {
     @Ignore
     @Test
     public void testEndToEndPipelineSpeciesMode() {
+        NanostreamApp.ProcessingMode processingMode = NanostreamApp.ProcessingMode.SPECIES;
         Injector injector = Guice.createInjector(new MainModule.Builder()
                 .setProjectId("upwork-nano-stream")
                 .setBwaEndpoint("/cgi-bin/bwa.cgi")
                 .setServicesUrl("http://35.241.15.140")
                 .setBwaDB("genomeDB.fasta")
                 .setkAlignEndpoint("/cgi-bin/kalign.cgi")
-                .setProcessingMode(NanostreamApp.ProcessingMode.SPECIES)
+                .setProcessingMode(processingMode)
                 .build());
 
         SequenceOnlyDNACoder sequenceOnlyDNACoder = new SequenceOnlyDNACoder();
@@ -81,15 +82,15 @@ public class EndToEndPipelineTest {
         PCollection<KV<String, SequenceStatisticResult>> sequnceStatisticResultPCollection = errorCorrectedCollection
                 .apply("Remove Sequence part", ParDo.of(new RemoveValueDoFn<>()))
                 .apply("Get Taxonomy data", ParDo.of(injector.getInstance(GetSpeciesTaxonomyDataFn.class)))
-                .apply(Window.<KV<String, GeneData>>into(new GlobalWindows())
-                        .triggering(Repeatedly.forever(AfterProcessingTime
-                                .pastFirstElementInPane()
-                                .plusDelayOf(Duration.standardSeconds(OUTPUT_TRIGGERING_WINDOW_TIME_SEC))))
-                        .withAllowedLateness(Duration.ZERO)
-                        .accumulatingFiredPanes())
+                .apply("Global Window with Repeatedly triggering" + OUTPUT_TRIGGERING_WINDOW_TIME_SEC,
+                        Window.<KV<String, GeneData>>into(new GlobalWindows())
+                                .triggering(Repeatedly.forever(AfterProcessingTime
+                                        .pastFirstElementInPane()
+                                        .plusDelayOf(Duration.standardSeconds(OUTPUT_TRIGGERING_WINDOW_TIME_SEC))))
+                                .withAllowedLateness(Duration.ZERO)
+                                .accumulatingFiredPanes())
                 .apply("Accumulate results to Map", Combine.globally(new KVCalculationAccumulatorFn()))
-                .apply("Prepare sequences statistic to output",
-                        ParDo.of(new PrepareSequencesStatisticToOutputDbFn()));
+                .apply("Prepare sequences statistic to output", ParDo.of(injector.getInstance(PrepareSequencesStatisticToOutputDbFn.class)));
 
 
         PCollection<KV<String, SequenceBodyResult>> sequnceBodyResultpCollection = errorCorrectedCollection

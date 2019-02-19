@@ -43,11 +43,18 @@ public class MakeAlignmentViaHttpFn extends DoFn<Iterable<FastqRecord>, String> 
         content.put(FASTQ_DATA_MULTIPART_KEY, prepareFastQData(data));
 
 
-        LOG.info(String.format("Sending Alignment request with %d elements...",
+        LOG.info(String.format("Sending Alignment request (#%s) with %d elements...", content.hashCode(),
                 StreamSupport.stream(data.spliterator(), false).count()));
 
         String responseBody = nanostreamHttpService.generateAlignData(endpoint, content);
-        if (responseBody != null && responseBody.length() > 0) {
+
+
+        if (responseBody == null) {
+            LOG.info(String.format("Receive NULL Alignment response (#%s)", content.hashCode()));
+        } else if (responseBody.length() == 0) {
+            LOG.info(String.format("Receive EMPTY Alignment response (#%s)", content.hashCode()));
+        } else {
+            LOG.info(String.format("Receive Alignment response (#%s) with %d length", content.hashCode(), responseBody.length()));
             c.output(responseBody);
         }
     }

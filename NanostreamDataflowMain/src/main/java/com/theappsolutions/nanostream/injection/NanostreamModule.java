@@ -1,8 +1,11 @@
 package com.theappsolutions.nanostream.injection;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
 import com.theappsolutions.nanostream.NanostreamApp;
 import com.theappsolutions.nanostream.NanostreamPipelineOptions;
+import com.theappsolutions.nanostream.util.EntityNamer;
 
 /**
  * App dependency injection module, that provide graph of main dependencies in app
@@ -18,6 +21,7 @@ public class NanostreamModule extends AbstractModule {
     protected String resistanceGenesList;
     protected String outputFirestoreCollectionNamePrefix;
     protected NanostreamApp.ProcessingMode processingMode;
+    protected String outputFirestoreStatiscticDocumentName;
 
     public NanostreamModule(Builder builder) {
         this.projectId = builder.projectId;
@@ -29,6 +33,7 @@ public class NanostreamModule extends AbstractModule {
         this.resistanceGenesList = builder.resistanceGenesList;
         this.outputFirestoreCollectionNamePrefix = builder.outputFirestoreCollectionNamePrefix;
         this.processingMode = builder.processingMode;
+        this.outputFirestoreStatiscticDocumentName = builder.outputFirestoreStatiscticDocumentName;
     }
 
     public static class Builder {
@@ -42,6 +47,7 @@ public class NanostreamModule extends AbstractModule {
         protected String resistanceGenesList;
         protected String outputFirestoreCollectionNamePrefix;
         protected NanostreamApp.ProcessingMode processingMode;
+        protected String outputFirestoreStatiscticDocumentName;
 
 
         public Builder setProjectId(String projectId) {
@@ -89,6 +95,11 @@ public class NanostreamModule extends AbstractModule {
             return this;
         }
 
+        public Builder setOutputFirestoreStatiscticDocumentName(String outputFirestoreStatiscticDocumentName) {
+            this.outputFirestoreStatiscticDocumentName = outputFirestoreStatiscticDocumentName;
+            return this;
+        }
+
         public String getProjectId() {
             return projectId;
         }
@@ -120,6 +131,7 @@ public class NanostreamModule extends AbstractModule {
             setResistanceGenesList(nanostreamPipelineOptions.getResistanceGenesList());
             setOutputFirestoreCollectionNamePrefix(nanostreamPipelineOptions.getOutputFirestoreCollectionNamePrefix());
             setProcessingMode(NanostreamApp.ProcessingMode.findByLabel(nanostreamPipelineOptions.getProcessingMode()));
+            setOutputFirestoreStatiscticDocumentName(nanostreamPipelineOptions.getOutputFirestoreStatisticDocumentName());
             return build();
         }
 
@@ -127,5 +139,11 @@ public class NanostreamModule extends AbstractModule {
             return new NanostreamModule(this);
         }
 
+    }
+
+    @Provides
+    @Singleton
+    public EntityNamer provideEntityNamer() {
+        return EntityNamer.initialize();
     }
 }

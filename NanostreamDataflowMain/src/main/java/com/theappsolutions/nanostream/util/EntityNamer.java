@@ -7,16 +7,24 @@ import java.util.Date;
 
 public class EntityNamer {
 
-    public final static long INITIAL_TIMESTAMP = System.currentTimeMillis();
+    private final long initialTimestamp;
 
     public static SimpleDateFormat JOB_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH-mm-ssz");
 
-    public static String generateJobName(NanostreamApp.ProcessingMode processingMode, String prefix) {
+    private EntityNamer() {
+        this.initialTimestamp = System.currentTimeMillis();
+    }
+
+    public static EntityNamer initialize() {
+        return new EntityNamer();
+    }
+
+    public String generateJobName(NanostreamApp.ProcessingMode processingMode, String prefix) {
         return generateTimestampedName(addPrefix(processingMode.label, prefix));
     }
 
-    public static String generateTimestampedName(String str) {
-        return generateTimestampedName(str, new Date(INITIAL_TIMESTAMP));
+    public String generateTimestampedName(String str) {
+        return generateTimestampedName(str, new Date(initialTimestamp));
     }
 
     public static String generateTimestampedName(String str, Date date) {
@@ -34,5 +42,9 @@ public class EntityNamer {
         }
         nameBuilder.append(base);
         return nameBuilder.toString();
+    }
+
+    public long getInitialTimestamp() {
+        return initialTimestamp;
     }
 }
