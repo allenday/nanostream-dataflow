@@ -1,12 +1,12 @@
 package com.google.allenday.nanostream.injection;
 
+import com.google.allenday.nanostream.geneinfo.LoadGeneInfoTransform;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.allenday.nanostream.aligner.MakeAlignmentViaHttpFn;
-import com.google.allenday.nanostream.geneinfo.LoadGeneInfoTransform;
 import com.google.allenday.nanostream.http.NanostreamHttpService;
 import com.google.allenday.nanostream.kalign.ProceedKAlignmentFn;
-import com.google.allenday.nanostream.other.Constants;
+import com.google.allenday.nanostream.other.Configuration;
 import com.google.allenday.nanostream.output.PrepareSequencesStatisticToOutputDbFn;
 import com.google.allenday.nanostream.output.WriteSequencesBodiesToFirestoreDbFn;
 import com.google.allenday.nanostream.output.WriteSequencesStatisticToFirestoreDbFn;
@@ -14,7 +14,7 @@ import com.google.allenday.nanostream.taxonomy.GetSpeciesTaxonomyDataFn;
 import com.google.allenday.nanostream.util.EntityNamer;
 import com.google.allenday.nanostream.util.HttpHelper;
 
-import static com.google.allenday.nanostream.other.Constants.SEQUENCES_STATISTIC_DOCUMENT_NAME_BASE;
+import static com.google.allenday.nanostream.other.Configuration.SEQUENCES_STATISTIC_DOCUMENT_NAME_BASE;
 
 /**
  * App dependency injection module, that provide graph of main dependencies in app
@@ -53,7 +53,7 @@ public class MainModule extends NanostreamModule {
     @Provides
     public WriteSequencesStatisticToFirestoreDbFn provideWriteDataToFirestoreDbFnStatistic() {
         return new WriteSequencesStatisticToFirestoreDbFn(
-                EntityNamer.addPrefixWithProcessingMode(Constants.SEQUENCES_STATISTIC_COLLECTION_NAME_BASE,
+                EntityNamer.addPrefixWithProcessingMode(Configuration.SEQUENCES_STATISTIC_COLLECTION_NAME_BASE,
                         processingMode,
                         outputFirestoreCollectionNamePrefix),
                 projectId);
@@ -62,7 +62,7 @@ public class MainModule extends NanostreamModule {
     @Provides
     public WriteSequencesBodiesToFirestoreDbFn provideWriteSequencesBodiesToFirestoreDbFn() {
         return new WriteSequencesBodiesToFirestoreDbFn(
-                EntityNamer.addPrefixWithProcessingMode(Constants.SEQUENCES_BODIES_COLLECTION_NAME_BASE,
+                EntityNamer.addPrefixWithProcessingMode(Configuration.SEQUENCES_BODIES_COLLECTION_NAME_BASE,
                         processingMode,
                         outputFirestoreCollectionNamePrefix),
                 projectId);
@@ -70,13 +70,13 @@ public class MainModule extends NanostreamModule {
 
     @Provides
     public GetSpeciesTaxonomyDataFn provideGetTaxonomyDataFn() {
-        return new GetSpeciesTaxonomyDataFn(EntityNamer.addPrefix(Constants.GENE_CACHE_COLLECTION_NAME_BASE,
+        return new GetSpeciesTaxonomyDataFn(EntityNamer.addPrefix(Configuration.GENE_CACHE_COLLECTION_NAME_BASE,
                 processingMode.label), projectId);
     }
 
     @Provides
     public LoadGeneInfoTransform provideLoadGeneInfoTransform() {
-        return new LoadGeneInfoTransform(resistanceGenesFastaDB, resistanceGenesList);
+        return new LoadGeneInfoTransform(resistanceGenesList);
     }
 
     @Provides

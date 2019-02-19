@@ -79,13 +79,7 @@ FIRESTORE_COLLECTION_NAME_PREFIX=new_scanning
 # (OPTIONAL) Firestore database document name that will be used for writing statistic results. You can specify it otherwise it will be generated automatically
 FIRESTORE_STATISTIC_DOCUMENT_NAME=statistic_document
 ```
-If you run the pipeline in the `resistance_genes` mode you should add 2 additional arguments with pathes of files stored in the GCS. With a placeholder name `$FILES_BUCKET` add next arguments:
-1. Path to resistant genes sequence `fasta` list formatted with [fasta formatter](https://github.com/allenday/nanostream-dataflow/tree/master/fasta_formatter):
-```
-# Path to resistant genes sequence fasta list formatted with fasta formatter
-RESISTANCE_GENES_FASTA=gs://$FILES_BUCKET/gene-info/DB_resistant_formatted.fasta
-```
-2. Path to text file with resistant genes references and groups:
+If you run the pipeline in the `resistance_genes` mode you should add additional argument with path of file stored in the GCS. With a placeholder name `$FILES_BUCKET` add next argument:
 ```
 # Path to text file with resistant genes references and groups
 RESISTANCE_GENES_LIST=gs://$FILES_BUCKET/gene-info/resistance_genes_list.txt
@@ -108,7 +102,6 @@ java -cp (path_to_nanostream_app_jar) \
   --kAlignEndpoint=$KALIGN_ENDPOINT \
   --outputFirestoreCollectionNamePrefix=$FIRESTORE_COLLECTION_NAME_PREFIX \
   --outputFirestoreStatisticDocumentName=$FIRESTORE_STATISTIC_DOCUMENT_NAME \
-  --resistanceGenesFastDB=$RESISTANCE_GENES_FASTA \
   --resistanceGenesList=$RESISTANCE_GENES_LIST
 ```
 

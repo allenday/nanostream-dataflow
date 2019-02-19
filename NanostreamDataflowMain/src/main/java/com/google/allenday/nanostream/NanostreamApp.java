@@ -1,5 +1,6 @@
 package com.google.allenday.nanostream;
 
+import com.google.allenday.nanostream.geneinfo.LoadGeneInfoTransform;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.allenday.nanostream.aligner.GetSequencesFromSamDataFn;
@@ -11,7 +12,6 @@ import com.google.allenday.nanostream.gcs.GetDataFromFastQFile;
 import com.google.allenday.nanostream.gcs.ParseGCloudNotification;
 import com.google.allenday.nanostream.geneinfo.GeneData;
 import com.google.allenday.nanostream.geneinfo.GeneInfo;
-import com.google.allenday.nanostream.geneinfo.LoadGeneInfoTransform;
 import com.google.allenday.nanostream.injection.MainModule;
 import com.google.allenday.nanostream.kalign.ProceedKAlignmentFn;
 import com.google.allenday.nanostream.kalign.SequenceOnlyDNACoder;
