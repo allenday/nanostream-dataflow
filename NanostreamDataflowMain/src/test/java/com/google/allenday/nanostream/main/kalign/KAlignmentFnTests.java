@@ -1,9 +1,11 @@
-package com.google.allenday.nanostream.kalign;
+package com.google.allenday.nanostream.main.kalign;
 
+import com.google.allenday.nanostream.kalign.ProceedKAlignmentFn;
+import com.google.allenday.nanostream.kalign.SequenceOnlyDNACoder;
+import com.google.allenday.nanostream.main.injection.TestModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.allenday.nanostream.http.NanostreamHttpService;
-import com.google.allenday.nanostream.injection.TestModule;
 import japsa.seq.Alphabet;
 import japsa.seq.Sequence;
 import org.apache.beam.sdk.testing.PAssert;

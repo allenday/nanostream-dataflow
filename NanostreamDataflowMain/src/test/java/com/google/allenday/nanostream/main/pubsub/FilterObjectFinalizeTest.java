@@ -1,5 +1,6 @@
-package com.google.allenday.nanostream.pubsub;
+package com.google.allenday.nanostream.main.pubsub;
 
+import com.google.allenday.nanostream.pubsub.FilterObjectFinalizeMessage;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
