@@ -37,7 +37,7 @@ define(function () {
         if (record.name.split('|').length > 3) {
           record.name = record.name.split('|')[3];
         }
-        record.taxonomy.push(record.name);
+
         for (j = 0; j < record.taxonomy.length; j++) {
           taxonomyItem = record.taxonomy[j];
           taxonomyLevel = _findChild(currentNode, taxonomyItem);
