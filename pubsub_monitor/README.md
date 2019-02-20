@@ -26,13 +26,9 @@ OR you can do it in GUI.
 
 4. The website will be publicly accessible and its URL will be the `service` string in `app.yaml`, followed by `-dot-<project-id>.appspot.com`. For example, `upload-watcher-dot-nano-stream.appspot.com`
 
+# Original README from GOOGLE, can be ignored if the above instructions worked:
 
-
-Original README from GOOGLE, can be ignored if the above instructions worked:
-
-
-
-# Python Google Cloud Pub/Sub sample for Google App Engine Flexible Environment
+## Python Google Cloud Pub/Sub sample for Google App Engine Flexible Environment
 
 [![Open in Cloud Shell][shell_img]][shell_link]
 
@@ -41,7 +37,7 @@ Original README from GOOGLE, can be ignored if the above instructions worked:
 
 This demonstrates how to send and receive messages using [Google Cloud Pub/Sub](https://cloud.google.com/pubsub) on [Google App Engine Flexible Environment](https://cloud.google.com/appengine).
 
-## Setup
+### Setup
 
 Before you can run or deploy the sample, you will need to do the following:
 
@@ -58,7 +54,7 @@ Before you can run or deploy the sample, you will need to do the following:
 
 3. Update the environment variables in ``app.yaml``.
 
-## Running locally
+### Running locally
 
 Refer to the [top-level README](../README.md) for instructions on running and deploying.
 
@@ -78,7 +74,7 @@ Then set environment variables before starting your application:
     $ export PUBSUB_TOPIC=[your-topic]
     $ python main.py
 
-### Simulating push notifications
+#### Simulating push notifications
 
 The application can send messages locally, but it is not able to receive push messages locally. You can, however, simulate a push message by making an HTTP request to the local push notification endpoint. There is an included ``sample_message.json``. You can use
 ``curl`` or [httpie](https://github.com/jkbrzt/httpie) to POST this:
@@ -101,7 +97,7 @@ Response:
 
 After the request completes, you can refresh ``localhost:8080`` and see the message in the list of received messages.
 
-## Running on App Engine
+### Running on App Engine
 
 Deploy using `gcloud`:
 
