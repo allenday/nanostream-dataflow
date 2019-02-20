@@ -8,6 +8,7 @@ import org.apache.beam.sdk.values.PCollectionView;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -27,9 +28,12 @@ public class GetResistanceGenesTaxonomyDataFn extends DoFn<String, KV<String, Ge
         GeneData geneData = new GeneData();
         if (geneInfoMap.containsKey(geneName)) {
             GeneInfo geneInfo = geneInfoMap.get(geneName);
-            geneData.setGeneNames(geneInfo.getNames());
+            Set<String> names = geneInfo.getNames();
+            geneData.setGeneNames(names);
             geneData.setTaxonomy(new ArrayList<>(geneInfo.getGroups()));
-            geneData.getTaxonomy().add(geneName);
+            if (names.size() > 0) {
+                geneData.getTaxonomy().add(names.iterator().next());
+            }
         }
         c.output(KV.of(geneName, geneData));
     }
