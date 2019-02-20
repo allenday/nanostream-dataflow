@@ -34,7 +34,7 @@ KALIGN_ENDPOINT=/cgi-bin/kalign.cgi
 FIRESTORE_COLLECTION_NAME_PREFIX=first_dataset
 
 java -cp @NanostreamDataflowMaintarget/target/NanostreamDataflowMain-1.0-SNAPSHOT.jar \
-  com.theappsolutions.nanostream.NanostreamApp \
+  com.google.allenday.nanostream.NanostreamApp \
   --runner=$RUNNER \
   --project=$PROJECT \
   --streaming=true \
