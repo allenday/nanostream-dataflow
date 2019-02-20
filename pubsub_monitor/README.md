@@ -27,7 +27,10 @@ OR you can do it in GUI.
 4. The website will be publicly accessible and its URL will be the `service` string in `app.yaml`, followed by `-dot-<project-id>.appspot.com`. For example, `upload-watcher-dot-nano-stream.appspot.com`
 
 
-Original README from GOOGLE:
+
+Original README from GOOGLE, can be ignored if the above instructions worked:
+
+
 
 # Python Google Cloud Pub/Sub sample for Google App Engine Flexible Environment
 
