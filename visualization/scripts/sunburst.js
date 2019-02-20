@@ -1,7 +1,8 @@
-requirejs(['db', 'transform'], function (db, transform) {
+requirejs(['db', 'transform', 'color'], function (db, transform, color) {
   let url = new URL(document.location.href);
   let collection = url.searchParams.get('c');
   let docname = url.searchParams.get('d');
+  let mode = url.searchParams.get('m');
 
   if (!collection) {
     collection = 'sequences_statistic';
@@ -10,23 +11,27 @@ requirejs(['db', 'transform'], function (db, transform) {
     docname = 'resultDocument--2019-01-28T14-38-35UTC';
   }
 
+  if (!mode) {
+    mode = 'species';
+  }
+
   let chart;
   let results = [];
 
   nv.addGraph(function () {
     chart = nv.models.sunburstChart();
 
-    chart.color(['gray']);
+    chart.color(color);
     chart.groupColorByParent(false);
     chart.showLabels(true);
     chart.mode('value');
-    chart.groupColorByParent(true);
+    chart.groupColorByParent(false);
     chart.labelFormat(function (d) {
       if (typeof d.children === 'undefined') {
         return '    ' + d.parent.name + " > " + d.name + ' ' + Math.round(100 * d.value) / 100;
       }
       // TODO: don't use collection name here
-      if (d.depth === 1 && collection !== 'resistant_sequences_statistic') {
+      if (d.depth === 1 && mode === 'species') {
         return d.name + ' ' + Math.round(100 * d.value) / 100;
       }
       return null;

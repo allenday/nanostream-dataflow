@@ -63,7 +63,7 @@ STATS_UPDATE_FREQUENCY=30
 # IP address of the aligner cluster created by running aligner/provision_species.sh
 SPECIES_ALIGNER_CLUSTER_IP=$(gcloud compute forwarding-rules describe bwa-species-forward --global --format="value(IPAddress)")
 # IP address of the aligner cluster created by running aligner/provision_resistance_genes.sh
-RESISTANCE_GENES_ALIGNER_CLUSTER_IP=$(gcloud compute forwarding-rules describe bwa-resistance-genes --global --format="value(IPAddress)")
+RESISTANCE_GENES_ALIGNER_CLUSTER_IP=$(gcloud compute forwarding-rules describe bwa-resistance-genes-forward --global --format="value(IPAddress)")
 # base URL for http services (bwa and kalign)
 # value for species, for resistance_genes use 'SERVICES_HOST=http://$RESISTANCE_GENES_ALIGNER_CLUSTER_IP'
 SERVICES_HOST=http://$SPECIES_ALIGNER_CLUSTER_IP
