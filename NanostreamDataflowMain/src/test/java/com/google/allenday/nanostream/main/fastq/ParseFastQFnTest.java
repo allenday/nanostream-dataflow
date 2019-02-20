@@ -1,5 +1,6 @@
-package com.google.allenday.nanostream.fastq;
+package com.google.allenday.nanostream.main.fastq;
 
+import com.google.allenday.nanostream.fastq.ParseFastQFn;
 import htsjdk.samtools.fastq.FastqRecord;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;

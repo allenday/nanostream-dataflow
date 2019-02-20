@@ -1,8 +1,9 @@
-package com.google.allenday.nanostream.http;
+package com.google.allenday.nanostream.main.http;
 
+import com.google.allenday.nanostream.http.NanostreamHttpService;
+import com.google.allenday.nanostream.main.injection.TestModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.allenday.nanostream.injection.TestModule;
 import com.google.allenday.nanostream.util.HttpHelper;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.HttpUriRequest;

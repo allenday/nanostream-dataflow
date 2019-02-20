@@ -1,4 +1,4 @@
-package com.google.allenday.nanostream.probecalculation;
+package com.google.allenday.nanostream.main.probecalculation;
 
 // TODO: there is no such class in the repository
 //import com.google.allenday.nanostream.debugging.AddValueDoFn;

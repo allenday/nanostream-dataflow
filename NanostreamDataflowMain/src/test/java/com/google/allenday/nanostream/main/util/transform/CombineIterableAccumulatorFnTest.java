@@ -1,4 +1,4 @@
-package com.google.allenday.nanostream.util.transform;
+package com.google.allenday.nanostream.main.util.transform;
 
 import com.google.allenday.nanostream.util.trasform.CombineIterableAccumulatorFn;
 import org.apache.beam.sdk.testing.PAssert;

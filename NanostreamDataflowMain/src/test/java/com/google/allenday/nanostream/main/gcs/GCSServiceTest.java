@@ -1,5 +1,6 @@
-package com.google.allenday.nanostream.gcs;
+package com.google.allenday.nanostream.main.gcs;
 
+import com.google.allenday.nanostream.gcs.GCSService;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Storage;
 import com.google.allenday.nanostream.pubsub.GCloudNotification;
