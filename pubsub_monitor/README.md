@@ -1,5 +1,3 @@
-From Larry:
-
 This is where various "push" PubSub subscriptions will be "pushed" to.
 For some reason this feature requires URLs to act as endpoints,
 so we might as well put some functional pages here that also act as
@@ -8,7 +6,7 @@ diagnostics to check if messages are being seng properly.
 Recommended further work: consolidate these TOS/PP stuff into sub-domains?
 Not sure if it's a good idea to.
 
-To create the subscription:
+1. To create the subscription:
 
 ```
 gcloud beta pubsub subscriptions create upload_watcher \
@@ -20,7 +18,11 @@ gcloud beta pubsub subscriptions create upload_watcher \
 
 OR you can do it in GUI.
 
-Variables to be edited for your deployment are all in `app.yaml`.
+2. Localise variables to be edited for your environment, all in `app.yaml`.
+
+3. Deploy the app on GCP by `cd` to the folder with `app.yaml`, then `gcloud app deploy`.
+
+4. The website will be publicly accessible and its URL will be the `service` string in `app.yaml`, followed by `-dot-<project-id>.appspot.com`. For example, `upload-watcher-dot-nano-stream.appspot.com`
 
 
 Original README from GOOGLE:
