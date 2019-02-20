@@ -47,17 +47,15 @@ public class SequenceStatisticResult implements Serializable {
         private String name;
         private String localName;
         private List<String> taxonomy;
+        private List<String> colors;
         private float probe;
 
-        public SequenceRecord(String id, String name, List<String> taxonomy, float probe) {
-            this(id, name, name, taxonomy, probe);
-        }
-
-        public SequenceRecord(String id, String name, String localName, List<String> taxonomy, float probe) {
+        public SequenceRecord(String id, String name, String localName, List<String> taxonomy, List<String> colors, float probe) {
             this.id = id;
             this.name = name;
             this.localName = localName;
             this.taxonomy = taxonomy;
+            this.colors = colors;
             this.probe = probe;
         }
 
@@ -80,6 +78,10 @@ public class SequenceStatisticResult implements Serializable {
         public String getLocalName() {
             return localName;
         }
+
+        public List<String> getColors() {
+            return colors;
+        }
     }
 
 
@@ -94,15 +96,15 @@ public class SequenceStatisticResult implements Serializable {
 
             sequenceSourceData.forEach((id, value) -> {
                 Set<String> resistantGenesNamesMap = value.getGeneData().getGeneNames();
-                SequenceRecord sequenceRecord;
+                String localName;
                 if (resistantGenesNamesMap != null && resistantGenesNamesMap.size() > 0) {
-                    sequenceRecord = new SequenceRecord(UUID.randomUUID().toString(),
-                            resistantGenesNamesMap.iterator().next(),
-                            id, value.getGeneData().getTaxonomy(), value.getCount() / totalDataListSize);
+                    localName = resistantGenesNamesMap.iterator().next();
                 } else {
-                    sequenceRecord = new SequenceRecord(UUID.randomUUID().toString(),
-                            id, value.getGeneData().getTaxonomy(), value.getCount() / totalDataListSize);
+                    localName = id;
                 }
+                SequenceRecord sequenceRecord = new SequenceRecord(UUID.randomUUID().toString(),
+                        localName, id, value.getGeneData().getTaxonomy(), value.getGeneData().getColors(),
+                        value.getCount() / totalDataListSize);
                 sequenceRecords.add(sequenceRecord);
 
             });

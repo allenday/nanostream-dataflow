@@ -6,4 +6,6 @@ public class Configuration {
     public final static String SEQUENCES_STATISTIC_COLLECTION_NAME_BASE = "sequences_statistic";
     public final static String SEQUENCES_BODIES_COLLECTION_NAME_BASE = "sequences_bodies";
     public final static String GENE_CACHE_COLLECTION_NAME_BASE = "gene_cache";
+
+    public final static String GENE_DATA_FILE_NAME = "common_tree.txt";
 }
