@@ -107,7 +107,7 @@ SERVICES_HOST=http://$SPECIES_ALIGNER_CLUSTER_IP
 # bwa path
 BWA_ENDPOINT=/cgi-bin/bwa.cgi
 # bwa database name
-BWA_DATABASE=DB.fasta
+BWA_DATABASE=genomeDB.fasta
 # kalign path
 KALIGN_ENDPOINT=/cgi-bin/kalign.cgi
 
