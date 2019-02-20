@@ -6,7 +6,7 @@ diagnostics to check if messages are being seng properly.
 Recommended further work: consolidate these TOS/PP stuff into sub-domains?
 Not sure if it's a good idea to.
 
-Read all steps before starting.
+** Read all steps before starting. **
 
 1. To create the subscription:
 
