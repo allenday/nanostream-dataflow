@@ -107,7 +107,7 @@ SERVICES_HOST=http://$SPECIES_ALIGNER_CLUSTER_IP
 # bwa path
 BWA_ENDPOINT=/cgi-bin/bwa.cgi
 # bwa database name
-BWA_DATABASE=genomeDB.fasta
+BWA_DATABASE=DB.fasta
 # kalign path
 KALIGN_ENDPOINT=/cgi-bin/kalign.cgi
 
@@ -116,7 +116,6 @@ FIRESTORE_COLLECTION_NAME_PREFIX=new_scanning
 # (OPTIONAL) Firestore database document name that will be used for writing statistic results. You can specify it otherwise it will be generated automatically
 FIRESTORE_STATISTIC_DOCUMENT_NAME=statistic_document
 ```
-<<<<<<< HEAD
 If you run the pipeline in the `resistance_genes` mode you should add 2 additional arguments with paths of files stored in the GCS. With a placeholder name `$FILES_BUCKET` add next arguments:
 1. Path to resistant genes sequence `fasta` list formatted with [fasta formatter](https://github.com/allenday/nanostream-dataflow/tree/master/fasta_formatter):
 ```
@@ -124,9 +123,6 @@ If you run the pipeline in the `resistance_genes` mode you should add 2 addition
 RESISTANCE_GENES_FASTA=gs://$FILES_BUCKET/gene-info/DB_resistant_formatted.fasta
 ```
 2. Path to text file with resistant genes references and groups:
-=======
-If you run the pipeline in the `resistance_genes` mode you should add additional argument with path of file stored in the GCS. With a placeholder name `$FILES_BUCKET` add next argument:
->>>>>>> 19eee75a9d808c2f9407a2942e0529941a34feb9
 ```
 # Path to text file with resistant genes references and groups
 RESISTANCE_GENES_LIST=gs://$FILES_BUCKET/gene-info/resistance_genes_list.txt
@@ -188,7 +184,7 @@ java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/Nan
   --inputDataSubscription=projects/nano-stream1/subscriptions/dataflow_species_mm2 \
   --alignmentWindow=20 \
   --statisticUpdatingDelay=30 \
-  --servicesUrl=35.201.96.177 \
+  --servicesUrl=http://35.201.96.177/ \
   --bwaEndpoint=/cgi-bin/bwa.cgi \
   --bwaDatabase=genomeDB.fasta \
   --kAlignEndpoint=/cgi-bin/kalign.cgi \
@@ -209,7 +205,7 @@ java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/Nan
   --inputDataSubscription=projects/nano-stream1/subscriptions/dataflow_resistance \
   --alignmentWindow=20 \
   --statisticUpdatingDelay=30 \
-  --servicesUrl=http://35.201.96.177 \
+  --servicesUrl=http://35.201.96.177/ \
   --bwaEndpoint=/cgi-bin/bwa.cgi \
   --bwaDatabase=genomeDB.fasta \
   --kAlignEndpoint=/cgi-bin/kalign.cgi \
