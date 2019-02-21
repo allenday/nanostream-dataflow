@@ -4,8 +4,8 @@ runtime: python37
 
 handlers:
 - url: /
-  static_files: sunburst.html
-  upload: sunburst.html
+  static_files: (.*)
+  upload: (.*)
 
 - url: /scripts/(.*)
   static_files: scripts/\1
