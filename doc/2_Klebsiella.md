@@ -8,17 +8,20 @@ https://cloud.google.com/shell/docs/quickstart#start_cloud_shell
 ```
 git clone https://github.com/allenday/nanostream-dataflow.git
 cd nanostream-dataflow/
+PROJECT_ROOT=$(pwd)
 ```
 
 ### Start aligner cluster
 
 ```
-./aligner/provision_resistance_genes.sh
+cd $PROJECT_ROOT/aligner/
+./provision_resistance_genes.sh
 ```
 
 ### Build jar
 
 ```
+cd $PROJECT_ROOT
 mvn install:install-file -Dfile=NanostreamDataflowMain/libs/japsa.jar -DgroupId=coin -DartifactId=japsa -Dversion=1.9-3c -Dpackaging=jar
 mvn install:install-file -Dfile=NanostreamDataflowMain/libs/pal1.5.1.1.jar -DgroupId=nz.ac.auckland -DartifactId=pal -Dversion=1.5.1.1 -Dpackaging=jar
 cd NanostreamDataflowMain
@@ -29,16 +32,16 @@ mvn clean install
 
 ```
 # bucket for supporting files
-$FILES_BUCKET=<Put your bucket name here>
+FILES_BUCKET=<Put your bucket name here>
 # bucket for uploading FastQ files
-$UPLOAD_BUCKET=<Put your bucket name here>
+UPLOAD_BUCKET=<Put your bucket name here>
 
 # PubSub topic name
-$UPLOAD_EVENTS=$UPLOAD_BUCKET-events
+UPLOAD_EVENTS=$UPLOAD_BUCKET-events
 # PubSub subscription name
-$UPLOAD_SUBSCRIPTION=$UPLOAD_EVENTS-subscription
+UPLOAD_SUBSCRIPTION=$UPLOAD_EVENTS-subscription
 
-gsutil notification create -t $UPLOAD_EVENTS -f json -e OBJECT_FINALIZE $UPLOAD_BUCKET
+gsutil notification create -t $UPLOAD_EVENTS -f json -e OBJECT_FINALIZE gs://$UPLOAD_BUCKET
 gcloud pubsub subscriptions create $UPLOAD_SUBSCRIPTION --topic $UPLOAD_EVENTS
 ```
 
@@ -78,7 +81,7 @@ java -cp target/NanostreamDataflowMain-1.0-SNAPSHOT.jar \
   --project=$PROJECT \
   --streaming=true \
   --processingMode=$PROCESSING_MODE \
-  --inputDataSubscription=$UPLOAD_SUBSCRIPTION \
+  --inputDataSubscription=projects/$PROJECT/subscriptions/$UPLOAD_SUBSCRIPTION  \
   --alignmentWindow=$ALIGNMENT_WINDOW \
   --statisticUpdatingDelay=$STATS_UPDATE_FREQUENCY \
   --servicesUrl=$SERVICES_HOST \

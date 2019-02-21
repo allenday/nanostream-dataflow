@@ -1,9 +1,6 @@
 package com.google.allenday.nanostream.integration;
 
 import com.google.allenday.nanostream.NanostreamApp;
-import com.google.allenday.nanostream.taxonomy.GetTaxonomyFromTree;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.google.allenday.nanostream.aligner.GetSequencesFromSamDataFn;
 import com.google.allenday.nanostream.aligner.MakeAlignmentViaHttpFn;
 import com.google.allenday.nanostream.errorcorrection.ErrorCorrectionFn;
@@ -18,7 +15,7 @@ import com.google.allenday.nanostream.output.PrepareSequencesStatisticToOutputDb
 import com.google.allenday.nanostream.output.SequenceBodyResult;
 import com.google.allenday.nanostream.output.SequenceStatisticResult;
 import com.google.allenday.nanostream.probecalculation.KVCalculationAccumulatorFn;
-import com.google.allenday.nanostream.taxonomy.GetSpeciesTaxonomyDataFn;
+import com.google.allenday.nanostream.taxonomy.GetTaxonomyFromTree;
 import com.google.allenday.nanostream.util.ResourcesHelper;
 import com.google.allenday.nanostream.util.trasform.RemoveValueDoFn;
 import com.google.inject.Guice;

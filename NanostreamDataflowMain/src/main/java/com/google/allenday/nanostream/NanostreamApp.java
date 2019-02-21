@@ -1,10 +1,5 @@
 package com.google.allenday.nanostream;
 
-import com.google.allenday.nanostream.taxonomy.GetTaxonomyFromTree;
-import com.google.allenday.nanostream.util.ResourcesHelper;
-import com.google.allenday.nanostream.geneinfo.LoadGeneInfoTransform;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.google.allenday.nanostream.aligner.GetSequencesFromSamDataFn;
 import com.google.allenday.nanostream.aligner.MakeAlignmentViaHttpFn;
 import com.google.allenday.nanostream.errorcorrection.ErrorCorrectionFn;
@@ -14,6 +9,7 @@ import com.google.allenday.nanostream.gcs.GetDataFromFastQFile;
 import com.google.allenday.nanostream.gcs.ParseGCloudNotification;
 import com.google.allenday.nanostream.geneinfo.GeneData;
 import com.google.allenday.nanostream.geneinfo.GeneInfo;
+import com.google.allenday.nanostream.geneinfo.LoadGeneInfoTransform;
 import com.google.allenday.nanostream.injection.MainModule;
 import com.google.allenday.nanostream.kalign.ProceedKAlignmentFn;
 import com.google.allenday.nanostream.kalign.SequenceOnlyDNACoder;
@@ -25,8 +21,11 @@ import com.google.allenday.nanostream.probecalculation.KVCalculationAccumulatorF
 import com.google.allenday.nanostream.pubsub.DecodeNotificationJsonMessage;
 import com.google.allenday.nanostream.pubsub.FilterObjectFinalizeMessage;
 import com.google.allenday.nanostream.taxonomy.GetResistanceGenesTaxonomyDataFn;
+import com.google.allenday.nanostream.taxonomy.GetTaxonomyFromTree;
 import com.google.allenday.nanostream.util.EntityNamer;
 import com.google.allenday.nanostream.util.trasform.RemoveValueDoFn;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import japsa.seq.Sequence;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
@@ -117,8 +116,7 @@ public class NanostreamApp {
                 .apply("Get Taxonomy data", processingMode == ProcessingMode.RESISTANT_GENES
                         ? ParDo.of(new GetResistanceGenesTaxonomyDataFn(geneInfoMapPCollectionView))
                         .withSideInputs(geneInfoMapPCollectionView)
-                        : ParDo.of(new GetTaxonomyFromTree(
-                                new ResourcesHelper().getFileContent("common_tree.txt"))))
+                        : ParDo.of(injector.getInstance(GetTaxonomyFromTree.class)))
                 .apply("Global Window with Repeatedly triggering" + options.getStatisticUpdatingDelay(),
                         Window.<KV<String, GeneData>>into(new GlobalWindows())
                         .triggering(Repeatedly.forever(AfterProcessingTime

@@ -1,6 +1,8 @@
 package com.google.allenday.nanostream.injection;
 
 import com.google.allenday.nanostream.geneinfo.LoadGeneInfoTransform;
+import com.google.allenday.nanostream.taxonomy.GetTaxonomyFromTree;
+import com.google.allenday.nanostream.util.ResourcesHelper;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.allenday.nanostream.aligner.MakeAlignmentViaHttpFn;
@@ -14,6 +16,7 @@ import com.google.allenday.nanostream.taxonomy.GetSpeciesTaxonomyDataFn;
 import com.google.allenday.nanostream.util.EntityNamer;
 import com.google.allenday.nanostream.util.HttpHelper;
 
+import static com.google.allenday.nanostream.other.Configuration.GENE_DATA_FILE_NAME;
 import static com.google.allenday.nanostream.other.Configuration.SEQUENCES_STATISTIC_DOCUMENT_NAME_BASE;
 
 /**
@@ -85,5 +88,12 @@ public class MainModule extends NanostreamModule {
                 ? outputFirestoreStatiscticDocumentName
                 : entityNamer.generateTimestampedName(SEQUENCES_STATISTIC_DOCUMENT_NAME_BASE);
         return new PrepareSequencesStatisticToOutputDbFn(documentName, entityNamer.getInitialTimestamp());
+    }
+
+    @Provides
+    public GetTaxonomyFromTree provideGetTaxonomyFromTree() {
+        return new GetTaxonomyFromTree(
+                new ResourcesHelper().getFileContent(GENE_DATA_FILE_NAME));
+
     }
 }
