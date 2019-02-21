@@ -6,6 +6,8 @@ function renderUrl(doc){
   let li = document.createElement('li');
 
   li.setAttribute('doc-id', doc.id);
+
+  firebaseDocuments.appendChild(li);
 }
 
 db.collection('new_scanning_species_sequences_statistic').get().then((snapshot) => {
