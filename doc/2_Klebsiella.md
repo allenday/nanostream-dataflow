@@ -1,4 +1,5 @@
 # Klebsiella Example
+Klebsiella fastq dataset is temporary unavalilable!
 
 ### Open cloudshell in GCP project
 https://cloud.google.com/shell/docs/quickstart#start_cloud_shell
@@ -94,7 +95,7 @@ java -cp target/NanostreamDataflowMain-1.0-SNAPSHOT.jar \
 ```
 
 ### Upload FastQ file
-
+Klebsiella fastq dataset is temporary unavalilable!
 ```
 gsutil -u $PROJECT cp gs://nanostream-dataflow-demo-data/2_Klebsiella/GN_091_pass.fastq.gz .
 gunzip GN_091_pass.fastq.gz

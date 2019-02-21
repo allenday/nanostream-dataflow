@@ -114,7 +114,8 @@ public class NanostreamApp {
         errorCorrectedCollection
                 .apply("Remove Sequence part", ParDo.of(new RemoveValueDoFn<>()))
                 .apply("Get Taxonomy data", processingMode == ProcessingMode.RESISTANT_GENES
-                        ? ParDo.of(new GetResistanceGenesTaxonomyDataFn(geneInfoMapPCollectionView))
+                        ? ParDo.of(injector.getInstance(GetResistanceGenesTaxonomyDataFn.class)
+                        .setGeneInfoMapPCollectionView(geneInfoMapPCollectionView))
                         .withSideInputs(geneInfoMapPCollectionView)
                         : ParDo.of(injector.getInstance(GetTaxonomyFromTree.class)))
                 .apply("Global Window with Repeatedly triggering" + options.getStatisticUpdatingDelay(),
