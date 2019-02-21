@@ -60,11 +60,17 @@ public class GetResistanceGenesTaxonomyDataFn extends DoFn<String, KV<String, Ge
             geneData.setTaxonomy(new ArrayList<>(geneInfo.getGroups()));
             if (names.size() > 0) {
                 String name = names.iterator().next();
-                geneData.getTaxonomy().add(names.iterator().next());
+
                 String[][] taxonomyAndColor = tree.getTaxonomy(name.trim());
+
+                List<String> taxonomy = Arrays.asList(taxonomyAndColor[0]);
+                Collections.reverse(taxonomy);
+
                 List<String> colors = Arrays.asList(taxonomyAndColor[1]);
                 Collections.reverse(colors);
+
                 geneData.setColors(colors);
+                geneData.setTaxonomy(taxonomy);
             }
         }
         c.output(KV.of(geneName, geneData));
