@@ -110,8 +110,7 @@ public class EndToEndPipelineTest {
 
         PCollection<KV<String, SequenceStatisticResult>> sequnceStatisticResultPCollection = errorCorrectedCollection
                 .apply("Remove Sequence part", ParDo.of(new RemoveValueDoFn<>()))
-                .apply("Get Taxonomy data", ParDo.of(new GetTaxonomyFromTree(
-                        new ResourcesHelper().getFileContent("common_tree.txt"))))
+                .apply("Get Taxonomy data", ParDo.of(injector.getInstance(GetTaxonomyFromTree.class)))
                 .apply("Global Window with Repeatedly triggering" + OUTPUT_TRIGGERING_WINDOW_TIME_SEC,
                         Window.<KV<String, GeneData>>into(new GlobalWindows())
                                 .triggering(Repeatedly.forever(AfterProcessingTime
