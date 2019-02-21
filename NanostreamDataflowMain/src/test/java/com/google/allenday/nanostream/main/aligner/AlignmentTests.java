@@ -1,9 +1,10 @@
-package com.google.allenday.nanostream.aligner;
+package com.google.allenday.nanostream.main.aligner;
 
+import com.google.allenday.nanostream.aligner.MakeAlignmentViaHttpFn;
+import com.google.allenday.nanostream.main.injection.TestModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.allenday.nanostream.http.NanostreamHttpService;
-import com.google.allenday.nanostream.injection.TestModule;
 import htsjdk.samtools.fastq.FastqRecord;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;

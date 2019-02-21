@@ -144,6 +144,9 @@
                 <!-- Fixes build for OpenJDK, see: https://stackoverflow.com/questions/53010200/maven-surefire-could-not-find-forkedbooter-class -->
                 <configuration>
                     <useSystemClassLoader>false</useSystemClassLoader>
+                    <excludes>
+                        <exclude>com.google.allenday.nanostream.integration.EndToEndPipelineTest</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
             <plugin>

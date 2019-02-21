@@ -1,5 +1,6 @@
-package com.google.allenday.nanostream;
+package com.google.allenday.nanostream.integration;
 
+import com.google.allenday.nanostream.NanostreamApp;
 import com.google.allenday.nanostream.taxonomy.GetTaxonomyFromTree;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -20,6 +21,8 @@ import com.google.allenday.nanostream.probecalculation.KVCalculationAccumulatorF
 import com.google.allenday.nanostream.taxonomy.GetSpeciesTaxonomyDataFn;
 import com.google.allenday.nanostream.util.ResourcesHelper;
 import com.google.allenday.nanostream.util.trasform.RemoveValueDoFn;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import japsa.seq.Sequence;
 import org.apache.beam.sdk.PipelineResult;
 import org.apache.beam.sdk.testing.PAssert;
@@ -30,11 +33,12 @@ import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.joda.time.Duration;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -50,16 +54,43 @@ public class EndToEndPipelineTest {
     @Rule
     public final transient TestPipeline testPipeline = TestPipeline.create();
 
-    @Ignore
+    public enum Param {
+        PROJECT_ID("projectId"),
+        BWA_ENDPOINT("bwaEndpoint"),
+        SERVICES_URL("servicesUrl"),
+        BWA_DB("bwaDB"),
+        K_ALIGN_ENDPOINT("kAlignEndpoint");
+
+        public final String key;
+
+        Param(String key) {
+            this.key = key;
+        }
+
+        public static String getValueFromMap(Map<String, String> map, Param param){
+            return map.get(param.key);
+        }
+    }
+
     @Test
     public void testEndToEndPipelineSpeciesMode() {
+        Map<String, String> testParams = new HashMap<>();
+        for (Param param: Param.values()){
+            String value = System.getProperty(param.key);
+            if (value == null || value.isEmpty()){
+                throw new RuntimeException(String.format("You should provide %s", param.name()));
+            }
+            testParams.put(param.key, value);
+        }
+
         NanostreamApp.ProcessingMode processingMode = NanostreamApp.ProcessingMode.SPECIES;
+
         Injector injector = Guice.createInjector(new MainModule.Builder()
-                .setProjectId("upwork-nano-stream")
-                .setBwaEndpoint("/cgi-bin/bwa.cgi")
-                .setServicesUrl("http://35.241.15.140")
-                .setBwaDB("genomeDB.fasta")
-                .setkAlignEndpoint("/cgi-bin/kalign.cgi")
+                .setProjectId(Param.getValueFromMap(testParams, Param.PROJECT_ID))
+                .setBwaEndpoint(Param.getValueFromMap(testParams, Param.BWA_ENDPOINT))
+                .setServicesUrl(Param.getValueFromMap(testParams, Param.SERVICES_URL))
+                .setBwaDB(Param.getValueFromMap(testParams, Param.BWA_DB))
+                .setkAlignEndpoint(Param.getValueFromMap(testParams, Param.K_ALIGN_ENDPOINT))
                 .setProcessingMode(processingMode)
                 .build());
 
