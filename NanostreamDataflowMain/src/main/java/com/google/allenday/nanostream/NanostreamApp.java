@@ -26,7 +26,6 @@ import com.google.allenday.nanostream.util.EntityNamer;
 import com.google.allenday.nanostream.util.trasform.RemoveValueDoFn;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import htsjdk.samtools.fastq.FastqRecord;
 import japsa.seq.Sequence;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;

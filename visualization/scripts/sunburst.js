@@ -1,4 +1,4 @@
-requirejs(['db', 'transform', 'color'], function (db, transform, color) {
+requirejs(['db', 'transform'], function (db, transform) {
   let url = new URL(document.location.href);
   let collection = url.searchParams.get('c');
   let docname = url.searchParams.get('d');
@@ -21,7 +21,6 @@ requirejs(['db', 'transform', 'color'], function (db, transform, color) {
   nv.addGraph(function () {
     chart = nv.models.sunburstChart();
 
-    chart.color(color);
     chart.groupColorByParent(false);
     chart.showLabels(true);
     chart.mode('value');
