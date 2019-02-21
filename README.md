@@ -153,8 +153,8 @@ java -cp (path_to_nanostream_app_jar) \
 <details><summary>CGI species bwa</summary><p>
 
 ```
-java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
-  com.theappsolutions.nanostream.NanostreamApp \
+java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDataflowMain-1.0-SNAPSHOT.jar \
+  com.google.allenday.nanostream.NanostreamApp \
   --region=asia-northeast1 \
   --runner=org.apache.beam.runners.dataflow.DataflowRunner \
   --project=nano-stream1 \
@@ -174,8 +174,8 @@ java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/Nan
 <details><summary>CGI species mm2</summary><p>
 
 ```
-java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
-  com.theappsolutions.nanostream.NanostreamApp \
+java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDataflowMain-1.0-SNAPSHOT.jar \
+  com.google.allenday.nanostream.NanostreamApp \
   --region=asia-northeast1 \
   --runner=org.apache.beam.runners.dataflow.DataflowRunner \
   --project=nano-stream1 \
@@ -184,9 +184,9 @@ java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/Nan
   --inputDataSubscription=projects/nano-stream1/subscriptions/dataflow_species_mm2 \
   --alignmentWindow=20 \
   --statisticUpdatingDelay=30 \
-  --servicesUrl=http://35.241.45.217/ \
+  --servicesUrl=http://35.201.96.177/ \
   --bwaEndpoint=/cgi-bin/bwa.cgi \
-  --bwaDatabase=genomeDB.mmi \
+  --bwaDatabase=genomeDB.fasta \
   --kAlignEndpoint=/cgi-bin/kalign.cgi \
   --outputFirestoreCollectionNamePrefix=new_scanning
 ```
@@ -195,8 +195,8 @@ java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/Nan
 <details><summary>CGI resistance</summary><p>
 
 ```
-java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/build/NanostreamDataflowMain.jar \
-  com.theappsolutions.nanostream.NanostreamApp \
+java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDataflowMain-1.0-SNAPSHOT.jar \
+  com.google.allenday.nanostream.NanostreamApp \
   --region=asia-northeast1 \
   --runner=org.apache.beam.runners.dataflow.DataflowRunner \
   --project=nano-stream1 \
