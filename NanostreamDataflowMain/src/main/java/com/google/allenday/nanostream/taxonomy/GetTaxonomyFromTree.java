@@ -50,6 +50,9 @@ public class GetTaxonomyFromTree extends DoFn<String, KV<String, GeneData>> {
         List<String> taxonomy = Arrays.asList(taxonomyAndColor[0]);
         Collections.reverse(taxonomy);
 
-        c.output(KV.of(geneName, new GeneData(taxonomy)));
+        List<String> colors = Arrays.asList(taxonomyAndColor[1]);
+        Collections.reverse(colors);
+
+        c.output(KV.of(geneName, new GeneData(taxonomy, colors)));
     }
 }

@@ -15,9 +15,15 @@ public class GeneData implements Serializable {
 
     private Set<String> geneNames;
     private List<String> taxonomy;
+    private List<String> colors;
 
     public GeneData(List<String> taxonomy) {
         this.taxonomy = taxonomy;
+    }
+
+    public GeneData(List<String> taxonomy, List<String> colors) {
+        this.taxonomy = taxonomy;
+        this.colors = colors;
     }
 
     public GeneData() {
@@ -30,6 +36,14 @@ public class GeneData implements Serializable {
 
     public void setTaxonomy(List<String> taxonomy) {
         this.taxonomy = taxonomy;
+    }
+
+    public void setColors(List<String> colors) {
+        this.colors = colors;
+    }
+
+    public List<String> getColors() {
+        return colors;
     }
 
     public Set<String> getGeneNames() {

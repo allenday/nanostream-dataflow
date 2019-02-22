@@ -1,20 +1,23 @@
 package com.google.allenday.nanostream.injection;
 
-import com.google.allenday.nanostream.geneinfo.LoadGeneInfoTransform;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
 import com.google.allenday.nanostream.aligner.MakeAlignmentViaHttpFn;
+import com.google.allenday.nanostream.geneinfo.LoadGeneInfoTransform;
 import com.google.allenday.nanostream.http.NanostreamHttpService;
 import com.google.allenday.nanostream.kalign.ProceedKAlignmentFn;
 import com.google.allenday.nanostream.other.Configuration;
 import com.google.allenday.nanostream.output.PrepareSequencesStatisticToOutputDbFn;
 import com.google.allenday.nanostream.output.WriteSequencesBodiesToFirestoreDbFn;
 import com.google.allenday.nanostream.output.WriteSequencesStatisticToFirestoreDbFn;
+import com.google.allenday.nanostream.taxonomy.GetResistanceGenesTaxonomyDataFn;
 import com.google.allenday.nanostream.taxonomy.GetSpeciesTaxonomyDataFn;
+import com.google.allenday.nanostream.taxonomy.GetTaxonomyFromTree;
 import com.google.allenday.nanostream.util.EntityNamer;
 import com.google.allenday.nanostream.util.HttpHelper;
+import com.google.allenday.nanostream.util.ResourcesHelper;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
 
-import static com.google.allenday.nanostream.other.Configuration.SEQUENCES_STATISTIC_DOCUMENT_NAME_BASE;
+import static com.google.allenday.nanostream.other.Configuration.*;
 
 /**
  * App dependency injection module, that provide graph of main dependencies in app
@@ -85,5 +88,16 @@ public class MainModule extends NanostreamModule {
                 ? outputFirestoreStatiscticDocumentName
                 : entityNamer.generateTimestampedName(SEQUENCES_STATISTIC_DOCUMENT_NAME_BASE);
         return new PrepareSequencesStatisticToOutputDbFn(documentName, entityNamer.getInitialTimestamp());
+    }
+
+    @Provides
+    public GetTaxonomyFromTree provideGetTaxonomyFromTree() {
+        return new GetTaxonomyFromTree(
+                new ResourcesHelper().getFileContent(SPECIES_GENE_DATA_FILE_NAME));
+    }
+
+    @Provides
+    public GetResistanceGenesTaxonomyDataFn provideGetResistanceGenesTaxonomyDataFn() {
+        return new GetResistanceGenesTaxonomyDataFn(new ResourcesHelper().getFileContent(RESISTANCE_GENES_GENE_DATA_FILE_NAME));
     }
 }
