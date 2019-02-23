@@ -8,7 +8,7 @@ setup () {
     --container-image=${DOCKER_IMAGE} \
     --container-env BWA_FILES=${BWA_FILES},REQUESTER_PROJECT=${REQUESTER_PROJECT} \
     --boot-disk-size=100GB \
-    --tags http-server,http \
+    --tags ${NAME}-http \
     --preemptible \
     --machine-type=$MACHINE_TYPE
 
@@ -82,9 +82,9 @@ setup () {
 
     # create firewall rule
     gcloud compute firewall-rules \
-    create allow-http \
+    create ${NAME}-allow-http \
     --allow tcp:80 \
-    --target-tags http-server
+    --target-tags ${NAME}-http
 
     export ALIGNER_CLUSTER_IP_ADDRESS=$(gcloud compute forwarding-rules describe ${NAME}-forward --global --format="value(IPAddress)")
     echo "All done. Cluster will be available on http://${ALIGNER_CLUSTER_IP_ADDRESS}/ in 5-10 minutes"
@@ -114,5 +114,5 @@ cleanup () {
     gcloud compute http-health-checks delete ${NAME}-health-check
 
     # delete firewall rule
-    gcloud compute firewall-rules delete allow-http
+    gcloud compute firewall-rules delete ${NAME}-allow-http
 }
