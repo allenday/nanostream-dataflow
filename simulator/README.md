@@ -1,6 +1,7 @@
 ## Sequencing Data Simulator
 
 This module infinitely uploads files to GCS according to timings defined in a source file. The source file must be tab-separated values with two columns and no header.
+If your source data are stored in a large (>1 MB) multi-strand FastQ file you can use [FastQ Splitter](https://github.com/allenday/nanostream-dataflow/blob/master/utilities/fastq_splitter) utility. It converts large multi-strand FastQ file into a set of single strand FastQ files and tsv file with strand timings. This transformation makes possible to work with batch source data in a streaming mode.
 
 Columns are:
 - `time` - float number or seconds when to upload file, relative to the simulation round start
