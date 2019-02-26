@@ -41,7 +41,7 @@ public class TestModule extends NanostreamModule {
 
     @Provides
     public MakeAlignmentViaHttpFn provideMakeAlignmentViaHttpFn(NanostreamHttpService service) {
-        return new MakeAlignmentViaHttpFn(service, bwaDB, bwaEndpoint);
+        return new MakeAlignmentViaHttpFn(service, bwaDB, bwaEndpoint, bwaArguments);
     }
 
     @Provides

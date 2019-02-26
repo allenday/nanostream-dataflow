@@ -19,19 +19,23 @@ public class MakeAlignmentViaHttpFn extends DoFn<Iterable<FastqRecord>, String> 
 
     private final static String DATABASE_MULTIPART_KEY = "database";
     private final static String FASTQ_DATA_MULTIPART_KEY = "fastq";
+    private final static String BWA_ARGUMENTS_MULTIPART_KEY = "args";
 
     private Logger LOG = LoggerFactory.getLogger(MakeAlignmentViaHttpFn.class);
 
     private NanostreamHttpService nanostreamHttpService;
     private String database;
     private String endpoint;
+    private String bwaArguments;
 
     public MakeAlignmentViaHttpFn(NanostreamHttpService nanostreamHttpService,
                                   String database,
-                                  String endpoint) {
+                                  String endpoint,
+                                  String bwaArguments) {
         this.nanostreamHttpService = nanostreamHttpService;
         this.database = database;
         this.endpoint = endpoint;
+        this.bwaArguments = bwaArguments;
     }
 
     @ProcessElement
@@ -41,6 +45,7 @@ public class MakeAlignmentViaHttpFn extends DoFn<Iterable<FastqRecord>, String> 
         Map<String, String> content = new HashMap<>();
         content.put(DATABASE_MULTIPART_KEY, database);
         content.put(FASTQ_DATA_MULTIPART_KEY, prepareFastQData(data));
+        content.put(BWA_ARGUMENTS_MULTIPART_KEY, bwaArguments);
 
         try {
             LOG.info(String.format("Sending Alignment request (#%s) with %d elements...", content.hashCode(),

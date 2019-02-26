@@ -27,7 +27,7 @@ gcloud pubsub subscriptions create $UPLOAD_SUBSCRIPTION --topic $UPLOAD_EVENTS
 ```
 6. Provision an aligner cluster, see [aligner](aligner)
 7. Create a **Cloud Firestore DB** ([See details in section Create a Cloud Firestore project](https://cloud.google.com/firestore/docs/quickstart-mobile-web#create_a_project)) for saving cache and result data.
-8. *optional* If you running the pipeline in `resistance_genes` mode you should provide "FASTA DB" and "gene list" files stored in GCS.
+8. *optional* If you running the pipeline in `resistance_genes` mode you should provide "gene list" file stored in GCS.
 
 ### Project Structure
 - NanostreamDataflowMain - Apache Beam app that provides all data transformations
@@ -86,6 +86,14 @@ If you run the pipeline in the `resistance_genes` mode you should add additional
 # Path to text file with resistant genes references and groups
 RESISTANCE_GENES_LIST=gs://$FILES_BUCKET/gene-info/resistance_genes_list.txt
 ```
+**(Optional) Additional parameters**
+You can manually specify some parameters such as *Alignment batch size* and *BWA Aligner arguments*:
+```
+# Max size of batch that will be generated before alignment. Default value - 2000
+ALIGNMENT_BATCH_SIZE=1000
+# Arguments that will be passed to BWA aligner. Default value - "-t 4"
+BWA_ARGUMENTS='-t 4'
+```
 
 To start **Nanostream Pipeline** run following command:
 ```
@@ -104,7 +112,9 @@ java -cp (path_to_nanostream_app_jar) \
   --kAlignEndpoint=$KALIGN_ENDPOINT \
   --outputFirestoreCollectionNamePrefix=$FIRESTORE_COLLECTION_NAME_PREFIX \
   --outputFirestoreStatisticDocumentName=$FIRESTORE_STATISTIC_DOCUMENT_NAME \
-  --resistanceGenesList=$RESISTANCE_GENES_LIST
+  --resistanceGenesList=$RESISTANCE_GENES_LIST \
+  --alignmentBatchSize=$ALIGNMENT_BATCH_SIZE `# (Optional)`\
+  --bwaArguments=$BWA_ARGUMENTS `# (Optional)`
 ```
 
 ### Available databases
