@@ -33,7 +33,7 @@ gcloud pubsub subscriptions create $UPLOAD_SUBSCRIPTION --topic $UPLOAD_EVENTS
 - NanostreamDataflowMain - Apache Beam app that provides all data transformations
 - aligner - scripts to provision auto-scaled HTTP service for alignment (based on `bwa`)
 - simulator - python script that can simulate file uploads to GCS
-- fasta_formatter - python script for formatting fasta files into project readable format
+- utilities - utils for preprocessing of FASTA and FASTQ files
 - visualization - module for the visualization of results
 - doc - additional files for documentation
 
