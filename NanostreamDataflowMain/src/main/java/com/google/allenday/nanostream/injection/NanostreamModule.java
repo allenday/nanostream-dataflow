@@ -21,6 +21,7 @@ public class NanostreamModule extends AbstractModule {
     protected String outputFirestoreCollectionNamePrefix;
     protected NanostreamApp.ProcessingMode processingMode;
     protected String outputFirestoreStatiscticDocumentName;
+    protected String bwaArguments;
 
     public NanostreamModule(Builder builder) {
         this.projectId = builder.projectId;
@@ -32,6 +33,7 @@ public class NanostreamModule extends AbstractModule {
         this.outputFirestoreCollectionNamePrefix = builder.outputFirestoreCollectionNamePrefix;
         this.processingMode = builder.processingMode;
         this.outputFirestoreStatiscticDocumentName = builder.outputFirestoreStatiscticDocumentName;
+        this.bwaArguments = builder.bwaArguments;
     }
 
     public static class Builder {
@@ -45,6 +47,7 @@ public class NanostreamModule extends AbstractModule {
         protected String outputFirestoreCollectionNamePrefix;
         protected NanostreamApp.ProcessingMode processingMode;
         protected String outputFirestoreStatiscticDocumentName;
+        protected String bwaArguments;
 
 
         public Builder setProjectId(String projectId) {
@@ -92,6 +95,11 @@ public class NanostreamModule extends AbstractModule {
             return this;
         }
 
+        public Builder setBwaArguments(String bwaArguments) {
+            this.bwaArguments = bwaArguments;
+            return this;
+        }
+
         public String getProjectId() {
             return projectId;
         }
@@ -123,6 +131,7 @@ public class NanostreamModule extends AbstractModule {
             setOutputFirestoreCollectionNamePrefix(nanostreamPipelineOptions.getOutputFirestoreCollectionNamePrefix());
             setProcessingMode(NanostreamApp.ProcessingMode.findByLabel(nanostreamPipelineOptions.getProcessingMode()));
             setOutputFirestoreStatiscticDocumentName(nanostreamPipelineOptions.getOutputFirestoreStatisticDocumentName());
+            setBwaArguments(nanostreamPipelineOptions.getBwaArguments());
             return build();
         }
 

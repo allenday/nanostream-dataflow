@@ -50,8 +50,6 @@ import java.util.stream.Stream;
  */
 public class NanostreamApp {
 
-    private static final int FASTQ_GROUPING_BATCH_SIZE = 200;
-
     public enum ProcessingMode {
         SPECIES("species"),
         RESISTANT_GENES("resistance_genes");
@@ -102,8 +100,8 @@ public class NanostreamApp {
                 .apply("Parse FastQ data", ParDo.of(new ParseFastQFn()))
                 .apply(options.getAlignmentWindow() + "s FastQ collect window",
                         Window.into(FixedWindows.of(Duration.standardSeconds(options.getAlignmentWindow()))))
-                .apply("Create batches of "+ FASTQ_GROUPING_BATCH_SIZE +" FastQ records",
-                        new BatchByN(FASTQ_GROUPING_BATCH_SIZE))
+                .apply("Create batches of "+ options.getAlignmentBatchSize() +" FastQ records",
+                        new BatchByN(options.getAlignmentBatchSize()))
                 .apply("Alignment", ParDo.of(injector.getInstance(MakeAlignmentViaHttpFn.class)))
                 .apply("Extract Sequences",
                         ParDo.of(new GetSequencesFromSamDataFn()))
