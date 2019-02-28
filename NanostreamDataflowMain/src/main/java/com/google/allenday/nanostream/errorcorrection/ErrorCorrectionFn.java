@@ -1,5 +1,6 @@
 package com.google.allenday.nanostream.errorcorrection;
 
+import com.google.allenday.nanostream.pubsub.GCSSourceData;
 import japsa.bio.np.ErrorCorrection;
 import japsa.seq.Sequence;
 import org.apache.beam.sdk.transforms.DoFn;
@@ -12,7 +13,7 @@ import java.util.stream.StreamSupport;
 /**
  * Provides sequence merging operation that creates one final sequence from multiple parts
  */
-public class ErrorCorrectionFn extends DoFn<KV<String, Iterable<Sequence>>, KV<String, Sequence>> {
+public class ErrorCorrectionFn extends DoFn<KV<KV<GCSSourceData, String>, Iterable<Sequence>>, KV<KV<GCSSourceData, String>, Sequence>> {
 
     @ProcessElement
     public void processElement(ProcessContext c) {

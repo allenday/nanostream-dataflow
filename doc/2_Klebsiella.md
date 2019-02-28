@@ -69,7 +69,7 @@ BWA_DATABASE=DB.fasta
 # kalign path
 KALIGN_ENDPOINT=/cgi-bin/kalign.cgi
 FIRESTORE_COLLECTION_NAME_PREFIX=klebsiella
-FIRESTORE_STATISTIC_DOCUMENT_NAME=res_genes
+FIRESTORE_DOCUMENT_NAME_PREFIX=res_genes
 RESISTANCE_GENES_LIST=gs://$FILES_BUCKET/resistant_genes_list.txt
 ```
 
@@ -89,8 +89,8 @@ java -cp target/NanostreamDataflowMain-1.0-SNAPSHOT.jar \
   --bwaEndpoint=$BWA_ENDPOINT \
   --bwaDatabase=$BWA_DATABASE \
   --kAlignEndpoint=$KALIGN_ENDPOINT \
-  --outputFirestoreCollectionNamePrefix=$FIRESTORE_COLLECTION_NAME_PREFIX \
-  --outputFirestoreStatisticDocumentName=$FIRESTORE_STATISTIC_DOCUMENT_NAME \
+  --outputCollectionNamePrefix=$FIRESTORE_COLLECTION_NAME_PREFIX \
+  --outputDocumentNamePrefix=$FIRESTORE_DOCUMENT_NAME_PREFIX \
   --resistanceGenesList=$RESISTANCE_GENES_LIST
 ```
 

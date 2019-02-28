@@ -1,6 +1,7 @@
 package com.google.allenday.nanostream.kalign;
 
 import com.google.allenday.nanostream.http.NanostreamHttpService;
+import com.google.allenday.nanostream.pubsub.GCSSourceData;
 import japsa.seq.Alphabet;
 import japsa.seq.FastaReader;
 import japsa.seq.Sequence;
@@ -25,7 +26,7 @@ import java.util.stream.StreamSupport;
  * See <a href="https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-6-298">K-Align</a>
  * information
  */
-public class ProceedKAlignmentFn extends DoFn<KV<String, Iterable<Sequence>>, KV<String, Iterable<Sequence>>> {
+public class ProceedKAlignmentFn extends DoFn<KV<KV<GCSSourceData, String>, Iterable<Sequence>>, KV<KV<GCSSourceData, String>, Iterable<Sequence>>> {
 
     private final static String FASTA_DATA_MULTIPART_KEY = "fasta";
 
@@ -44,8 +45,6 @@ public class ProceedKAlignmentFn extends DoFn<KV<String, Iterable<Sequence>>, KV
     @ProcessElement
     public void processElement(ProcessContext c) {
         Iterable<Sequence> sequenceIterable = c.element().getValue();
-        String geneID = c.element().getKey();
-
         long sequenceIterableSize = StreamSupport.stream(sequenceIterable.spliterator(), false)
                 .count();
         if (sequenceIterableSize <= 1) {
@@ -74,7 +73,7 @@ public class ProceedKAlignmentFn extends DoFn<KV<String, Iterable<Sequence>>, KV
             fastaReader.close();
 
 
-            c.output(KV.of(geneID, seqList));
+            c.output(KV.of(c.element().getKey(), seqList));
         } catch (URISyntaxException | IOException e) {
             LOG.error(e.getMessage());
         }

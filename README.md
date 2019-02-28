@@ -78,8 +78,8 @@ KALIGN_ENDPOINT=/cgi-bin/kalign.cgi
 
 # Collections name prefix of the Firestore database that will be used for writing results
 FIRESTORE_COLLECTION_NAME_PREFIX=new_scanning
-# (OPTIONAL) Firestore database document name that will be used for writing statistic results. You can specify it otherwise it will be generated automatically
-FIRESTORE_STATISTIC_DOCUMENT_NAME=statistic_document
+# (OPTIONAL) Firestore database document name prefix that will be used for writing statistic results
+FIRESTORE_DOCUMENT_NAME_PREFIX=statistic_document
 ```
 If you run the pipeline in the `resistance_genes` mode you should add additional argument with path of file stored in the GCS. With a placeholder name `$FILES_BUCKET` add next argument:
 ```
@@ -110,8 +110,8 @@ java -cp (path_to_nanostream_app_jar) \
   --bwaEndpoint=$BWA_ENDPOINT \
   --bwaDatabase=$BWA_DATABASE \ 
   --kAlignEndpoint=$KALIGN_ENDPOINT \
-  --outputFirestoreCollectionNamePrefix=$FIRESTORE_COLLECTION_NAME_PREFIX \
-  --outputFirestoreStatisticDocumentName=$FIRESTORE_STATISTIC_DOCUMENT_NAME \
+  --outputCollectionNamePrefix=$FIRESTORE_COLLECTION_NAME_PREFIX \
+  --outputDocumentNamePrefix=$FIRESTORE_DOCUMENT_NAME_PREFIX \
   --resistanceGenesList=$RESISTANCE_GENES_LIST \
   --alignmentBatchSize=$ALIGNMENT_BATCH_SIZE `# (Optional)`\
   --bwaArguments=$BWA_ARGUMENTS `# (Optional)`
