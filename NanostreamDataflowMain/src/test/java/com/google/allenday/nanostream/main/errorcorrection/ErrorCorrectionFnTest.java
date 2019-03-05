@@ -1,10 +1,11 @@
 package com.google.allenday.nanostream.main.errorcorrection;
 
 import com.google.allenday.nanostream.errorcorrection.ErrorCorrectionFn;
+import com.google.allenday.nanostream.kalign.SequenceOnlyDNACoder;
 import com.google.allenday.nanostream.main.injection.TestModule;
+import com.google.allenday.nanostream.pubsub.GCSSourceData;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.allenday.nanostream.kalign.SequenceOnlyDNACoder;
 import japsa.seq.Alphabet;
 import japsa.seq.Sequence;
 import org.apache.beam.sdk.testing.PAssert;
@@ -39,15 +40,17 @@ public class ErrorCorrectionFnTest {
     public void testSingleItemErrorCorrection() {
         Injector injector = Guice.createInjector(new TestModule.Builder().build());
 
+        GCSSourceData mockGCSSourceData = injector.getInstance(GCSSourceData.class);
+
         String geneId = "test_gene_id";
         String sequesnceName = "test_sequnce_name";
         Sequence testSequence1 = new Sequence(Alphabet.DNA(), TEST_SEQUENCE_1, sequesnceName);
 
-        testErrorCorrection(KV.of(geneId, Collections.singletonList(testSequence1)),
+        testErrorCorrection(KV.of(KV.of(mockGCSSourceData, geneId), Collections.singletonList(testSequence1)),
                 input -> {
                     Assert.assertTrue(input.iterator().hasNext());
-                    KV<String, Sequence> resultData = input.iterator().next();
-                    Assert.assertEquals(geneId, resultData.getKey());
+                    KV<KV<GCSSourceData, String>, Sequence> resultData = input.iterator().next();
+                    Assert.assertEquals(geneId, resultData.getKey().getValue());
 
                     Sequence sequence = resultData.getValue();
                     Assert.assertEquals(TEST_SEQUENCE_1, sequence.toString());
@@ -59,6 +62,7 @@ public class ErrorCorrectionFnTest {
     @Test
     public void testMultipleItemErrorCorrection() {
         Injector injector = Guice.createInjector(new TestModule.Builder().build());
+        GCSSourceData mockGCSSourceData = injector.getInstance(GCSSourceData.class);
 
         String geneId = "test_gene_id";
         String sequesnceName = "test_sequnce_name";
@@ -66,11 +70,11 @@ public class ErrorCorrectionFnTest {
         Sequence testSequence2 = new Sequence(Alphabet.DNA(), TEST_SEQUENCE_2, sequesnceName);
         Sequence testSequence3 = new Sequence(Alphabet.DNA(), TEST_SEQUENCE_3, sequesnceName);
 
-        testErrorCorrection(KV.of(geneId, Arrays.asList(testSequence1, testSequence2, testSequence3)),
+        testErrorCorrection(KV.of(KV.of(mockGCSSourceData, geneId), Arrays.asList(testSequence1, testSequence2, testSequence3)),
                 input -> {
                     Assert.assertTrue(input.iterator().hasNext());
-                    KV<String, Sequence> resultData = input.iterator().next();
-                    Assert.assertEquals(geneId, resultData.getKey());
+                    KV<KV<GCSSourceData, String>, Sequence> resultData = input.iterator().next();
+                    Assert.assertEquals(geneId, resultData.getKey().getValue());
 
                     Sequence sequence = resultData.getValue();
                     Assert.assertEquals(MERGED_SEQUENCE, sequence.toString());
@@ -79,14 +83,14 @@ public class ErrorCorrectionFnTest {
     }
 
 
-    private void testErrorCorrection(KV<String, Iterable<Sequence>> sourceData,
-                                     SerializableFunction<Iterable<KV<String, Sequence>>, Void> assertFunction,
+    private void testErrorCorrection(KV<KV<GCSSourceData, String>, Iterable<Sequence>> sourceData,
+                                     SerializableFunction<Iterable<KV<KV<GCSSourceData, String>, Sequence>>, Void> assertFunction,
                                      Injector injector) {
         SequenceOnlyDNACoder sequenceOnlyDNACoder = new SequenceOnlyDNACoder();
         testPipeline.getCoderRegistry()
                 .registerCoderForType(sequenceOnlyDNACoder.getEncodedTypeDescriptor(), sequenceOnlyDNACoder);
 
-        PCollection<KV<String, Sequence>> parsedFastQ = testPipeline
+        PCollection<KV<KV<GCSSourceData, String>, Sequence>> parsedFastQ = testPipeline
                 .apply(Create.of(sourceData))
                 .apply(ParDo.of(injector.getInstance(ErrorCorrectionFn.class)));
         PAssert.that(parsedFastQ)

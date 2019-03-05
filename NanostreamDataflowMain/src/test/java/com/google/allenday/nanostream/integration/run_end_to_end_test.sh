@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # IP address of the aligner cluster created by running aligner/provision_species.sh
-SPECIES_ALIGNER_CLUSTER_IP=$(gcloud compute forwarding-rules describe bwa-species-forward --global --format="value(IPAddress)")
+SERVICES_HOST=http://$SPECIES_ALIGNER_CLUSTER_IP
 # Google Cloud project name
 PROJECT=`gcloud config get-value project`
 

@@ -18,9 +18,9 @@ public class NanostreamModule extends AbstractModule {
     protected String bwaDB;
     protected String kAlignEndpoint;
     protected String resistanceGenesList;
-    protected String outputFirestoreCollectionNamePrefix;
+    protected String outputCollectionNamePrefix;
+    protected String outputDocumentNamePrefix;
     protected NanostreamApp.ProcessingMode processingMode;
-    protected String outputFirestoreStatiscticDocumentName;
     protected String bwaArguments;
 
     public NanostreamModule(Builder builder) {
@@ -30,9 +30,9 @@ public class NanostreamModule extends AbstractModule {
         this.bwaDB = builder.bwaDB;
         this.kAlignEndpoint = builder.kAlignEndpoint;
         this.resistanceGenesList = builder.resistanceGenesList;
-        this.outputFirestoreCollectionNamePrefix = builder.outputFirestoreCollectionNamePrefix;
+        this.outputCollectionNamePrefix = builder.outputCollectionNamePrefix;
         this.processingMode = builder.processingMode;
-        this.outputFirestoreStatiscticDocumentName = builder.outputFirestoreStatiscticDocumentName;
+        this.outputDocumentNamePrefix = builder.outputDocumentNamePrefix;
         this.bwaArguments = builder.bwaArguments;
     }
 
@@ -44,9 +44,9 @@ public class NanostreamModule extends AbstractModule {
         protected String bwaDB;
         protected String kAlignEndpoint;
         protected String resistanceGenesList;
-        protected String outputFirestoreCollectionNamePrefix;
+        protected String outputCollectionNamePrefix;
         protected NanostreamApp.ProcessingMode processingMode;
-        protected String outputFirestoreStatiscticDocumentName;
+        protected String outputDocumentNamePrefix;
         protected String bwaArguments;
 
 
@@ -80,8 +80,8 @@ public class NanostreamModule extends AbstractModule {
             return this;
         }
 
-        public Builder setOutputFirestoreCollectionNamePrefix(String outputFirestoreCollectionNamePrefix) {
-            this.outputFirestoreCollectionNamePrefix = outputFirestoreCollectionNamePrefix;
+        public Builder setOutputCollectionNamePrefix(String outputCollectionNamePrefix) {
+            this.outputCollectionNamePrefix = outputCollectionNamePrefix;
             return this;
         }
 
@@ -90,8 +90,8 @@ public class NanostreamModule extends AbstractModule {
             return this;
         }
 
-        public Builder setOutputFirestoreStatiscticDocumentName(String outputFirestoreStatiscticDocumentName) {
-            this.outputFirestoreStatiscticDocumentName = outputFirestoreStatiscticDocumentName;
+        public Builder setOutputDocumentNamePrefix(String outputDocumentNamePrefix) {
+            this.outputDocumentNamePrefix = outputDocumentNamePrefix;
             return this;
         }
 
@@ -128,9 +128,9 @@ public class NanostreamModule extends AbstractModule {
             setBwaDB(nanostreamPipelineOptions.getBwaDatabase());
             setkAlignEndpoint(nanostreamPipelineOptions.getkAlignEndpoint());
             setResistanceGenesList(nanostreamPipelineOptions.getResistanceGenesList());
-            setOutputFirestoreCollectionNamePrefix(nanostreamPipelineOptions.getOutputFirestoreCollectionNamePrefix());
+            setOutputCollectionNamePrefix(nanostreamPipelineOptions.getOutputCollectionNamePrefix());
             setProcessingMode(NanostreamApp.ProcessingMode.findByLabel(nanostreamPipelineOptions.getProcessingMode()));
-            setOutputFirestoreStatiscticDocumentName(nanostreamPipelineOptions.getOutputFirestoreStatisticDocumentName());
+            setOutputDocumentNamePrefix(nanostreamPipelineOptions.getOutputDocumentNamePrefix());
             setBwaArguments(nanostreamPipelineOptions.getBwaArguments());
             return build();
         }

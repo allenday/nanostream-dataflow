@@ -9,6 +9,8 @@ import com.google.cloud.storage.StorageException;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.cloud.FirestoreClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -18,6 +20,7 @@ import java.util.concurrent.ExecutionException;
  * Provides access to {@link Firestore} instance with convenient interface
  */
 public class FirestoreService {
+    private Logger LOG = LoggerFactory.getLogger(FirestoreService.class);
 
     private final static String FIREBASE_APP_NAME = "NanostreamFirebaseApp";
     private final Firestore firestore;
@@ -50,6 +53,7 @@ public class FirestoreService {
     }
 
     public ApiFuture<WriteResult> writeObjectToFirestoreCollection(String firestoreCollection, String documentId, Object objectToWrite) throws StorageException {
+        LOG.info(String.format("firestoreCollection %s, documentId %s", firestoreCollection, documentId));
         return firestore.collection(firestoreCollection).document(documentId)
                 .set(objectToWrite);
     }

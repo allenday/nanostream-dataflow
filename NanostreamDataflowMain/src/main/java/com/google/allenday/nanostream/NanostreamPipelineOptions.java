@@ -75,16 +75,15 @@ public interface NanostreamPipelineOptions extends DataflowPipelineOptions {
     void setResistanceGenesList(String value);
 
     @Description("Prefix for Firestore collections names that used for output")
-    @Validation.Required
-    String getOutputFirestoreCollectionNamePrefix();
+    String getOutputCollectionNamePrefix();
 
-    void setOutputFirestoreCollectionNamePrefix(String value);
+    void setOutputCollectionNamePrefix(String value);
 
 
-    @Description("Name for Firestore statistic result document")
-    String getOutputFirestoreStatisticDocumentName();
+    @Description("Prefix for Firestore statistic result document")
+    String getOutputDocumentNamePrefix();
 
-    void setOutputFirestoreStatisticDocumentName(String value);
+    void setOutputDocumentNamePrefix(String value);
 
 
     @Description("Max size of batch that will be generated before alignment")

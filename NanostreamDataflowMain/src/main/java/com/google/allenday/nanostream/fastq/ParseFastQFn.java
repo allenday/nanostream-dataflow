@@ -1,8 +1,10 @@
 package com.google.allenday.nanostream.fastq;
 
+import com.google.allenday.nanostream.pubsub.GCSSourceData;
 import htsjdk.samtools.fastq.FastqRecord;
 import org.apache.beam.repackaged.beam_sdks_java_core.org.apache.commons.lang3.StringUtils;
 import org.apache.beam.sdk.transforms.DoFn;
+import org.apache.beam.sdk.values.KV;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,7 +16,7 @@ import java.util.stream.IntStream;
 /**
  * Creates {@link FastqRecord} instance from .fastq file data
  */
-public class ParseFastQFn extends DoFn<String, FastqRecord> {
+public class ParseFastQFn extends DoFn<KV<GCSSourceData, String>, KV<GCSSourceData, FastqRecord>> {
 
     private final static String NEW_FASTQ_INDICATION = "runid";
 
@@ -22,7 +24,7 @@ public class ParseFastQFn extends DoFn<String, FastqRecord> {
     public void processElement(ProcessContext c) {
         List<Integer> fastqStarts = new ArrayList<>();
 
-        String data = c.element();
+        String data = c.element().getValue();
 
         int position = 0;
         Scanner scanner = new Scanner(data);
@@ -50,7 +52,7 @@ public class ParseFastQFn extends DoFn<String, FastqRecord> {
             String baseQualities = linesList.get(3);
 
             FastqRecord fastQ = new FastqRecord(readName, readBases, qualityHeader, baseQualities);
-            c.output(fastQ);
+            c.output(KV.of(c.element().getKey(), fastQ));
         });
     }
 
