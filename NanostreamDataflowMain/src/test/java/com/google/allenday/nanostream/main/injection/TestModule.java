@@ -17,6 +17,7 @@ public class TestModule extends NanostreamModule {
 
     public final static String TEST_BUCKET = "test_bucket";
     public final static String TEST_FOLDER = "test/folder";
+    public final static String TEST_FILENAME = "test.fastq";
 
     public TestModule(TestModule.Builder builder) {
         super(builder);
@@ -55,6 +56,6 @@ public class TestModule extends NanostreamModule {
 
     @Provides
     public GCSSourceData provideGCSSourceData() {
-        return new GCSSourceData(TEST_BUCKET, TEST_FOLDER);
+        return new GCSSourceData(TEST_BUCKET, TEST_FOLDER, TEST_FILENAME);
     }
 }

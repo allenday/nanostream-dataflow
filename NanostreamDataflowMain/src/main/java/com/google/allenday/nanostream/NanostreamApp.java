@@ -4,12 +4,13 @@ import com.google.allenday.nanostream.aligner.GetSequencesFromSamDataFn;
 import com.google.allenday.nanostream.aligner.MakeAlignmentViaHttpFn;
 import com.google.allenday.nanostream.errorcorrection.ErrorCorrectionFn;
 import com.google.allenday.nanostream.fastq.ParseFastQFn;
-import com.google.allenday.nanostream.gcs.GetDataFromFastQFile;
+import com.google.allenday.nanostream.gcs.GetDataFromGCSFile;
 import com.google.allenday.nanostream.gcs.ParseGCloudNotification;
 import com.google.allenday.nanostream.geneinfo.GeneData;
 import com.google.allenday.nanostream.geneinfo.GeneInfo;
 import com.google.allenday.nanostream.geneinfo.LoadGeneInfoTransform;
 import com.google.allenday.nanostream.injection.MainModule;
+import com.google.allenday.nanostream.io.SplitByFileType;
 import com.google.allenday.nanostream.kalign.ProceedKAlignmentFn;
 import com.google.allenday.nanostream.kalign.SequenceOnlyDNACoder;
 import com.google.allenday.nanostream.output.PrepareSequencesStatisticToOutputDbFn;
@@ -22,8 +23,10 @@ import com.google.allenday.nanostream.taxonomy.GetResistanceGenesTaxonomyDataFn;
 import com.google.allenday.nanostream.taxonomy.GetTaxonomyFromTree;
 import com.google.allenday.nanostream.util.CoderUtils;
 import com.google.allenday.nanostream.util.EntityNamer;
+import com.google.allenday.nanostream.util.trasform.BytesToString;
 import com.google.allenday.nanostream.util.trasform.FlattenMapToKV;
 import com.google.allenday.nanostream.util.trasform.RemoveValueDoFn;
+import com.google.allenday.nanostream.util.trasform.StringToBytes;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.apache.beam.sdk.Pipeline;
@@ -34,6 +37,7 @@ import org.apache.beam.sdk.transforms.*;
 import org.apache.beam.sdk.transforms.windowing.*;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
+import org.apache.beam.sdk.values.PCollectionList;
 import org.apache.beam.sdk.values.PCollectionView;
 import org.joda.time.Duration;
 
@@ -85,20 +89,35 @@ public class NanostreamApp {
                 .readMessagesWithAttributes()
                 .fromSubscription(options.getInputDataSubscription()));
 
-        pubsubMessages
+        PCollection<KV<GCSSourceData, byte[]>> uploadedFiles = pubsubMessages
                 .apply("Filter only ADD FILE", ParDo.of(new FilterObjectFinalizeMessage()))
                 .apply("Deserialize messages", ParDo.of(new DecodeNotificationJsonMessage()))
                 .apply("Parse GCloud notification", ParDo.of(new ParseGCloudNotification()))
+                .apply("Get data from GCS file", ParDo.of(new GetDataFromGCSFile()))
+                .apply(options.getAlignmentWindow() + "s windows",
+                        Window.into(FixedWindows.of(Duration.standardSeconds(options.getAlignmentWindow()))));
 
-                .apply("Get data from FastQ", ParDo.of(new GetDataFromFastQFile()))
+        PCollectionList<KV<GCSSourceData, byte[]>> files = uploadedFiles
+                .apply(Partition.of(SplitByFileType.NUMBER_OF_PARTITIONS, new SplitByFileType()));
+        PCollection<KV<GCSSourceData, byte[]>> fastQFiles = files.get(SplitByFileType.FASTQ_FILE);
+        PCollection<KV<GCSSourceData, byte[]>> samFiles = files.get(SplitByFileType.SAM_FILE);
+        PCollection<KV<GCSSourceData, byte[]>> bamFiles = files.get(SplitByFileType.BAM_FILE);
+        
+        PCollection<KV<GCSSourceData, byte[]>> alignmentResult = fastQFiles.apply(ParDo.of(new BytesToString<>()))
                 .apply("Parse FastQ data", ParDo.of(new ParseFastQFn()))
-                .apply(options.getAlignmentWindow() + "s FastQ collect window",
-                        Window.into(FixedWindows.of(Duration.standardSeconds(options.getAlignmentWindow()))))
-                .apply("Create batches of "+ options.getAlignmentBatchSize() +" FastQ records",
+                .apply("Create batches of " + options.getAlignmentBatchSize() + " FastQ records",
                         GroupIntoBatches.ofSize(options.getAlignmentBatchSize()))
                 .apply("Alignment", ParDo.of(injector.getInstance(MakeAlignmentViaHttpFn.class)))
-                .apply("Extract Sequences",
-                        ParDo.of(new GetSequencesFromSamDataFn()))
+                .apply(ParDo.of(new StringToBytes<>()));
+
+        PCollectionList<KV<GCSSourceData, byte[]>> aligned = PCollectionList
+                .of(alignmentResult)
+                .and(samFiles)
+                .and(bamFiles);
+
+        aligned
+                .apply(Flatten.pCollections())
+                .apply("Extract Sequences", ParDo.of(new GetSequencesFromSamDataFn()))
                 .apply("Group by SAM reference", GroupByKey.create())
                 .apply("K-Align", ParDo.of(injector.getInstance(ProceedKAlignmentFn.class)))
                 .apply("Error correction", ParDo.of(new ErrorCorrectionFn()))

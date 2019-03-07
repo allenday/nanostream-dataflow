@@ -9,11 +9,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Gets fastq filename from GCloudNotification and extracts data from this file
+ * Gets GCS filename from GCloudNotification and extracts data from this file
  */
-public class GetDataFromFastQFile extends DoFn<KV<GCSSourceData, String>, KV<GCSSourceData, String>> {
+public class GetDataFromGCSFile extends DoFn<KV<GCSSourceData, String>, KV<GCSSourceData, byte[]>> {
 
-    private Logger LOG = LoggerFactory.getLogger(GetDataFromFastQFile.class);
+    private Logger LOG = LoggerFactory.getLogger(GetDataFromGCSFile.class);
 
     private GCSService gcsService;
 
@@ -34,7 +34,7 @@ public class GetDataFromFastQFile extends DoFn<KV<GCSSourceData, String>, KV<GCS
                         gcsSourceData.getBucket(), data.getValue()
                 );
                 if (blob != null && blob.exists()) {
-                    c.output(KV.of(gcsSourceData, new String(blob.getContent())));
+                    c.output(KV.of(gcsSourceData, blob.getContent()));
                 }
             }
         } catch (StorageException e) {
