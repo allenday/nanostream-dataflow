@@ -16,15 +16,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Parses aligned data that comes HTTP aligner into {@link SAMRecord}. Generates {@link KV<String, Sequence>>} object that contains
- * name reference-Sequence pair
+ * Parses aligned data from SAM or BAM files.
+ * Outputs only sequences that are matched, reference name != "*".
  */
-public class GetSequencesFromSamDataFn extends DoFn<KV<GCSSourceData, String>, KV<KV<GCSSourceData, String>, Sequence>> {
+public class GetSequencesFromSamDataFn extends DoFn<KV<GCSSourceData, byte[]>, KV<KV<GCSSourceData, String>, Sequence>> {
     private Logger LOG = LoggerFactory.getLogger(GetSequencesFromSamDataFn.class);
 
     @ProcessElement
     public void processElement(ProcessContext c) {
-        KV<GCSSourceData, String> data = c.element();
+        KV<GCSSourceData, byte[]> data = c.element();
         List<SAMRecord> results = parseAlignmentResponse(data.getValue());
         LOG.info(String.format("List SAMRecords size: %d", ObjectSizeFetcher.sizeOf(results)));
         LOG.info(String.format("List SAMRecords item size: %d", results.size()));
@@ -35,10 +35,10 @@ public class GetSequencesFromSamDataFn extends DoFn<KV<GCSSourceData, String>, K
         });
     }
 
-    private List<SAMRecord> parseAlignmentResponse(String response) {
+    private List<SAMRecord> parseAlignmentResponse(byte[] response) {
         List<SAMRecord> results = new ArrayList<>();
 
-        InputStream responseInputStream = new ByteArrayInputStream(response.getBytes());
+        InputStream responseInputStream = new ByteArrayInputStream(response);
         SamInputResource resource = SamInputResource.of(responseInputStream);
 
         SamReaderFactory factory = SamReaderFactory

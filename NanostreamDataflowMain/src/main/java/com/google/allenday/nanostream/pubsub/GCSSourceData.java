@@ -15,6 +15,7 @@ public class GCSSourceData implements Serializable {
 
     private String bucket;
     private String folder;
+    private String filename;
 
     public GCSSourceData() {
     }
@@ -27,18 +28,30 @@ public class GCSSourceData implements Serializable {
         this.folder = folder;
     }
 
-    public GCSSourceData(@Nonnull String bucket, @Nonnull String folder) {
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
+
+    public GCSSourceData(@Nonnull String bucket, @Nonnull String folder, @Nonnull String filename) {
         this.bucket = bucket;
         this.folder = folder;
+        this.filename = filename;
     }
 
     public static GCSSourceData fromGCloudNotification(GCloudNotification gCloudNotification) {
         String folder = "/";
-        int index = gCloudNotification.getName().lastIndexOf("/");
+        String filename;
+
+        String name = gCloudNotification.getName();
+        int index = name.lastIndexOf("/");
         if (index >= 0) {
-            folder += gCloudNotification.getName().substring(0, index + 1);
+            folder += name.substring(0, index + 1);
+            filename = name.substring(index + 1, name.length() + 1);
+        } else {
+            filename = name;
         }
-        return new GCSSourceData(gCloudNotification.getBucket(), folder);
+
+        return new GCSSourceData(gCloudNotification.getBucket(), folder, filename);
     }
 
     public String getBucket() {
@@ -49,18 +62,23 @@ public class GCSSourceData implements Serializable {
         return folder;
     }
 
+    public String getFilename() {
+        return filename;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         GCSSourceData that = (GCSSourceData) o;
         return bucket.equals(that.bucket) &&
-                folder.equals(that.folder);
+                folder.equals(that.folder) &&
+                filename.equals(that.filename);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(bucket, folder);
+        return Objects.hash(bucket, folder, filename);
     }
 
     @Override
@@ -68,6 +86,7 @@ public class GCSSourceData implements Serializable {
         return "GCSSourceData{" +
                 "bucket='" + bucket + '\'' +
                 ", folder='" + folder + '\'' +
+                ", folder='" + filename + '\'' +
                 '}';
     }
 }

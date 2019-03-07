@@ -18,6 +18,7 @@ import com.google.allenday.nanostream.util.CoderUtils;
 import com.google.allenday.nanostream.util.ResourcesHelper;
 import com.google.allenday.nanostream.util.trasform.FlattenMapToKV;
 import com.google.allenday.nanostream.util.trasform.RemoveValueDoFn;
+import com.google.allenday.nanostream.util.trasform.StringToBytes;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.apache.beam.sdk.PipelineResult;
@@ -49,6 +50,7 @@ public class EndToEndPipelineTest {
 
     private String TEST_BUCKET_NAME = "test_bucket";
     private String TEST_FOLDER_NAME = "/test/folder";
+    private String TEST_FILENAME = "test.fastq";
 
     @Rule
     public final transient TestPipeline testPipeline = TestPipeline.create();
@@ -91,7 +93,7 @@ public class EndToEndPipelineTest {
                 .setProcessingMode(processingMode)
                 .build());
 
-        GCSSourceData gcsSourceData = new GCSSourceData(TEST_BUCKET_NAME, TEST_FOLDER_NAME);
+        GCSSourceData gcsSourceData = new GCSSourceData(TEST_BUCKET_NAME, TEST_FOLDER_NAME, TEST_FILENAME);
 
         CoderUtils.setupCoders(testPipeline, new SequenceOnlyDNACoder());
 
@@ -103,6 +105,7 @@ public class EndToEndPipelineTest {
                 .apply("Create batches of " + FASTQ_GROUPING_BATCH_SIZE + " FastQ records",
                         GroupIntoBatches.ofSize(FASTQ_GROUPING_BATCH_SIZE))
                 .apply("Alignment", ParDo.of(injector.getInstance(MakeAlignmentViaHttpFn.class)))
+                .apply(ParDo.of(new StringToBytes<>()))
                 .apply("Extract Sequences",
                         ParDo.of(new GetSequencesFromSamDataFn()))
                 .apply("Group by SAM reference", GroupByKey.create())
