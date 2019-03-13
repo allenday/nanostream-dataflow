@@ -46,7 +46,7 @@ public class GCSSourceData implements Serializable {
         int index = name.lastIndexOf("/");
         if (index >= 0) {
             folder += name.substring(0, index + 1);
-            filename = name.substring(index + 1, name.length() + 1);
+            filename = name.substring(index + 1, name.length());
         } else {
             filename = name;
         }
