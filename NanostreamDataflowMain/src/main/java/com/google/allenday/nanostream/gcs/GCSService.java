@@ -1,5 +1,6 @@
 package com.google.allenday.nanostream.gcs;
 
+import com.google.cloud.ReadChannel;
 import com.google.cloud.storage.*;
 
 /**
@@ -19,5 +20,9 @@ public class GCSService {
 
     public Blob getBlobByGCloudNotificationData(String bucketName, String blobName) throws StorageException {
         return storage.get(BlobId.of(bucketName, blobName));
+    }
+
+    public ReadChannel getBlobReaderByGCloudNotificationData(String bucketName, String blobName) throws StorageException {
+        return storage.reader(BlobId.of(bucketName, blobName));
     }
 }

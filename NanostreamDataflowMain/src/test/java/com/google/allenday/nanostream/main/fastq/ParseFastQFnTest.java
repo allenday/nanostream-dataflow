@@ -38,11 +38,6 @@ public class ParseFastQFnTest {
     }
 
     @Test
-    public void testFastQDataParsedCorrectlyWithoutTags() throws IOException {
-        testFastQDataParsedCorrectly("testFastQFileWithoutTags.fastq", 1);
-    }
-
-    @Test
     public void testFastQDataParsedCorrectlyMultiEntity() throws IOException {
         testFastQDataParsedCorrectly("testMultiEntityFastQFile.fastq", 2);
     }

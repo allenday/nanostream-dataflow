@@ -1,17 +1,19 @@
 package com.google.allenday.nanostream.gcs;
 
 import com.google.allenday.nanostream.pubsub.GCSSourceData;
-import com.google.cloud.storage.Blob;
-import com.google.cloud.storage.StorageException;
+import com.google.allenday.nanostream.util.FastQUtils;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.values.KV;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+
 /**
  * Gets fastq filename from GCloudNotification and extracts data from this file
  */
 public class GetDataFromFastQFile extends DoFn<KV<GCSSourceData, String>, KV<GCSSourceData, String>> {
+
 
     private Logger LOG = LoggerFactory.getLogger(GetDataFromFastQFile.class);
 
@@ -29,15 +31,12 @@ public class GetDataFromFastQFile extends DoFn<KV<GCSSourceData, String>, KV<GCS
         LOG.info(data.toString());
         try {
             GCSSourceData gcsSourceData = data.getKey();
+            String blobName = data.getValue();
             if (gcsSourceData != null) {
-                Blob blob = gcsService.getBlobByGCloudNotificationData(
-                        gcsSourceData.getBucket(), data.getValue()
-                );
-                if (blob != null && blob.exists()) {
-                    c.output(KV.of(gcsSourceData, new String(blob.getContent())));
-                }
+                FastQUtils.readFastqBlob(gcsService.getBlobReaderByGCloudNotificationData(gcsSourceData.getBucket(), blobName),
+                        fastq -> c.output(KV.of(gcsSourceData, fastq)));
             }
-        } catch (StorageException e) {
+        } catch (IOException e) {
             LOG.error(e.getMessage());
         }
     }
