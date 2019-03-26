@@ -1,4 +1,4 @@
-package com.google.allenday.nanostream.cannabis;
+package com.google.allenday.nanostream.cannabis_source;
 
 import org.apache.beam.sdk.coders.AvroCoder;
 import org.apache.beam.sdk.coders.DefaultCoder;

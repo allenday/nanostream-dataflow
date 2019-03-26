@@ -2,9 +2,10 @@ package com.google.allenday.nanostream;
 
 import com.google.allenday.nanostream.aligner.GetSequencesFromSamDataFnCannabis;
 import com.google.allenday.nanostream.aligner.MakeAlignmentViaHttpFnCannabis;
-import com.google.allenday.nanostream.cannabis.CannabisSourceFileMetaData;
-import com.google.allenday.nanostream.cannabis.CannabisSourceMetaData;
-import com.google.allenday.nanostream.fastq.ParseFastQFnCannabis;
+import com.google.allenday.nanostream.cannabis_source.CannabisSourceFileMetaData;
+import com.google.allenday.nanostream.cannabis_source.CannabisSourceMetaData;
+import com.google.allenday.nanostream.cannabis_source.ParseSourceCsvFn;
+import com.google.allenday.nanostream.fastq.ParseFastQFn;
 import com.google.allenday.nanostream.gcs.GetDataFromFastQFileCannabis;
 import com.google.allenday.nanostream.injection.MainCannabisModule;
 import com.google.allenday.nanostream.io.WindowedFilenamePolicy;
@@ -21,6 +22,7 @@ import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.ValueProvider;
 import org.apache.beam.sdk.transforms.*;
 import org.apache.beam.sdk.values.KV;
+import org.apache.beam.sdk.values.PCollection;
 
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -38,35 +40,23 @@ public class NanostreamCannabisApp {
                 .as(NanostreamCannabisPipelineOptions.class);
         Injector injector = Guice.createInjector(new MainCannabisModule.Builder().buildFromOptions(options));
 
-        /*options.setJobName(injector.getInstance(EntityNamer.class)
-                .generateJobName(processingMode, options.getOutputCollectionNamePrefix()));*/
         Pipeline pipeline = Pipeline.create(options);
         CoderUtils.setupCoders(pipeline, new SequenceOnlyDNACoder());
-/*
-        --runner=org.apache.beam.runners.dataflow.DataflowRunner
-*/
-
-        pipeline.apply("Source file reading", TextIO.read().from("gs://nano-stream-cannabis/CannabisGenomics-201703-Sheet1.csv"))
-                .apply(ParDo.of(new DoFn<String, CannabisSourceFileMetaData>() {
-                    @ProcessElement
-                    public void processElement(ProcessContext c) {
-                        String dataLine = c.element();
-                        if (dataLine.split(",")[3].equals("SRS190966")) {
-                            CannabisSourceFileMetaData.fromCSVLine(dataLine).forEach(c::output);
-                        }
-                    }
-                }))
+        PCollection<String> source_file_reading = pipeline
+                .apply("Source file name reading", TextIO.read().from("gs://nano-stream-cannabis/CannabisGenomics-201703-Sheet1.csv"));
+        source_file_reading.
+                apply("Parse source CSV", ParDo.of(new ParseSourceCsvFn()))
                 .apply("Get data from FastQ", ParDo.of(new GetDataFromFastQFileCannabis()))
-                .apply("Parse FastQ data", ParDo.of(new ParseFastQFnCannabis<>()))
-                .apply(ParDo.of(new DoFn<KV<CannabisSourceFileMetaData, FastqRecord>, KV<String, KV<CannabisSourceFileMetaData, FastqRecord>>>() {
+                .apply("Parse FastQ data", ParDo.of(new ParseFastQFn<>()))
+                .apply("Add key as ReadName", (ParDo.of(new DoFn<KV<CannabisSourceFileMetaData, FastqRecord>, KV<String, KV<CannabisSourceFileMetaData, FastqRecord>>>() {
                     @ProcessElement
                     public void processElement(ProcessContext c) {
                         KV<CannabisSourceFileMetaData, FastqRecord> data = c.element();
                         c.output(KV.of(data.getValue().getReadName(), data));
                     }
-                }))
-                .apply(GroupByKey.create())
-                .apply(ParDo.of(new DoFn<KV<String, Iterable<KV<CannabisSourceFileMetaData, FastqRecord>>>,
+                })))
+                .apply("Group by ReadName", GroupByKey.create())
+                .apply("Reorganize data", ParDo.of(new DoFn<KV<String, Iterable<KV<CannabisSourceFileMetaData, FastqRecord>>>,
                         KV<CannabisSourceMetaData, Iterable<KV<FastqRecord, Integer>>>>() {
                     @ProcessElement
                     public void processElement(ProcessContext c) {
@@ -86,24 +76,34 @@ public class NanostreamCannabisApp {
                 .apply("Alignment", ParDo.of(injector.getInstance(MakeAlignmentViaHttpFnCannabis.class)))
                 .apply("Extract Sequences",
                         ParDo.of(new GetSequencesFromSamDataFnCannabis<>()))
+                .apply(ParDo.of(new DoFn<KV<KV<CannabisSourceMetaData, String>, String>, KV<CannabisSourceMetaData, String>>() {
+                    @ProcessElement
+                    public void processElement(ProcessContext c) {
+                        c.output(KV.of(c.element().getKey().getKey(), c.element().getValue()));
+                    }
+                }))
 
+                .apply("Group by CannabisSourceMetaData", GroupByKey.create())
+                .apply("Summarize data", ParDo.of(new DoFn<KV<CannabisSourceMetaData, Iterable<String>>, KV<CannabisSourceMetaData, Long>>() {
+                    @ProcessElement
+                    public void processElement(ProcessContext c) {
+                        KV<CannabisSourceMetaData, Iterable<String>> element = c.element();
+                        c.output(KV.of(element.getKey(), StreamSupport.stream(element.getValue().spliterator(), false).count()));
+
+                    }
+                }))
                 .apply("toString()", ToString.elements())
-                /*.apply("Write to file", TextIO.write()
-                        .withWindowedWrites()
-                        .withNumShards(1)
-                        .to("result"));*/
-
                 .apply("Write to GCS", TextIO.write()
                         .withWindowedWrites()
                         .withNumShards(1)
                         .to(
                                 new WindowedFilenamePolicy(
-                                        "gs://nano-stream-cannabis/output",
-                                        "output_",
+                                        "gs://nano-stream-cannabis/output_full",
+                                        "output_full",
                                         "W-P-SS-of-NN",
                                         ""))
                         .withTempDirectory(ValueProvider.NestedValueProvider.of(
-                                ValueProvider.StaticValueProvider.of("gs://nano-stream-cannabis/output"),
+                                ValueProvider.StaticValueProvider.of("gs://nano-stream-cannabis/output_full"),
                                 (SerializableFunction<String, ResourceId>) FileBasedSink::convertToFileResourceIfPossible)));
 
         pipeline.run();

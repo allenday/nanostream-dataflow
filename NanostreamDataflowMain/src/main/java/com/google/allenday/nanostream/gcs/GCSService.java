@@ -18,7 +18,7 @@ public class GCSService {
         return new GCSService(StorageOptions.getDefaultInstance().getService());
     }
 
-    public Blob getBlobByGCloudNotificationData(String bucketName, String blobName) throws StorageException {
+    public Blob getBlob(String bucketName, String blobName) throws StorageException {
         return storage.get(BlobId.of(bucketName, blobName));
     }
 

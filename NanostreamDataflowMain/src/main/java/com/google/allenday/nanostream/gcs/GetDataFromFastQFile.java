@@ -34,7 +34,7 @@ public class GetDataFromFastQFile extends DoFn<KV<GCSSourceData, String>, KV<GCS
             String blobName = data.getValue();
             if (gcsSourceData != null) {
                 FastQUtils.readFastqBlob(gcsService.getBlobReaderByGCloudNotificationData(gcsSourceData.getBucket(), blobName),
-                        fastq -> c.output(KV.of(gcsSourceData, fastq)));
+                        fastQ -> c.output(KV.of(gcsSourceData, fastQ)));
             }
         } catch (IOException e) {
             LOG.error(e.getMessage());

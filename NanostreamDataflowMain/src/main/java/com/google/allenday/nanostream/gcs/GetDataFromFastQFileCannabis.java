@@ -1,6 +1,6 @@
 package com.google.allenday.nanostream.gcs;
 
-import com.google.allenday.nanostream.cannabis.CannabisSourceFileMetaData;
+import com.google.allenday.nanostream.cannabis_source.CannabisSourceFileMetaData;
 import com.google.allenday.nanostream.util.FastQUtils;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.values.KV;

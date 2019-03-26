@@ -1,6 +1,5 @@
 package com.google.allenday.nanostream.aligner;
 
-import com.google.allenday.nanostream.pubsub.GCSSourceData;
 import com.google.allenday.nanostream.util.ObjectSizeFetcher;
 import htsjdk.samtools.*;
 import japsa.seq.Alphabet;
@@ -19,12 +18,12 @@ import java.util.List;
  * Parses aligned data that comes HTTP aligner into {@link SAMRecord}. Generates {@link KV<String, Sequence>>} object that contains
  * name reference-Sequence pair
  */
-public class GetSequencesFromSamDataFn extends DoFn<KV<GCSSourceData, String>, KV<KV<GCSSourceData, String>, Sequence>> {
+public class GetSequencesFromSamDataFn<T> extends DoFn<KV<T, String>, KV<KV<T, String>, Sequence>> {
     private Logger LOG = LoggerFactory.getLogger(GetSequencesFromSamDataFn.class);
 
     @ProcessElement
     public void processElement(ProcessContext c) {
-        KV<GCSSourceData, String> data = c.element();
+        KV<T, String> data = c.element();
         List<SAMRecord> results = parseAlignmentResponse(data.getValue());
         LOG.info(String.format("List SAMRecords size: %d", ObjectSizeFetcher.sizeOf(results)));
         LOG.info(String.format("List SAMRecords item size: %d", results.size()));

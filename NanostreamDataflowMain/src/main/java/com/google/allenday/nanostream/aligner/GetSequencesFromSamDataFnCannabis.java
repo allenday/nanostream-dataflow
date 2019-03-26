@@ -18,7 +18,7 @@ import java.util.List;
  * Parses aligned data that comes HTTP aligner into {@link SAMRecord}. Generates {@link KV<String, Sequence>>} object that contains
  * name reference-Sequence pair
  */
-public class GetSequencesFromSamDataFnCannabis<T> extends DoFn<KV<T, String>, KV<KV<T, String>, Sequence>> {
+public class GetSequencesFromSamDataFnCannabis<T> extends DoFn<KV<T, String>, KV<KV<T, String>, String>> {
     private Logger LOG = LoggerFactory.getLogger(GetSequencesFromSamDataFnCannabis.class);
 
     @ProcessElement
@@ -29,7 +29,7 @@ public class GetSequencesFromSamDataFnCannabis<T> extends DoFn<KV<T, String>, KV
         LOG.info(String.format("List SAMRecords item size: %d", results.size()));
         results.forEach(sam -> {
             if (!sam.getReferenceName().equals("*")) {
-                c.output(KV.of(KV.of(data.getKey(), sam.getReferenceName()), generateSequenceFromSam(sam)));
+                c.output(KV.of(KV.of(data.getKey(), sam.getReferenceName()), sam.toString()));
             }
         });
     }

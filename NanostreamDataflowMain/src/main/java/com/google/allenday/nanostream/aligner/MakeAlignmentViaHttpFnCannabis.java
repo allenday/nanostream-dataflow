@@ -1,6 +1,6 @@
 package com.google.allenday.nanostream.aligner;
 
-import com.google.allenday.nanostream.cannabis.CannabisSourceMetaData;
+import com.google.allenday.nanostream.cannabis_source.CannabisSourceMetaData;
 import com.google.allenday.nanostream.http.NanostreamHttpService;
 import htsjdk.samtools.fastq.FastqRecord;
 import org.apache.beam.sdk.transforms.DoFn;
@@ -41,7 +41,7 @@ public class MakeAlignmentViaHttpFnCannabis extends DoFn<KV<CannabisSourceMetaDa
     }
 
     @ProcessElement
-    public void processElement(ProcessContext c) throws IOException, URISyntaxException {
+    public void processElement(ProcessContext c) {
         KV<CannabisSourceMetaData, Iterable<Iterable<KV<FastqRecord, Integer>>>> data = c.element();
 
         Map<String, String> content = new HashMap<>();

@@ -1,15 +1,20 @@
 package com.google.allenday.nanostream.main.aligner;
 
+import com.google.allenday.nanostream.aligner.GetSequencesFromSamDataFn;
 import com.google.allenday.nanostream.aligner.MakeAlignmentViaHttpFn;
 import com.google.allenday.nanostream.http.NanostreamHttpService;
+import com.google.allenday.nanostream.kalign.SequenceOnlyDNACoder;
 import com.google.allenday.nanostream.main.injection.TestModule;
 import com.google.allenday.nanostream.pubsub.GCSSourceData;
+import com.google.allenday.nanostream.util.CoderUtils;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import htsjdk.samtools.fastq.FastqRecord;
+import japsa.seq.Sequence;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.transforms.Create;
+import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.SerializableFunction;
 import org.apache.beam.sdk.values.KV;
@@ -24,6 +29,7 @@ import java.io.Serializable;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.stream.StreamSupport;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static org.mockito.Mockito.any;
@@ -80,26 +86,33 @@ public class AlignmentTests implements Serializable {
     }
 
     //TODO
-    /*@Test
+    @Test
     public void testAlignedDataParsing() {
+        CoderUtils.setupCoders(testPipeline, new SequenceOnlyDNACoder());
         try {
             String fastqAlignmentResult = IOUtils.toString(
-                    getClass().getClassLoader().getResourceAsStream("fastQAlignmentResult.txt"), UTF_8.name());
+                    getClass().getClassLoader().getResourceAsStream("fastQCannabisAlignmentResult.txt"), UTF_8.name());
             String samStringResult = IOUtils.toString(
                     getClass().getClassLoader().getResourceAsStream("samStringResult.txt"), UTF_8.name());
 
-            PCollection<KV<String, SAMRecord>> parsedFastQ = testPipeline
+            PCollection<KV<KV<String, String>, Sequence>> parsedFastQ = testPipeline
                     .apply(Create.of(fastqAlignmentResult))
-                    .apply(ParDo.of(new GetSequencesFromSamDataFn()));
+                    .apply(ParDo.of(new DoFn<String, KV<String, String>>() {
+                        @ProcessElement
+                        public void processElement(ProcessContext c) {
+                            c.output(KV.of("1", c.element()));
+                        }
+                    }))
+                    .apply(ParDo.of(new GetSequencesFromSamDataFn<>()));
 
             PAssert.that(parsedFastQ)
                     .satisfies(input -> {
-                        KV<String, SAMRecord> result = input.iterator().next();
+                        KV<KV<String, String>, Sequence> result = input.iterator().next();
                         Assert.assertEquals(1, StreamSupport.stream(input.spliterator(), false)
                                 .count());
                         Assert.assertEquals(SAM_REFERENCE, result.getKey());
                         Assert.assertEquals(SAM_RESULT, result.getValue().toString());
-                        Assert.assertEquals(samStringResult, result.getValue().getSAMString());
+                        //Assert.assertEquals(samStringResult, result.getValue().getSAMString());
                         return null;
                     });
 
@@ -107,5 +120,5 @@ public class AlignmentTests implements Serializable {
         } catch (IOException e) {
             Assert.fail(e.getMessage());
         }
-    }*/
+    }
 }

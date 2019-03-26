@@ -33,7 +33,7 @@ public class GCSServiceTest {
         when(mockGCloudNotification.getBucket()).thenReturn(testBucketName);
         when(mockGCloudNotification.getName()).thenReturn(testBlobName);
 
-        gcsService.getBlobByGCloudNotificationData(mockGCloudNotification.getBucket(), mockGCloudNotification.getName());
+        gcsService.getBlob(mockGCloudNotification.getBucket(), mockGCloudNotification.getName());
 
         verify(mockStorage).get(BlobId.of(mockGCloudNotification.getBucket(), mockGCloudNotification.getName()));
     }

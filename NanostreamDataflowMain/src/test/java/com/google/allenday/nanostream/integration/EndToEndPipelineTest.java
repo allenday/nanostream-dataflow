@@ -97,14 +97,14 @@ public class EndToEndPipelineTest {
 
         PCollection<KV<KV<String, String>, SequenceStatisticResult>> sequnceStatisticResultPCollection = testPipeline
                 .apply(Create.of(KV.of(gcsSourceData, new ResourcesHelper().getFileContent("testFastQFile.fastq"))))
-                .apply("Parse FasQ data", ParDo.of(new ParseFastQFn()))
+                .apply("Parse FasQ data", ParDo.of(new ParseFastQFn<>()))
                 .apply(FASTQ_GROUPING_WINDOW_TIME_SEC + " Window",
                         Window.into(FixedWindows.of(Duration.standardSeconds(FASTQ_GROUPING_WINDOW_TIME_SEC))))
                 .apply("Create batches of " + FASTQ_GROUPING_BATCH_SIZE + " FastQ records",
                         GroupIntoBatches.ofSize(FASTQ_GROUPING_BATCH_SIZE))
                 .apply("Alignment", ParDo.of(injector.getInstance(MakeAlignmentViaHttpFn.class)))
                 .apply("Extract Sequences",
-                        ParDo.of(new GetSequencesFromSamDataFn()))
+                        ParDo.of(new GetSequencesFromSamDataFn<>()))
                 .apply("Group by SAM reference", GroupByKey.create())
                 .apply("K-Align", ParDo.of(injector.getInstance(ProceedKAlignmentFn.class)))
                 .apply("Error correction", ParDo.of(new ErrorCorrectionFn()))

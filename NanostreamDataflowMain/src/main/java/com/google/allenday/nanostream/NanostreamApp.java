@@ -91,14 +91,14 @@ public class NanostreamApp {
                 .apply("Parse GCloud notification", ParDo.of(new ParseGCloudNotification()))
 
                 .apply("Get data from FastQ", ParDo.of(new GetDataFromFastQFile()))
-                .apply("Parse FastQ data", ParDo.of(new ParseFastQFn()))
+                .apply("Parse FastQ data", ParDo.of(new ParseFastQFn<>()))
                 .apply(options.getAlignmentWindow() + "s FastQ collect window",
                         Window.into(FixedWindows.of(Duration.standardSeconds(options.getAlignmentWindow()))))
                 .apply("Create batches of "+ options.getAlignmentBatchSize() +" FastQ records",
                         GroupIntoBatches.ofSize(options.getAlignmentBatchSize()))
                 .apply("Alignment", ParDo.of(injector.getInstance(MakeAlignmentViaHttpFn.class)))
                 .apply("Extract Sequences",
-                        ParDo.of(new GetSequencesFromSamDataFn()))
+                        ParDo.of(new GetSequencesFromSamDataFn<>()))
                 .apply("Group by SAM reference", GroupByKey.create())
                 .apply("K-Align", ParDo.of(injector.getInstance(ProceedKAlignmentFn.class)))
                 .apply("Error correction", ParDo.of(new ErrorCorrectionFn()))

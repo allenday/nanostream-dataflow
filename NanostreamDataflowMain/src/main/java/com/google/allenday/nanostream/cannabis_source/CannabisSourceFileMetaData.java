@@ -1,4 +1,4 @@
-package com.google.allenday.nanostream.cannabis;
+package com.google.allenday.nanostream.cannabis_source;
 
 import org.apache.beam.sdk.coders.AvroCoder;
 import org.apache.beam.sdk.coders.DefaultCoder;
@@ -39,6 +39,7 @@ public class CannabisSourceFileMetaData implements Serializable {
 
         if (cannabisSourceFileMetaData.isPaired()) {
             results.add(new CannabisSourceFileMetaData(cannabisSourceFileMetaData.clone(), 2));
+
         }
         return results;
     }
@@ -49,7 +50,7 @@ public class CannabisSourceFileMetaData implements Serializable {
             runName += "_" + pairedIndex;
         }
         runName += ".fastq";
-        return "sra_short/" + cannabisSourceMetaData.getProjectId() + "/" + cannabisSourceMetaData.getSraSample() + "/" + runName;
+        return "sra_medium/" + cannabisSourceMetaData.getProjectId() + "/" + cannabisSourceMetaData.getSraSample() + "/" + runName;
     }
 
     public CannabisSourceMetaData getCannabisSourceMetaData() {
