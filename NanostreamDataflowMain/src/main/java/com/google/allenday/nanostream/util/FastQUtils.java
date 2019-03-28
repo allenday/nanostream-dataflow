@@ -19,7 +19,7 @@ import java.util.stream.IntStream;
  */
 public class FastQUtils {
 
-    private final static int BUFFER_SZIE = 64 * 1024;
+    private final static int BUFFER_SIZE = 64 * 1024;
     private final static String NEW_FASTQ_INDICATION = "@";
 
     /**
@@ -28,7 +28,7 @@ public class FastQUtils {
     public static void readFastqBlob(ReadChannel readChannel, Callback<String> callback) throws IOException {
         StringBuilder fastqBuilder = new StringBuilder();
 
-        ByteBuffer bytes = ByteBuffer.allocate(BUFFER_SZIE);
+        ByteBuffer bytes = ByteBuffer.allocate(BUFFER_SIZE);
         while (readChannel.read(bytes) > 0) {
             bytes.flip();
             fastqBuilder.append(StandardCharsets.UTF_8.decode(bytes).toString());
