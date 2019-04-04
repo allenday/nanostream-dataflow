@@ -5,6 +5,7 @@ import org.apache.beam.sdk.coders.DefaultCoder;
 
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.UUID;
 
 //TODO
 
@@ -54,6 +55,15 @@ public class CannabisSourceMetaData implements Serializable {
         this.leaflyName = leaflyName;
         this.leaflyUrl = leaflyUrl;
         this.tempSortable = tempSortable;
+    }
+
+    public String generateFolderAndNameForSampleAndReadGroup() {
+        String base = sraSample + "_readGroup_" + readGroup;
+        return base + "/" + base;
+    }
+
+    public String generateUniqueFolderAndNameForSampleAndReadGroup() {
+        return generateFolderAndNameForSampleAndReadGroup() + "_" + UUID.randomUUID().toString();
     }
 
     public boolean isPaired() {

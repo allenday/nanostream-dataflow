@@ -14,26 +14,26 @@ import com.google.inject.Singleton;
 public class NanostreamCannabisModule extends AbstractModule {
 
     protected String projectId;
-    protected String servicesUrl;
-    protected String bwaEndpoint;
-    protected String bwaDB;
-    protected String bwaArguments;
+    protected String topicId;
+    protected String resultBucket;
+    protected String srсBucket;
+    protected String samHeadersPath;
 
     public NanostreamCannabisModule(Builder builder) {
         this.projectId = builder.projectId;
-        this.servicesUrl = builder.servicesUrl;
-        this.bwaEndpoint = builder.bwaEndpoint;
-        this.bwaDB = builder.bwaDB;
-        this.bwaArguments = builder.bwaArguments;
+        this.topicId = builder.topicId;
+        this.resultBucket = builder.resultBucket;
+        this.srсBucket = builder.srsBucket;
+        this.samHeadersPath = builder.samHeadersPath;
     }
 
     public static class Builder {
 
         protected String projectId;
-        protected String servicesUrl;
-        protected String bwaEndpoint;
-        protected String bwaDB;
-        protected String bwaArguments;
+        protected String topicId;
+        protected String resultBucket;
+        protected String srsBucket;
+        protected String samHeadersPath;
 
 
         public Builder setProjectId(String projectId) {
@@ -41,23 +41,23 @@ public class NanostreamCannabisModule extends AbstractModule {
             return this;
         }
 
-        public Builder setServicesUrl(String servicesUrl) {
-            this.servicesUrl = servicesUrl;
+        public Builder setTopicId(String topicId) {
+            this.topicId = topicId;
             return this;
         }
 
-        public Builder setBwaEndpoint(String bwaEndpoint) {
-            this.bwaEndpoint = bwaEndpoint;
+        public Builder setResultBucket(String resultBucket) {
+            this.resultBucket = resultBucket;
             return this;
         }
 
-        public Builder setBwaDB(String bwaDB) {
-            this.bwaDB = bwaDB;
+        public Builder setSrsBucket(String srsBucket) {
+            this.srsBucket = srsBucket;
             return this;
         }
 
-        public Builder setBwaArguments(String bwaArguments) {
-            this.bwaArguments = bwaArguments;
+        public Builder setSamHeadersPath(String samHeadersPath) {
+            this.samHeadersPath = samHeadersPath;
             return this;
         }
 
@@ -65,26 +65,16 @@ public class NanostreamCannabisModule extends AbstractModule {
             return projectId;
         }
 
-        public String getServicesUrl() {
-            return servicesUrl;
+        public String getTopicId() {
+            return topicId;
         }
-
-        public String getBwaEndpoint() {
-            return bwaEndpoint;
-        }
-
-        public String getBwaDB() {
-            return bwaDB;
-        }
-
-
 
         public NanostreamCannabisModule buildFromOptions(NanostreamCannabisPipelineOptions nanostreamPipelineOptions) {
             setProjectId(nanostreamPipelineOptions.getProject());
-            setServicesUrl(nanostreamPipelineOptions.getServicesUrl());
-            setBwaEndpoint(nanostreamPipelineOptions.getBwaEndpoint());
-            setBwaDB(nanostreamPipelineOptions.getBwaDatabase());
-            setBwaArguments(nanostreamPipelineOptions.getBwaArguments());
+            setTopicId(nanostreamPipelineOptions.getTopicId());
+            setResultBucket(nanostreamPipelineOptions.getResultBucket());
+            setSrsBucket(nanostreamPipelineOptions.getSrсBucket());
+            setSamHeadersPath(nanostreamPipelineOptions.getSamHeadersPath());
             return build();
         }
 

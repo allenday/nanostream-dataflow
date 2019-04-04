@@ -5,7 +5,7 @@ import org.apache.beam.sdk.options.Default;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.Validation;
 
-import static com.google.allenday.nanostream.other.Configuration.*;
+import static com.google.allenday.nanostream.other.Configuration.DEFAULT_ALIGNMENT_BATCH_SIZE;
 
 /**
  * Provides list of {@link org.apache.beam.sdk.Pipeline} options
@@ -13,24 +13,11 @@ import static com.google.allenday.nanostream.other.Configuration.*;
  */
 public interface NanostreamCannabisPipelineOptions extends DataflowPipelineOptions {
 
-    @Description("Base URL")
+    @Description("Aligner Pub Sub Topic id")
     @Validation.Required
-    String getServicesUrl();
+    String getTopicId();
 
-    void setServicesUrl(String value);
-
-    @Description("BWA Alignment server endpoint to use")
-    @Validation.Required
-    String getBwaEndpoint();
-
-    void setBwaEndpoint(String value);
-
-
-    @Description("BWA Alignment database")
-    @Validation.Required
-    String getBwaDatabase();
-
-    void setBwaDatabase(String value);
+    void setTopicId(String value);
 
 
     @Description("Max size of batch that will be generated before alignment")
@@ -39,9 +26,18 @@ public interface NanostreamCannabisPipelineOptions extends DataflowPipelineOptio
 
     void setAlignmentBatchSize(int value);
 
-    @Description("Arguments that will be passed to BWA aligner")
-    @Default.String(DEFAULT_BWA_ARGUMENTS)
-    String getBwaArguments();
 
-    void setBwaArguments(String value);
+    String getResultBucket();
+
+    void setResultBucket(String value);
+
+
+    String getSrсBucket();
+
+    void setSrсBucket(String value);
+
+
+    String getSamHeadersPath();
+
+    void setSamHeadersPath(String value);
 }

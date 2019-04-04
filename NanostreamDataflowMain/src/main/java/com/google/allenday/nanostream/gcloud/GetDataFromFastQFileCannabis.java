@@ -1,4 +1,4 @@
-package com.google.allenday.nanostream.gcs;
+package com.google.allenday.nanostream.gcloud;
 
 import com.google.allenday.nanostream.cannabis_source.CannabisSourceFileMetaData;
 import com.google.allenday.nanostream.util.FastQUtils;
@@ -29,7 +29,7 @@ public class GetDataFromFastQFileCannabis extends DoFn<CannabisSourceFileMetaDat
         CannabisSourceFileMetaData data = c.element();
         LOG.info(data.toString());
         try {
-            FastQUtils.readFastqBlob(gcsService.getBlobReaderByGCloudNotificationData("cannabis-3k-test", data.generateGCSBlobName()),
+            FastQUtils.readFastqBlob(gcsService.getBlobReaderByGCloudNotificationData("cannabis-3k", data.generateGCSBlobName()),
                     fastq -> c.output(KV.of(data, fastq)));
         } catch (IOException e) {
             LOG.error(e.getMessage());

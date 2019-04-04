@@ -50,7 +50,7 @@ public class CannabisSourceFileMetaData implements Serializable {
             runName += "_" + pairedIndex;
         }
         runName += ".fastq";
-        return "sra_medium/" + cannabisSourceMetaData.getProjectId() + "/" + cannabisSourceMetaData.getSraSample() + "/" + runName;
+        return "sra/" + cannabisSourceMetaData.getProjectId() + "/" + cannabisSourceMetaData.getSraSample() + "/" + runName;
     }
 
     public CannabisSourceMetaData getCannabisSourceMetaData() {

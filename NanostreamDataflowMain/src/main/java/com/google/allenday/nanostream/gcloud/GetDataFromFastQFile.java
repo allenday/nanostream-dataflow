@@ -1,4 +1,4 @@
-package com.google.allenday.nanostream.gcs;
+package com.google.allenday.nanostream.gcloud;
 
 import com.google.allenday.nanostream.pubsub.GCSSourceData;
 import com.google.allenday.nanostream.util.FastQUtils;
