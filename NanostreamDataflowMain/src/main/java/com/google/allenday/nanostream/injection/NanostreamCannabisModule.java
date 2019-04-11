@@ -14,14 +14,14 @@ import com.google.inject.Singleton;
 public class NanostreamCannabisModule extends AbstractModule {
 
     protected String projectId;
-    protected String topicId;
+    protected String alignerTopicId;
     protected String resultBucket;
     protected String srсBucket;
     protected String samHeadersPath;
 
     public NanostreamCannabisModule(Builder builder) {
         this.projectId = builder.projectId;
-        this.topicId = builder.topicId;
+        this.alignerTopicId = builder.alignerTopicId;
         this.resultBucket = builder.resultBucket;
         this.srсBucket = builder.srsBucket;
         this.samHeadersPath = builder.samHeadersPath;
@@ -30,7 +30,7 @@ public class NanostreamCannabisModule extends AbstractModule {
     public static class Builder {
 
         protected String projectId;
-        protected String topicId;
+        protected String alignerTopicId;
         protected String resultBucket;
         protected String srsBucket;
         protected String samHeadersPath;
@@ -41,8 +41,8 @@ public class NanostreamCannabisModule extends AbstractModule {
             return this;
         }
 
-        public Builder setTopicId(String topicId) {
-            this.topicId = topicId;
+        public Builder setAlignerTopicId(String alignerTopicId) {
+            this.alignerTopicId = alignerTopicId;
             return this;
         }
 
@@ -65,13 +65,13 @@ public class NanostreamCannabisModule extends AbstractModule {
             return projectId;
         }
 
-        public String getTopicId() {
-            return topicId;
+        public String getAlignerTopicId() {
+            return alignerTopicId;
         }
 
         public NanostreamCannabisModule buildFromOptions(NanostreamCannabisPipelineOptions nanostreamPipelineOptions) {
             setProjectId(nanostreamPipelineOptions.getProject());
-            setTopicId(nanostreamPipelineOptions.getTopicId());
+            setAlignerTopicId(nanostreamPipelineOptions.getAlignerTopicId());
             setResultBucket(nanostreamPipelineOptions.getResultBucket());
             setSrsBucket(nanostreamPipelineOptions.getSrсBucket());
             setSamHeadersPath(nanostreamPipelineOptions.getSamHeadersPath());

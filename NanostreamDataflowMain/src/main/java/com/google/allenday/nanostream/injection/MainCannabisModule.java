@@ -28,7 +28,7 @@ public class MainCannabisModule extends NanostreamCannabisModule {
 
     @Provides
     public MakeAlignmentViaPubSubDoFn provideMakeAlignmentViaHttpFn() {
-        return new MakeAlignmentViaPubSubDoFn(projectId, topicId);
+        return new MakeAlignmentViaPubSubDoFn(projectId, alignerTopicId);
     }
 
 

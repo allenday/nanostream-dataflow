@@ -28,7 +28,7 @@ public class CannabisSourceFileMetaData implements Serializable {
         this.pairedIndex = pairedIndex;
     }
 
-    public static List<CannabisSourceFileMetaData> fromCSVLine(String csvLine) {
+    public static List<CannabisSourceFileMetaData> fromCSVLine(String csvLine) throws Exception{
         String[] parts = csvLine.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
         CannabisSourceMetaData cannabisSourceFileMetaData = new CannabisSourceMetaData(parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6],
                 Long.parseLong(parts[7]), Long.parseLong(parts[8]), parts[9], parts[10], parts[11],
@@ -46,9 +46,7 @@ public class CannabisSourceFileMetaData implements Serializable {
 
     public String generateGCSBlobName() {
         String runName = cannabisSourceMetaData.getRun();
-        if (cannabisSourceMetaData.isPaired()) {
-            runName += "_" + pairedIndex;
-        }
+        runName += "_" + pairedIndex;
         runName += ".fastq";
         return "sra/" + cannabisSourceMetaData.getProjectId() + "/" + cannabisSourceMetaData.getSraSample() + "/" + runName;
     }

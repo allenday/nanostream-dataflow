@@ -1,43 +1,36 @@
 package com.google.allenday.nanostream;
 
-import com.google.allenday.nanostream.aligner.ComposeAlignedDataDoFn;
-import com.google.allenday.nanostream.aligner.MakeAlignmentViaPubSubDoFn;
-import com.google.allenday.nanostream.aligner.SaveInterleavedFastQDataToGCSDoFn;
+import com.google.allenday.nanostream.aligner.GetSequencesFromSamDataFnCannabis;
 import com.google.allenday.nanostream.cannabis_source.CannabisSourceFileMetaData;
 import com.google.allenday.nanostream.cannabis_source.CannabisSourceMetaData;
-import com.google.allenday.nanostream.cannabis_source.ParseSourceCsvFn;
-import com.google.allenday.nanostream.fastq.ParseFastQFn;
-import com.google.allenday.nanostream.gcloud.GetDataFromFastQFileCannabis;
+import com.google.allenday.nanostream.gcloud.GCSService;
 import com.google.allenday.nanostream.injection.MainCannabisModule;
-import com.google.allenday.nanostream.io.WindowedFilenamePolicy;
 import com.google.allenday.nanostream.kalign.SequenceOnlyDNACoder;
-import com.google.allenday.nanostream.samtools.SamtoolsViaPubSubDoFn;
+import com.google.allenday.nanostream.other.Configuration;
+import com.google.allenday.nanostream.pubsub.GCSUtils;
 import com.google.allenday.nanostream.util.CoderUtils;
 import com.google.allenday.nanostream.util.EntityNamer;
+import com.google.cloud.storage.BlobId;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import htsjdk.samtools.fastq.FastqRecord;
 import org.apache.beam.sdk.Pipeline;
-import org.apache.beam.sdk.io.FileBasedSink;
 import org.apache.beam.sdk.io.TextIO;
-import org.apache.beam.sdk.io.fs.ResourceId;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
-import org.apache.beam.sdk.options.ValueProvider;
-import org.apache.beam.sdk.transforms.*;
-import org.apache.beam.sdk.values.KV;
+import org.apache.beam.sdk.transforms.DoFn;
+import org.apache.beam.sdk.transforms.ParDo;
+import org.apache.beam.sdk.transforms.ToString;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
-import static com.google.allenday.nanostream.other.Configuration.BAM_SORTED_DATA_FOLDER_NAME;
+import java.util.ArrayList;
+import java.util.List;
 
 //TODO
 
 /**
  *
  */
-public class NanostreamCannabisApp {
+public class NanostreamCannabisUtilsApp {
 
     public static void main(String[] args) {
         String sourceSampleList = "gs://cannabis-3k/CannabisGenomics-201703-Sheet1.csv";
@@ -54,10 +47,43 @@ public class NanostreamCannabisApp {
         Pipeline pipeline = Pipeline.create(options);
         CoderUtils.setupCoders(pipeline, new SequenceOnlyDNACoder());
 
+
         pipeline
                 .apply("Source file name reading", TextIO.read().from(sourceSampleList))
-                .apply("Parse source CSV", ParDo.of(new ParseSourceCsvFn(sampleToProcess)))
-                .apply("Get data from FastQ", ParDo.of(new GetDataFromFastQFileCannabis()))
+                .apply("Parse source CSV", ParDo.of(new DoFn<String, CannabisSourceFileMetaData>() {
+                    @ProcessElement
+                    public void processElement(ProcessContext c) {
+                        String dataLine = c.element();
+                        try {
+                            CannabisSourceFileMetaData.fromCSVLine(dataLine).forEach(c::output);
+                        } catch (Exception e) {
+                        }
+                    }
+                }))
+                .apply("Add key as ReadName", ParDo.of(new DoFn<CannabisSourceFileMetaData, String>() {
+                    private Logger LOG = LoggerFactory.getLogger(NanostreamCannabisUtilsApp.class);
+
+                    private GCSService gcsService;
+
+                    @Setup
+                    public void setup() {
+                        gcsService = GCSService.initialize();
+                    }
+
+                    @ProcessElement
+                    public void processElement(ProcessContext c) {
+                        CannabisSourceFileMetaData data = c.element();
+                        BlobId blobId = BlobId.of("cannabis-3k", data.generateGCSBlobName());
+                        if (!gcsService.isExists(BlobId.of("cannabis-3k", data.generateGCSBlobName()))){
+                            LOG.info(blobId.toString()+" NOT exists");
+                            c.output(GCSUtils.getGCSPathFromBlobId(blobId));
+                        } else {
+                            LOG.info(blobId.toString()+" exists");
+                        }
+                    }
+                }))
+
+                /*.apply("Get data from FastQ", ParDo.of(new GetDataFromFastQFileCannabis()))
                 .apply("Parse FastQ data", ParDo.of(new ParseFastQFn<>()))
                 .apply("Add key as ReadName", (ParDo.of(new DoFn<KV<CannabisSourceFileMetaData, FastqRecord>, KV<String, KV<CannabisSourceFileMetaData, FastqRecord>>>() {
                     @ProcessElement
@@ -89,7 +115,7 @@ public class NanostreamCannabisApp {
                 .apply("Group by reference DB", GroupByKey.create())
                 .apply("Compose SAM data", ParDo.of(injector.getInstance(ComposeAlignedDataDoFn.class)))
                 .apply("SAM to BAM", ParDo.of(new SamtoolsViaPubSubDoFn(options.getProject(), options.getSamtoolsTopicId(),
-                        options.getResultBucket(), "samtools view -b ${input}", BAM_SORTED_DATA_FOLDER_NAME)))
+                        options.getResultBucket(), "samtools view -b ${input}", BAM_SORTED_DATA_FOLDER_NAME)))*/
                 /*.apply("Concat SAM", ParDo.of(new DoFn<KV<CannabisSourceMetaData, String>, KV<CannabisSourceMetaData, String>>() {
                     @ProcessElement
                     public void processElement(ProcessContext c) {
@@ -140,7 +166,7 @@ public class NanostreamCannabisApp {
                     }
                 }))*/
                 .apply("toString()", ToString.elements())
-                .apply("Write to GCS", TextIO.write()
+                /*.apply("Write to GCS", TextIO.write()
                         .withWindowedWrites()
                         .withNumShards(1)
                         .to(
@@ -151,7 +177,11 @@ public class NanostreamCannabisApp {
                                         ""))
                         .withTempDirectory(ValueProvider.NestedValueProvider.of(
                                 ValueProvider.StaticValueProvider.of("gs://cannabis-3k-results/logs"),
-                                (SerializableFunction<String, ResourceId>) FileBasedSink::convertToFileResourceIfPossible)));
+                                (SerializableFunction<String, ResourceId>) FileBasedSink::convertToFileResourceIfPossible)));*/
+                .apply("Write out", TextIO.write()
+                        .withWindowedWrites()
+                        .withNumShards(1)
+                        .to("result"));
 
         pipeline.run();
     }

@@ -15,9 +15,15 @@ public interface NanostreamCannabisPipelineOptions extends DataflowPipelineOptio
 
     @Description("Aligner Pub Sub Topic id")
     @Validation.Required
-    String getTopicId();
+    String getAlignerTopicId();
 
-    void setTopicId(String value);
+    void setAlignerTopicId(String value);
+
+    @Description("Samtools Pub Sub Topic id")
+    @Validation.Required
+    String getSamtoolsTopicId();
+
+    void setSamtoolsTopicId(String value);
 
 
     @Description("Max size of batch that will be generated before alignment")
