@@ -6,8 +6,7 @@ import com.google.allenday.nanostream.http.NanostreamHttpService;
 import com.google.allenday.nanostream.kalign.ProceedKAlignmentFn;
 import com.google.allenday.nanostream.other.Configuration;
 import com.google.allenday.nanostream.output.PrepareSequencesStatisticToOutputDbFn;
-import com.google.allenday.nanostream.output.WriteSequencesBodiesToFirestoreDbFn;
-import com.google.allenday.nanostream.output.WriteSequencesStatisticToFirestoreDbFn;
+import com.google.allenday.nanostream.output.WriteDataToFirestoreDbFn;
 import com.google.allenday.nanostream.taxonomy.GetResistanceGenesTaxonomyDataFn;
 import com.google.allenday.nanostream.taxonomy.GetSpeciesTaxonomyDataFn;
 import com.google.allenday.nanostream.taxonomy.GetTaxonomyFromTree;
@@ -17,7 +16,8 @@ import com.google.allenday.nanostream.util.ResourcesHelper;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 
-import static com.google.allenday.nanostream.other.Configuration.*;
+import static com.google.allenday.nanostream.other.Configuration.RESISTANCE_GENES_GENE_DATA_FILE_NAME;
+import static com.google.allenday.nanostream.other.Configuration.SPECIES_GENE_DATA_FILE_NAME;
 
 /**
  * App dependency injection module, that provide graph of main dependencies in app
@@ -45,7 +45,7 @@ public class MainModule extends NanostreamModule {
 
     @Provides
     public MakeAlignmentViaHttpFn provideMakeAlignmentViaHttpFn(NanostreamHttpService service) {
-        return new MakeAlignmentViaHttpFn(service, bwaDB, bwaEndpoint);
+        return new MakeAlignmentViaHttpFn(service, bwaDB, bwaEndpoint, bwaArguments);
     }
 
     @Provides
@@ -54,21 +54,8 @@ public class MainModule extends NanostreamModule {
     }
 
     @Provides
-    public WriteSequencesStatisticToFirestoreDbFn provideWriteDataToFirestoreDbFnStatistic() {
-        return new WriteSequencesStatisticToFirestoreDbFn(
-                EntityNamer.addPrefixWithProcessingMode(Configuration.SEQUENCES_STATISTIC_COLLECTION_NAME_BASE,
-                        processingMode,
-                        outputFirestoreCollectionNamePrefix),
-                projectId);
-    }
-
-    @Provides
-    public WriteSequencesBodiesToFirestoreDbFn provideWriteSequencesBodiesToFirestoreDbFn() {
-        return new WriteSequencesBodiesToFirestoreDbFn(
-                EntityNamer.addPrefixWithProcessingMode(Configuration.SEQUENCES_BODIES_COLLECTION_NAME_BASE,
-                        processingMode,
-                        outputFirestoreCollectionNamePrefix),
-                projectId);
+    public WriteDataToFirestoreDbFn provideWriteDataToFirestoreDbFn() {
+        return new WriteDataToFirestoreDbFn(projectId);
     }
 
     @Provides
@@ -84,10 +71,8 @@ public class MainModule extends NanostreamModule {
 
     @Provides
     public PrepareSequencesStatisticToOutputDbFn providePrepareSequencesStatisticToOutputDbFn(EntityNamer entityNamer) {
-        String documentName = outputFirestoreStatiscticDocumentName != null
-                ? outputFirestoreStatiscticDocumentName
-                : entityNamer.generateTimestampedName(SEQUENCES_STATISTIC_DOCUMENT_NAME_BASE);
-        return new PrepareSequencesStatisticToOutputDbFn(documentName, entityNamer.getInitialTimestamp());
+        return new PrepareSequencesStatisticToOutputDbFn(outputCollectionNamePrefix, outputDocumentNamePrefix,
+                entityNamer.getInitialTimestamp());
     }
 
     @Provides

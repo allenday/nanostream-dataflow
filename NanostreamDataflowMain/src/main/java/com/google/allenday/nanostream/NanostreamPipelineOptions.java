@@ -5,6 +5,8 @@ import org.apache.beam.sdk.options.Default;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.Validation;
 
+import static com.google.allenday.nanostream.other.Configuration.*;
+
 /**
  * Provides list of {@link org.apache.beam.sdk.Pipeline} options
  * for implementation {@link NanostreamApp} Dataflow transformation
@@ -19,13 +21,13 @@ public interface NanostreamPipelineOptions extends DataflowPipelineOptions {
 
 
     @Description("Size of the Window in which FastQ records will be collected for Alignment")
-    @Default.Integer(60)
+    @Default.Integer(DEFAULT_ALIGNMENT_WINDOW)
     Integer getAlignmentWindow();
 
     void setAlignmentWindow(Integer value);
 
     @Description("Delay between updating output statistic data")
-    @Default.Integer(60)
+    @Default.Integer(DEFAULT_STATIC_UPDATING_DELAY)
     Integer getStatisticUpdatingDelay();
 
     void setStatisticUpdatingDelay(Integer value);
@@ -73,14 +75,26 @@ public interface NanostreamPipelineOptions extends DataflowPipelineOptions {
     void setResistanceGenesList(String value);
 
     @Description("Prefix for Firestore collections names that used for output")
-    @Validation.Required
-    String getOutputFirestoreCollectionNamePrefix();
+    String getOutputCollectionNamePrefix();
 
-    void setOutputFirestoreCollectionNamePrefix(String value);
+    void setOutputCollectionNamePrefix(String value);
 
 
-    @Description("Name for Firestore statistic result document")
-    String getOutputFirestoreStatisticDocumentName();
+    @Description("Prefix for Firestore statistic result document")
+    String getOutputDocumentNamePrefix();
 
-    void setOutputFirestoreStatisticDocumentName(String value);
+    void setOutputDocumentNamePrefix(String value);
+
+
+    @Description("Max size of batch that will be generated before alignment")
+    @Default.Integer(DEFAULT_ALIGNMENT_BATCH_SIZE)
+    int getAlignmentBatchSize();
+
+    void setAlignmentBatchSize(int value);
+
+    @Description("Arguments that will be passed to BWA aligner")
+    @Default.String(DEFAULT_BWA_ARGUMENTS)
+    String getBwaArguments();
+
+    void setBwaArguments(String value);
 }

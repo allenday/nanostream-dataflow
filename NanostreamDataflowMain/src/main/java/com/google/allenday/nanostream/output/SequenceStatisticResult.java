@@ -1,6 +1,7 @@
 package com.google.allenday.nanostream.output;
 
 import com.google.allenday.nanostream.probecalculation.SequenceCountAndTaxonomyData;
+import com.google.allenday.nanostream.pubsub.GCSSourceData;
 import org.apache.beam.sdk.coders.DefaultCoder;
 import org.apache.beam.sdk.coders.SerializableCoder;
 
@@ -15,12 +16,16 @@ public class SequenceStatisticResult implements Serializable {
 
     private Date startDate;
     private Date resultDate;
+    private String bucket;
+    private String folder;
     private List<SequenceRecord> sequenceRecords;
     private long calculationTime;
 
-    public SequenceStatisticResult(Date startDate, Date resultDate, List<SequenceRecord> sequenceRecords, long calculationTime) {
+    public SequenceStatisticResult(Date startDate, Date resultDate, String bucket, String folder, List<SequenceRecord> sequenceRecords, long calculationTime) {
         this.startDate = startDate;
         this.resultDate = resultDate;
+        this.bucket = bucket;
+        this.folder = folder;
         this.sequenceRecords = sequenceRecords;
         this.calculationTime = calculationTime;
     }
@@ -39,6 +44,14 @@ public class SequenceStatisticResult implements Serializable {
 
     public long getCalculationTime() {
         return calculationTime;
+    }
+
+    public String getBucket() {
+        return bucket;
+    }
+
+    public String getFolder() {
+        return folder;
     }
 
     @DefaultCoder(SerializableCoder.class)
@@ -86,7 +99,9 @@ public class SequenceStatisticResult implements Serializable {
 
 
     public static class Generator {
-        public SequenceStatisticResult genereteSequnceInfo(Map<String, SequenceCountAndTaxonomyData> sequenceSourceData, long startTimestamp) {
+
+        public SequenceStatisticResult genereteSequnceInfo(Map<String, SequenceCountAndTaxonomyData> sequenceSourceData,
+                                                           GCSSourceData gcsSourceData, long startTimestamp) {
             Date date = new Date();
             long startTime = System.currentTimeMillis();
 
@@ -110,7 +125,8 @@ public class SequenceStatisticResult implements Serializable {
             });
             long finishTime = System.currentTimeMillis();
 
-            return new SequenceStatisticResult(new Date(startTimestamp), date, sequenceRecords, finishTime - startTime);
+            return new SequenceStatisticResult(new Date(startTimestamp), date, gcsSourceData.getBucket(),
+                    gcsSourceData.getFolder(), sequenceRecords, finishTime - startTime);
         }
     }
 

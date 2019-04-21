@@ -17,9 +17,14 @@ To run the pipeline take the following steps:
 
 1. Create a [Google Cloud Project](https://cloud.google.com/)
 2. Create a [Google Cloud Storage](https://cloud.google.com/storage/) `$UPLOAD_BUCKET` **upload_bucket for FastQ files**.
+<<<<<<< HEAD
 3. You can use our [simulator](https://github.com/allenday/nanostream-dataflow/blob/master/simulator) to upload FastQ for testing, or if you don't have a real dataset.
 4. Create a PubSub Topic in GUI. For example, file_upload.
 5. Configure [file upload notifications]((https://cloud.google.com/storage/docs/pubsub-notifications)). This creates PubSub messages when new files are uploaded. Set up PubSub notifications:
+=======
+3. You can use our [simulator](https://github.com/allenday/nanostream-dataflow/blob/master/simulator) to upload FastQ for testing, or if you don't have a real dataset. If your source data are stored in a large (>1 MB) multi-strand FastQ file you can use [FastQ Splitter](https://github.com/allenday/nanostream-dataflow/blob/master/utilities/fastq_splitter) utility. It converts large multi-strand FastQ file into a set of single strand FastQ files and tsv file with strand timings. This transformation makes possible to work with batch source data in a streaming mode.
+4. Configure [file upload notifications]((https://cloud.google.com/storage/docs/pubsub-notifications)). This creates PubSub messages when new files are uploaded. With our placeholder name `$UPLOAD_EVENTS`, set up PubSub notifications in the following way:
+>>>>>>> cbfe24c5a164374bbb2014272ef10cc60acf6b75
 ```
 gsutil notification create \
 -t <topic name> -f json \
@@ -30,15 +35,21 @@ gsutil notification create \
 ```
 gcloud pubsub subscriptions create <subscription name> --topic <topic name>
 ```
+<<<<<<< HEAD
 7. Provision an aligner cluster, see [aligner](aligner)
 8. Create a **Cloud Firestore DB** ([See details in section Create a Cloud Firestore project](https://cloud.google.com/firestore/docs/quickstart-mobile-web#create_a_project)) for saving cache and result data.
 9. *optional* If you running the pipeline in `resistance_genes` mode you should provide "FASTA DB" and "gene list" files stored in GCS.
+=======
+6. Provision an aligner cluster, see [aligner](aligner)
+7. Create a **Cloud Firestore DB** ([See details in section Create a Cloud Firestore project](https://cloud.google.com/firestore/docs/quickstart-mobile-web#create_a_project)) for saving cache and result data.
+8. *optional* If you running the pipeline in `resistance_genes` mode you should provide "gene list" file stored in GCS.
+>>>>>>> cbfe24c5a164374bbb2014272ef10cc60acf6b75
 
 ### Project Structure
 - NanostreamDataflowMain - Apache Beam app that provides all data transformations
 - aligner - scripts to provision auto-scaled HTTP service for alignment (based on `bwa`)
 - simulator - python script that can simulate file uploads to GCS
-- fasta_formatter - python script for formatting fasta files into project readable format
+- utilities - utils for preprocessing of FASTA and FASTQ files
 - visualization - module for the visualization of results
 - doc - additional files for documentation
 - monitoring - monitors whether pubsub messages are working correctly.
@@ -97,10 +108,12 @@ ALIGNMENT_WINDOW=20
 # how frequently (in wallclock seconds) are statistics updated for dashboard visualizaiton?
 STATS_UPDATE_FREQUENCY=30
 
+# Region where aligner cluster is running
+ALIGNER_REGION=us-central1
 # IP address of the aligner cluster created by running aligner/provision_species.sh
-SPECIES_ALIGNER_CLUSTER_IP=$(gcloud compute forwarding-rules describe bwa-species-forward --global --format="value(IPAddress)")
+SPECIES_ALIGNER_CLUSTER_IP=$(gcloud compute forwarding-rules describe bwa-species-forward --region=${ALIGNER_REGION} --format="value(IPAddress)")
 # IP address of the aligner cluster created by running aligner/provision_resistance_genes.sh
-RESISTANCE_GENES_ALIGNER_CLUSTER_IP=$(gcloud compute forwarding-rules describe bwa-resistance-genes-forward --global --format="value(IPAddress)")
+RESISTANCE_GENES_ALIGNER_CLUSTER_IP=$(gcloud compute forwarding-rules describe bwa-resistance-genes-forward --region=${ALIGNER_REGION} --format="value(IPAddress)")
 # base URL for http services (bwa and kalign)
 # value for species, for resistance_genes use 'SERVICES_HOST=http://$RESISTANCE_GENES_ALIGNER_CLUSTER_IP'
 SERVICES_HOST=http://$SPECIES_ALIGNER_CLUSTER_IP
@@ -113,8 +126,8 @@ KALIGN_ENDPOINT=/cgi-bin/kalign.cgi
 
 # Collections name prefix of the Firestore database that will be used for writing results
 FIRESTORE_COLLECTION_NAME_PREFIX=new_scanning
-# (OPTIONAL) Firestore database document name that will be used for writing statistic results. You can specify it otherwise it will be generated automatically
-FIRESTORE_STATISTIC_DOCUMENT_NAME=statistic_document
+# (OPTIONAL) Firestore database document name prefix that will be used for writing statistic results
+FIRESTORE_DOCUMENT_NAME_PREFIX=statistic_document
 ```
 If you run the pipeline in the `resistance_genes` mode you should add 2 additional arguments with paths of files stored in the GCS. With a placeholder name `$FILES_BUCKET` add next arguments:
 1. Path to resistant genes sequence `fasta` list formatted with [fasta formatter](https://github.com/allenday/nanostream-dataflow/tree/master/fasta_formatter):
@@ -126,6 +139,14 @@ RESISTANCE_GENES_FASTA=gs://$FILES_BUCKET/gene-info/DB_resistant_formatted.fasta
 ```
 # Path to text file with resistant genes references and groups
 RESISTANCE_GENES_LIST=gs://$FILES_BUCKET/gene-info/resistance_genes_list.txt
+```
+**(Optional) Additional parameters**
+You can manually specify some parameters such as *Alignment batch size* and *BWA Aligner arguments*:
+```
+# Max size of batch that will be generated before alignment. Default value - 2000
+ALIGNMENT_BATCH_SIZE=1000
+# Arguments that will be passed to BWA aligner. Default value - "-t 4"
+BWA_ARGUMENTS='-t 4'
 ```
 
 To start **Nanostream Pipeline** run following command:
@@ -144,6 +165,7 @@ java -cp (path_to_nanostream_app_jar) \
   --bwaEndpoint=$BWA_ENDPOINT \
   --bwaDatabase=$BWA_DATABASE \
   --kAlignEndpoint=$KALIGN_ENDPOINT \
+<<<<<<< HEAD
   --outputFirestoreCollectionNamePrefix=$FIRESTORE_COLLECTION_NAME_PREFIX \
   --outputFirestoreStatisticDocumentName=$FIRESTORE_STATISTIC_DOCUMENT_NAME \
   --resistanceGenesList=$RESISTANCE_GENES_LIST
@@ -152,6 +174,13 @@ java -cp (path_to_nanostream_app_jar) \
 
 <details><summary>CGI species bwa</summary><p>
 
+=======
+  --outputCollectionNamePrefix=$FIRESTORE_COLLECTION_NAME_PREFIX \
+  --outputDocumentNamePrefix=$FIRESTORE_DOCUMENT_NAME_PREFIX \
+  --resistanceGenesList=$RESISTANCE_GENES_LIST \
+  --alignmentBatchSize=$ALIGNMENT_BATCH_SIZE `# (Optional)`\
+  --bwaArguments=$BWA_ARGUMENTS `# (Optional)`
+>>>>>>> cbfe24c5a164374bbb2014272ef10cc60acf6b75
 ```
 java -cp /home/coingroupimb/nanostream-dataflow/NanostreamDataflowMain/target/NanostreamDataflowMain-1.0-SNAPSHOT.jar \
   com.google.allenday.nanostream.NanostreamApp \

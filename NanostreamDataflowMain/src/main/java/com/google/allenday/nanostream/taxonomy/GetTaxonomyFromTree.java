@@ -1,6 +1,7 @@
 package com.google.allenday.nanostream.taxonomy;
 
 import com.google.allenday.nanostream.geneinfo.GeneData;
+import com.google.allenday.nanostream.pubsub.GCSSourceData;
 import japsa.bio.phylo.NCBITree;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.values.KV;
@@ -13,7 +14,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class GetTaxonomyFromTree extends DoFn<String, KV<String, GeneData>> {
+public class GetTaxonomyFromTree extends DoFn<KV<GCSSourceData, String>, KV<KV<GCSSourceData, String>, GeneData>> {
     private String treeText;
     private NCBITree tree;
 
@@ -38,7 +39,9 @@ public class GetTaxonomyFromTree extends DoFn<String, KV<String, GeneData>> {
 
     @ProcessElement
     public void processElement(ProcessContext c) {
-        String geneName = c.element();
+        KV<GCSSourceData, String> gcsSourceDataStringKV = c.element();
+
+        String geneName = gcsSourceDataStringKV.getValue();
 
         // convert names like "gi|564911138|ref|NC_023018.1|" to "NC_023018.1"
         if (geneName.split("\\|").length > 3) {
@@ -53,6 +56,6 @@ public class GetTaxonomyFromTree extends DoFn<String, KV<String, GeneData>> {
         List<String> colors = Arrays.asList(taxonomyAndColor[1]);
         Collections.reverse(colors);
 
-        c.output(KV.of(geneName, new GeneData(taxonomy, colors)));
+        c.output(KV.of(gcsSourceDataStringKV, new GeneData(taxonomy, colors)));
     }
 }

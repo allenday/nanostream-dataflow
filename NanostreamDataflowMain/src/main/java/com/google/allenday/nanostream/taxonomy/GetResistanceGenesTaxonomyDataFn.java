@@ -2,6 +2,7 @@ package com.google.allenday.nanostream.taxonomy;
 
 import com.google.allenday.nanostream.geneinfo.GeneData;
 import com.google.allenday.nanostream.geneinfo.GeneInfo;
+import com.google.allenday.nanostream.pubsub.GCSSourceData;
 import japsa.bio.phylo.NCBITree;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.values.KV;
@@ -16,7 +17,7 @@ import java.util.*;
 /**
  *
  */
-public class GetResistanceGenesTaxonomyDataFn extends DoFn<String, KV<String, GeneData>> {
+public class GetResistanceGenesTaxonomyDataFn extends DoFn<KV<GCSSourceData, String>, KV<KV<GCSSourceData, String>, GeneData>> {
 
     private PCollectionView<Map<String, GeneInfo>> geneInfoMapPCollectionView;
     private String treeText;
@@ -49,7 +50,8 @@ public class GetResistanceGenesTaxonomyDataFn extends DoFn<String, KV<String, Ge
 
     @ProcessElement
     public void processElement(ProcessContext c) {
-        String geneName = c.element();
+        KV<GCSSourceData, String> gcsSourceDataStringKV = c.element();
+        String geneName = gcsSourceDataStringKV.getValue();
         Map<String, GeneInfo> geneInfoMap = c.sideInput(geneInfoMapPCollectionView);
 
         GeneData geneData = new GeneData();
@@ -73,6 +75,6 @@ public class GetResistanceGenesTaxonomyDataFn extends DoFn<String, KV<String, Ge
                 geneData.setTaxonomy(taxonomy);
             }
         }
-        c.output(KV.of(geneName, geneData));
+        c.output(KV.of(gcsSourceDataStringKV, geneData));
     }
 }

@@ -1,5 +1,4 @@
-# Klebsiella Example
-Klebsiella fastq dataset is temporary unavalilable!
+# Dogbite Example
 
 ### Open cloudshell in GCP project
 https://cloud.google.com/shell/docs/quickstart#start_cloud_shell
@@ -16,7 +15,7 @@ PROJECT_ROOT=$(pwd)
 
 ```
 cd $PROJECT_ROOT/aligner/
-./provision_resistance_genes.sh
+./provision_species.sh
 ```
 
 ### Build jar
@@ -32,8 +31,6 @@ mvn clean install
 ### Create buckets and notifications
 
 ```
-# bucket for supporting files
-FILES_BUCKET=<Put your bucket name here>
 # bucket for uploading FastQ files
 UPLOAD_BUCKET=<Put your bucket name here>
 
@@ -46,31 +43,25 @@ gsutil notification create -t $UPLOAD_EVENTS -f json -e OBJECT_FINALIZE gs://$UP
 gcloud pubsub subscriptions create $UPLOAD_SUBSCRIPTION --topic $UPLOAD_EVENTS
 ```
 
-### Download supporting file
-
-```
-PROJECT=`gcloud config get-value project`
-gsutil -u $PROJECT cp gs://nanostream-dataflow-demo-data/gene-info/resistant_genes_list.txt gs://$FILES_BUCKET/
-```
-
 ### Setup variables
 
 ```
+PROJECT=`gcloud config get-value project`
 RUNNER=org.apache.beam.runners.dataflow.DataflowRunner
-PROCESSING_MODE=resistance_genes
+PROCESSING_MODE=species
 ALIGNMENT_WINDOW=20
 STATS_UPDATE_FREQUENCY=30
-RESISTANCE_GENES_ALIGNER_CLUSTER_IP=$(gcloud compute forwarding-rules describe bwa-resistance-genes-forward --global --format="value(IPAddress)")
-SERVICES_HOST=http://$RESISTANCE_GENES_ALIGNER_CLUSTER_IP
+ALIGNER_REGION=us-central1
+SPECIES_ALIGNER_CLUSTER_IP=$(gcloud compute forwarding-rules describe bwa-species-forward --region=${ALIGNER_REGION} --format="value(IPAddress)")
+SERVICES_HOST=http://$SPECIES_ALIGNER_CLUSTER_IP
 # bwa path
 BWA_ENDPOINT=/cgi-bin/bwa.cgi
 # bwa database name
 BWA_DATABASE=DB.fasta
 # kalign path
 KALIGN_ENDPOINT=/cgi-bin/kalign.cgi
-FIRESTORE_COLLECTION_NAME_PREFIX=klebsiella
-FIRESTORE_DOCUMENT_NAME_PREFIX=res_genes
-RESISTANCE_GENES_LIST=gs://$FILES_BUCKET/resistant_genes_list.txt
+FIRESTORE_COLLECTION_NAME_PREFIX=dogbite
+FIRESTORE_DOCUMENT_NAME_PREFIX=species
 ```
 
 ### Run pipeline
@@ -90,14 +81,11 @@ java -cp target/NanostreamDataflowMain-1.0-SNAPSHOT.jar \
   --bwaDatabase=$BWA_DATABASE \
   --kAlignEndpoint=$KALIGN_ENDPOINT \
   --outputCollectionNamePrefix=$FIRESTORE_COLLECTION_NAME_PREFIX \
-  --outputDocumentNamePrefix=$FIRESTORE_DOCUMENT_NAME_PREFIX \
-  --resistanceGenesList=$RESISTANCE_GENES_LIST
+  --outputDocumentNamePrefix=$FIRESTORE_DOCUMENT_NAME_PREFIX
 ```
 
 ### Upload FastQ file
-Klebsiella fastq dataset is temporary unavalilable!
+
 ```
-gsutil -u $PROJECT cp gs://nanostream-dataflow-demo-data/2_Klebsiella/GN_091_pass.fastq.gz .
-gunzip GN_091_pass.fastq.gz
-gsutil cp GN_091_pass.fastq gs://$UPLOAD_BUCKET/
+gsutil -u $PROJECT cp gs://nanostream-dataflow-demo-data/samples/1_Dogbite/20180326_spiked1.fastq gs://$UPLOAD_BUCKET/
 ```

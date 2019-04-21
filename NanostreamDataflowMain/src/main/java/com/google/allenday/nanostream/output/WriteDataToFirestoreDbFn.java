@@ -12,17 +12,15 @@ import java.util.concurrent.Future;
 /**
  * Writes data to Firestore Database
  */
-public class WriteDataToFirestoreDbFn<T> extends DoFn<KV<String, T>, String> {
+public class WriteDataToFirestoreDbFn extends DoFn<KV<KV<String, String>, SequenceStatisticResult>, String> {
 
 
     private Logger LOG = LoggerFactory.getLogger(WriteDataToFirestoreDbFn.class);
 
     private FirestoreService firebaseDatastoreService;
-    private String firestoreDestCollection;
     private String projectId;
 
-    public WriteDataToFirestoreDbFn(String firestoreDestCollection, String projectId) {
-        this.firestoreDestCollection = firestoreDestCollection;
+    public WriteDataToFirestoreDbFn(String projectId) {
         this.projectId = projectId;
     }
 
@@ -40,8 +38,12 @@ public class WriteDataToFirestoreDbFn<T> extends DoFn<KV<String, T>, String> {
         if (firebaseDatastoreService == null) {
             return;
         }
+        String firestoreDestCollection = c.element().getKey().getKey();
+        String firestoreDestDocument = c.element().getKey().getValue();
+        SequenceStatisticResult data = c.element().getValue();
+
         Future<WriteResult> result = firebaseDatastoreService.writeObjectToFirestoreCollection(firestoreDestCollection,
-                c.element().getKey(), c.element().getValue());
+                firestoreDestDocument, data);
         c.output(result.toString());
     }
 }

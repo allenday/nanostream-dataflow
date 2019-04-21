@@ -1,6 +1,7 @@
 package com.google.allenday.nanostream.util;
 
 import com.google.allenday.nanostream.NanostreamApp;
+import com.google.allenday.nanostream.other.Configuration;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -17,6 +18,25 @@ public class EntityNamer {
 
     public static EntityNamer initialize() {
         return new EntityNamer();
+    }
+
+    public static String generateNameForCollection(String collectionNamePrefix, String bucket) {
+        StringBuilder nameBuilder = new StringBuilder();
+        if (collectionNamePrefix != null && !collectionNamePrefix.isEmpty()) {
+            nameBuilder.append(collectionNamePrefix).append("__");
+        }
+        nameBuilder.append(Configuration.SEQUENCES_STATISTIC_COLLECTION_NAME_BASE).append("__");
+        nameBuilder.append(bucket);
+        return nameBuilder.toString();
+    }
+
+    public static String generateNameForDocument(String documentNamePrefix, String folder) {
+        StringBuilder nameBuilder = new StringBuilder();
+        if (documentNamePrefix != null && !documentNamePrefix.isEmpty()) {
+            nameBuilder.append(documentNamePrefix).append("__");
+        }
+        nameBuilder.append(folder.replace("/", "*"));
+        return nameBuilder.toString();
     }
 
     public String generateJobName(NanostreamApp.ProcessingMode processingMode, String prefix) {

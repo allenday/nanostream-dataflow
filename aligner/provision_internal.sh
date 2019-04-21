@@ -7,8 +7,8 @@ setup () {
     create-with-container ${NAME}-template \
     --container-image=${DOCKER_IMAGE} \
     --container-env BWA_FILES=${BWA_FILES},REQUESTER_PROJECT=${REQUESTER_PROJECT} \
-    --boot-disk-size=100GB \
-    --tags http-server,http,allow-http \
+    --boot-disk-size=250GB \
+    --tags ${NAME}-http-hc \
     --preemptible \
     --machine-type=$MACHINE_TYPE
 
@@ -20,10 +20,9 @@ setup () {
     --template ${NAME}-template \
     --zone $ZONE
 
-
     # create HTTP health check
-    gcloud compute http-health-checks \
-    create ${NAME}-health-check \
+    gcloud compute health-checks \
+    create http ${NAME}-health-check \
     --request-path /cgi-bin/bwa.cgi
 
     # configure named ports
@@ -44,76 +43,63 @@ setup () {
     # configure managed instance group auto-healing
     gcloud beta compute instance-groups managed \
     set-autohealing ${NAME}-managed-instance-group \
-    --http-health-check ${NAME}-health-check \
+    --health-check ${NAME}-health-check \
     --initial-delay 180 \
     --zone $ZONE
 
     # create load balancer backend service
     gcloud compute backend-services \
     create ${NAME}-backend-service \
-    --http-health-checks ${NAME}-health-check \
-    --global \
-    --timeout=600
+    --load-balancing-scheme internal \
+    --region $REGION \
+    --health-checks ${NAME}-health-check \
+    --protocol tcp
 
     # configure load balancer backend service
     gcloud compute backend-services \
     add-backend ${NAME}-backend-service \
     --instance-group ${NAME}-managed-instance-group \
-    --balancing-mode UTILIZATION \
-    --max-utilization $TARGET_CPU_UTILIZATION \
     --instance-group-zone $ZONE \
-    --global
-
-    # configure load balancer URL-maps
-    gcloud compute url-maps \
-    create ${NAME}-url-map \
-    --default-service ${NAME}-backend-service
-
-    # create load balancer frontend
-    gcloud compute target-http-proxies \
-    create ${NAME}-target-proxy \
-    --url-map ${NAME}-url-map
+    --region $REGION
 
     # configure load balancer frontend
     gcloud compute forwarding-rules \
     create ${NAME}-forward \
-    --global \
+    --load-balancing-scheme internal \
     --ports 80 \
-    --target-http-proxy ${NAME}-target-proxy
+    --region $REGION \
+    --backend-service ${NAME}-backend-service
 
-    # create firewall rule
+    # create firewall rule to allow health-check requests
     gcloud compute firewall-rules \
-    create allow-http \
+    create ${NAME}-allow-http-from-hc \
     --allow tcp:80 \
-    --target-tags http-server
+    --source-ranges 130.211.0.0/22,35.191.0.0/16 \
+    --target-tags ${NAME}-http-hc
 
-    export ALIGNER_CLUSTER_IP_ADDRESS=$(gcloud compute forwarding-rules describe ${NAME}-forward --global --format="value(IPAddress)")
-    echo "All done. Cluster will be available on http://${ALIGNER_CLUSTER_IP_ADDRESS}/ in 5-10 minutes"
+    export ALIGNER_CLUSTER_IP_ADDRESS=$(gcloud compute forwarding-rules describe ${NAME}-forward --region=${REGION} --format="value(IPAddress)")
+    echo "All done. Cluster will be available on internal address ${ALIGNER_CLUSTER_IP_ADDRESS} in 5-10 minutes"
 }
 
 cleanup () {
     # delete forwarding rule
-    yes | gcloud compute forwarding-rules delete ${NAME}-forward --global
-
-    # delete target proxy
-    yes | gcloud compute target-http-proxies delete ${NAME}-target-proxy
-
-    # delete url-map
-    yes | gcloud compute url-maps delete ${NAME}-url-map
+    gcloud compute forwarding-rules delete ${NAME}-forward \
+     --region=$REGION --quiet
 
     # delete backend service
-    yes | gcloud compute backend-services delete ${NAME}-backend-service --global
+    gcloud compute backend-services delete ${NAME}-backend-service \
+    --region=$REGION --quiet
 
     # delete managed instance group
-    yes | gcloud compute instance-groups managed \
-    delete ${NAME}-managed-instance-group --zone $ZONE
+    gcloud compute instance-groups managed \
+    delete ${NAME}-managed-instance-group --zone $ZONE --quiet
 
     # delete instance template
-    yes | gcloud compute instance-templates delete ${NAME}-template
+    gcloud compute instance-templates delete ${NAME}-template --quiet
 
     # delete HTTP health check
-    yes | gcloud compute http-health-checks delete ${NAME}-health-check
+    gcloud compute health-checks delete ${NAME}-health-check --quiet
 
-    # delete firewall rule
-    yes | gcloud compute firewall-rules delete allow-http
+    # delete firewall rule, ignore failure
+    gcloud compute firewall-rules delete ${NAME}-allow-http-from-hc --quiet
 }
