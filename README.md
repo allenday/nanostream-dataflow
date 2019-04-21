@@ -17,14 +17,9 @@ To run the pipeline take the following steps:
 
 1. Create a [Google Cloud Project](https://cloud.google.com/)
 2. Create a [Google Cloud Storage](https://cloud.google.com/storage/) `$UPLOAD_BUCKET` **upload_bucket for FastQ files**.
-<<<<<<< HEAD
-3. You can use our [simulator](https://github.com/allenday/nanostream-dataflow/blob/master/simulator) to upload FastQ for testing, or if you don't have a real dataset.
-4. Create a PubSub Topic in GUI. For example, file_upload.
-5. Configure [file upload notifications]((https://cloud.google.com/storage/docs/pubsub-notifications)). This creates PubSub messages when new files are uploaded. Set up PubSub notifications:
-=======
 3. You can use our [simulator](https://github.com/allenday/nanostream-dataflow/blob/master/simulator) to upload FastQ for testing, or if you don't have a real dataset. If your source data are stored in a large (>1 MB) multi-strand FastQ file you can use [FastQ Splitter](https://github.com/allenday/nanostream-dataflow/blob/master/utilities/fastq_splitter) utility. It converts large multi-strand FastQ file into a set of single strand FastQ files and tsv file with strand timings. This transformation makes possible to work with batch source data in a streaming mode.
 4. Configure [file upload notifications]((https://cloud.google.com/storage/docs/pubsub-notifications)). This creates PubSub messages when new files are uploaded. With our placeholder name `$UPLOAD_EVENTS`, set up PubSub notifications in the following way:
->>>>>>> cbfe24c5a164374bbb2014272ef10cc60acf6b75
+5. Configure [file upload notifications]((https://cloud.google.com/storage/docs/pubsub-notifications)). This creates PubSub messages when new files are uploaded. Set up PubSub notifications:
 ```
 gsutil notification create \
 -t <topic name> -f json \
@@ -35,15 +30,10 @@ gsutil notification create \
 ```
 gcloud pubsub subscriptions create <subscription name> --topic <topic name>
 ```
-<<<<<<< HEAD
 7. Provision an aligner cluster, see [aligner](aligner)
 8. Create a **Cloud Firestore DB** ([See details in section Create a Cloud Firestore project](https://cloud.google.com/firestore/docs/quickstart-mobile-web#create_a_project)) for saving cache and result data.
 9. *optional* If you running the pipeline in `resistance_genes` mode you should provide "FASTA DB" and "gene list" files stored in GCS.
-=======
-6. Provision an aligner cluster, see [aligner](aligner)
-7. Create a **Cloud Firestore DB** ([See details in section Create a Cloud Firestore project](https://cloud.google.com/firestore/docs/quickstart-mobile-web#create_a_project)) for saving cache and result data.
-8. *optional* If you running the pipeline in `resistance_genes` mode you should provide "gene list" file stored in GCS.
->>>>>>> cbfe24c5a164374bbb2014272ef10cc60acf6b75
+
 
 ### Project Structure
 - NanostreamDataflowMain - Apache Beam app that provides all data transformations
