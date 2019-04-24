@@ -1,0 +1,19 @@
+service: ${MONITOR}
+runtime: python
+env: flex
+entrypoint: gunicorn -b :$PORT main:app
+
+runtime_config:
+  python_version: 3
+
+instance_class: B1
+manual_scaling:
+  instances: 1
+
+# [START gae_flex_pubsub_env]
+env_variables:
+    PROJECT: ${PROJECT}
+    GOOGLE_CLOUD_PROJECT: ${PROJECT}
+    PUBSUB_TOPIC: ${UPLOAD_EVENTS}
+    PUBSUB_VERIFICATION_TOKEN: ${VERIFICATION}
+# [END gae_flex_pubsub_env]
