@@ -1,4 +1,4 @@
-service: ${MONITOR}
+service: @MONITOR@
 runtime: python
 env: flex
 entrypoint: gunicorn -b :$PORT main:app
@@ -12,8 +12,8 @@ manual_scaling:
 
 # [START gae_flex_pubsub_env]
 env_variables:
-    PROJECT: {PROJECT}
-    GOOGLE_CLOUD_PROJECT: {PROJECT}
-    PUBSUB_TOPIC: {UPLOAD_EVENTS}
-    PUBSUB_VERIFICATION_TOKEN: {VERIFICATION}
+    PROJECT: @PROJECT@
+    GOOGLE_CLOUD_PROJECT: @PROJECT@
+    PUBSUB_TOPIC: @UPLOAD_EVENTS@
+    PUBSUB_VERIFICATION_TOKEN: @VERIFICATION@
 # [END gae_flex_pubsub_env]
