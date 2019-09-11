@@ -17,6 +17,7 @@ import com.google.allenday.nanostream.util.EntityNamer;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import htsjdk.samtools.fastq.FastqRecord;
+import org.apache.beam.runners.direct.DirectRunner;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.FileBasedSink;
 import org.apache.beam.sdk.io.TextIO;
@@ -40,24 +41,24 @@ import static com.google.allenday.nanostream.other.Configuration.BAM_SORTED_DATA
 public class NanostreamCannabisApp {
 
     public static void main(String[] args) {
-        String sourceSampleList = "gs://cannabis-3k/CannabisGenomics-201703-Sheet1.csv";
-        String sampleToProcess = "SRS190966";
+        String sourceSampleList = "gs://cannabis-3k/Cannabis Genomics - 201703 - SRA.csv";
 
         NanostreamCannabisPipelineOptions options = PipelineOptionsFactory.fromArgs(args)
                 .withValidation()
                 .as(NanostreamCannabisPipelineOptions.class);
-        Injector injector = Guice.createInjector(new MainCannabisModule.Builder().buildFromOptions(options));
+        options.setRunner(DirectRunner.class);
+//        Injector injector = Guice.createInjector(new MainCannabisModule.Builder().buildFromOptions(options));
 
-        options.setJobName(injector.getInstance(EntityNamer.class)
+        /*options.setJobName(injector.getInstance(EntityNamer.class)
                 .generateTimestampedName(sampleToProcess));
-
+*/
         Pipeline pipeline = Pipeline.create(options);
         CoderUtils.setupCoders(pipeline, new SequenceOnlyDNACoder());
 
         pipeline
                 .apply("Source file name reading", TextIO.read().from(sourceSampleList))
-                .apply("Parse source CSV", ParDo.of(new ParseSourceCsvFn(sampleToProcess)))
-                .apply("Get data from FastQ", ParDo.of(new GetDataFromFastQFileCannabis()))
+                .apply("Parse source CSV", ParDo.of(new ParseSourceCsvFn()))
+                /*.apply("Get data from FastQ", ParDo.of(new GetDataFromFastQFileCannabis()))
                 .apply("Parse FastQ data", ParDo.of(new ParseFastQFn<>()))
                 .apply("Add key as ReadName", (ParDo.of(new DoFn<KV<CannabisSourceFileMetaData, FastqRecord>, KV<String, KV<CannabisSourceFileMetaData, FastqRecord>>>() {
                     @ProcessElement
@@ -89,7 +90,7 @@ public class NanostreamCannabisApp {
                 .apply("Group by reference DB", GroupByKey.create())
                 .apply("Compose SAM data", ParDo.of(injector.getInstance(ComposeAlignedDataDoFn.class)))
                 .apply("SAM to BAM", ParDo.of(new SamtoolsViaPubSubDoFn(options.getProject(), options.getSamtoolsTopicId(),
-                        options.getResultBucket(), "samtools view -b ${input}", BAM_SORTED_DATA_FOLDER_NAME)))
+                        options.getResultBucket(), "samtools view -b ${input}", BAM_SORTED_DATA_FOLDER_NAME)))*/
                 /*.apply("Concat SAM", ParDo.of(new DoFn<KV<CannabisSourceMetaData, String>, KV<CannabisSourceMetaData, String>>() {
                     @ProcessElement
                     public void processElement(ProcessContext c) {
@@ -140,7 +141,8 @@ public class NanostreamCannabisApp {
                     }
                 }))*/
                 .apply("toString()", ToString.elements())
-                .apply("Write to GCS", TextIO.write()
+                .apply(TextIO.write().to("result-cannabis"));
+                /*.apply("Write to GCS", TextIO.write()
                         .withWindowedWrites()
                         .withNumShards(1)
                         .to(
@@ -151,7 +153,7 @@ public class NanostreamCannabisApp {
                                         ""))
                         .withTempDirectory(ValueProvider.NestedValueProvider.of(
                                 ValueProvider.StaticValueProvider.of("gs://cannabis-3k-results/logs"),
-                                (SerializableFunction<String, ResourceId>) FileBasedSink::convertToFileResourceIfPossible)));
+                                (SerializableFunction<String, ResourceId>) FileBasedSink::convertToFileResourceIfPossible)));*/
 
         pipeline.run();
     }

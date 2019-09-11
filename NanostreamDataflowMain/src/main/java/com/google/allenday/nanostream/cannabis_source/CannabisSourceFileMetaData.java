@@ -28,11 +28,26 @@ public class CannabisSourceFileMetaData implements Serializable {
         this.pairedIndex = pairedIndex;
     }
 
+
     public static List<CannabisSourceFileMetaData> fromCSVLine(String csvLine) throws Exception{
         String[] parts = csvLine.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
-        CannabisSourceMetaData cannabisSourceFileMetaData = new CannabisSourceMetaData(parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6],
-                Long.parseLong(parts[7]), Long.parseLong(parts[8]), parts[9], parts[10], parts[11],
-                Integer.parseInt(parts[12]), parts[14], parts[15], parts[16]);
+        CannabisSourceMetaData cannabisSourceFileMetaData = new CannabisSourceMetaData(
+                parts[0],
+                parts[1],
+                parts[2],
+                parts[3],
+                parts[4],
+                parts[5],
+                parts[6],
+                isNumeric(parts[7]) ? Long.parseLong(parts[7]) : 0,
+                isNumeric(parts[8]) ? Long.parseLong(parts[8]) : 0,
+                parts[9],
+                parts[10],
+                parts[11],
+                isNumeric(parts[12]) ?Integer.parseInt(parts[12]) : 0,
+                parts[14],
+                parts[15],
+                parts[16]);
 
         List<CannabisSourceFileMetaData> results = new ArrayList<>();
         results.add(new CannabisSourceFileMetaData(cannabisSourceFileMetaData, 1));
@@ -44,11 +59,19 @@ public class CannabisSourceFileMetaData implements Serializable {
         return results;
     }
 
+    public static boolean isNumeric(String str) {
+        return str.matches("-?\\d+(\\.\\d+)?");  //match a number with optional '-' and decimal.
+    }
+
     public String generateGCSBlobName() {
         String runName = cannabisSourceMetaData.getRun();
         runName += "_" + pairedIndex;
         runName += ".fastq";
-        return "sra/" + cannabisSourceMetaData.getProjectId() + "/" + cannabisSourceMetaData.getSraSample() + "/" + runName;
+        if (cannabisSourceMetaData.getProject().toLowerCase().equals("Kannapedia".toLowerCase())) {
+            return "kannapedia/" + runName;
+        } else {
+            return "sra/" + cannabisSourceMetaData.getProjectId() + "/" + cannabisSourceMetaData.getSraSample() + "/" + runName;
+        }
     }
 
     public CannabisSourceMetaData getCannabisSourceMetaData() {

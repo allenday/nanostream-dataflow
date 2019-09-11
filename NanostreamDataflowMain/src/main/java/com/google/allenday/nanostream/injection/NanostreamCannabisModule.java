@@ -71,10 +71,10 @@ public class NanostreamCannabisModule extends AbstractModule {
 
         public NanostreamCannabisModule buildFromOptions(NanostreamCannabisPipelineOptions nanostreamPipelineOptions) {
             setProjectId(nanostreamPipelineOptions.getProject());
-            setAlignerTopicId(nanostreamPipelineOptions.getAlignerTopicId());
+            /*setAlignerTopicId(nanostreamPipelineOptions.getAlignerTopicId());
             setResultBucket(nanostreamPipelineOptions.getResultBucket());
             setSrsBucket(nanostreamPipelineOptions.getSrсBucket());
-            setSamHeadersPath(nanostreamPipelineOptions.getSamHeadersPath());
+            setSamHeadersPath(nanostreamPipelineOptions.getSamHeadersPath());*/
             return build();
         }
 
