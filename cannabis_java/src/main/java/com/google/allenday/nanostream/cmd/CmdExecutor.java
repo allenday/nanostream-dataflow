@@ -12,7 +12,7 @@ public class CmdExecutor implements Serializable {
 
     private Logger LOG = LoggerFactory.getLogger(CmdExecutor.class);
 
-    public void executeCommand(String cmdCommand) {
+    public boolean executeCommand(String cmdCommand) {
         LOG.info(String.format("Executing command: %s", cmdCommand));
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.command("bash", "-c", cmdCommand);
@@ -31,9 +31,10 @@ public class CmdExecutor implements Serializable {
 
             int exitCode = process.waitFor();
             LOG.info("\nExited with error code : " + exitCode);
-
+            return exitCode == 0;
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
+            return false;
         }
     }
 }

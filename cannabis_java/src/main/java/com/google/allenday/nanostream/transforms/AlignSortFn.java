@@ -68,8 +68,9 @@ public class AlignSortFn extends DoFn<KV<CannabisSourceMetaData, List<String>>, 
                 .forEach(blob -> {
                     String filePath = "/" + blob.getName();
                     if (!Files.exists(Paths.get(filePath))) {
-                        FileUtils.mkdir(filePath);
-                        blob.downloadTo(Paths.get(filePath));
+                        gcsService.downloadBlobTo(blob, filePath);
+                    } else {
+                        LOG.info(String.format("Reference %s already exists", blob.getName()));
                     }
                 });
     }
@@ -83,10 +84,7 @@ public class AlignSortFn extends DoFn<KV<CannabisSourceMetaData, List<String>>, 
             if (Files.exists(Paths.get(localPath))) {
                 throw new RuntimeException(String.format("Duplication of %s", localPath));
             }
-            FileUtils.mkdir(localPath);
-            LOG.info(String.format("Downloading: %s", blob.getName()));
-            blob.downloadTo(Paths.get(localPath));
-            LOG.info(String.format("Downloading of %s finished", blob.getName()));
+            gcsService.downloadBlobTo(blob, localPath);
             localFastqPaths.add(localPath);
         });
         return localFastqPaths;
@@ -99,7 +97,24 @@ public class AlignSortFn extends DoFn<KV<CannabisSourceMetaData, List<String>>, 
         String minimapCommand = String.format(ALIGN_COMMAND_PATTERN, referencePath,
                 String.join(" ", localFastqPaths), alignedSamPath);
 
-        cmdExecutor.executeCommand(minimapCommand);
+        boolean success = cmdExecutor.executeCommand(minimapCommand);
+        if (!success) {
+            throw new RuntimeException("Align command failed");
+        }
+        cmdExecutor.executeCommand("free -m");
+        /* Total amount of free memory available to the JVM */
+        LOG.info("Free memory (bytes): " +
+                Runtime.getRuntime().freeMemory());
+
+        /* This will return Long.MAX_VALUE if there is no preset limit */
+        long maxMemory = Runtime.getRuntime().maxMemory();
+        /* Maximum amount of memory the JVM will attempt to use */
+        LOG.info("Maximum memory (bytes): " +
+                (maxMemory == Long.MAX_VALUE ? "no limit" : maxMemory));
+
+        /* Total memory currently in use by the JVM */
+        LOG.info("Total memory (bytes): " +
+                Runtime.getRuntime().totalMemory());
         return alignedSamPath;
     }
 
@@ -117,6 +132,8 @@ public class AlignSortFn extends DoFn<KV<CannabisSourceMetaData, List<String>>, 
         }
         samFileWriter.close();
         reader.close();
+        FileUtils.deleteFile(alignedSamPath);
+
         cmdExecutor.executeCommand("ls " + alignedSortedBamPath);
         return alignedSortedBamPath;
     }
@@ -148,13 +165,20 @@ public class AlignSortFn extends DoFn<KV<CannabisSourceMetaData, List<String>>, 
                 String filePrefix = filesDirPath + run;
 
                 for (String reference : referenceNames) {
+                    long startMainPart = System.currentTimeMillis();
+
                     String alignedSamPath = alignFastq(localFastqPaths, filePrefix, reference);
                     String alignedSortedBamPath = sortFastq(alignedSamPath, filePrefix, reference);
                     Blob blob = uploadResultToGcs(alignedSortedBamPath);
+                    FileUtils.deleteFile(alignedSortedBamPath);
 
                     c.output(KV.of(KV.of(cannabisSourceMetaData.getSraSample(), reference), KV.of(cannabisSourceMetaData,
                             KV.of(blob.getBucket(), blob.getName()))));
+                    LOG.info(String.format("Finished align-sort of %s with reference %s in %d s",
+                            String.join(" ", localFastqPaths), reference, (System.currentTimeMillis() - startMainPart) / 1000));
                 }
+                FileUtils.deleteDir(filesDirPath);
+
             } catch (Exception e) {
                 LOG.error(e.getMessage());
             }

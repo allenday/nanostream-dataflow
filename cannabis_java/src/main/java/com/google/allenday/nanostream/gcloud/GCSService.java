@@ -1,10 +1,14 @@
 package com.google.allenday.nanostream.gcloud;
 
+import com.google.allenday.nanostream.utils.FileUtils;
 import com.google.api.gax.paging.Page;
 import com.google.cloud.ReadChannel;
 import com.google.cloud.storage.*;
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -14,6 +18,7 @@ import java.util.stream.StreamSupport;
  * Provides access to {@link Storage} instance with convenient interface
  */
 public class GCSService {
+    private Logger LOG = LoggerFactory.getLogger(GCSService.class);
 
     private Storage storage;
 
@@ -88,5 +93,13 @@ public class GCSService {
         Bucket bucket = storage.get(bucketName);
         return StreamSupport.stream(bucket.list(Storage.BlobListOption.prefix(prefix)).iterateAll().spliterator(), false)
                 .collect(Collectors.toList());
+    }
+
+
+    public void downloadBlobTo(Blob blob, String filePath) {
+        FileUtils.mkdir(filePath);
+        LOG.info(String.format("Start downloading blob gs://%s/%s into %s", blob.getBucket(), blob.getName(), filePath));
+        blob.downloadTo(Paths.get(filePath));
+        LOG.info(String.format("Blob gs://%s/%s successfully downloaded into %s", blob.getBucket(), blob.getName(), filePath));
     }
 }

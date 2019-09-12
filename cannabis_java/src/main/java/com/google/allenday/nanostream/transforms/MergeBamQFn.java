@@ -56,8 +56,7 @@ public class MergeBamQFn extends DoFn<KV<KV<String, String>, Iterable<KV<Cannabi
             if (Files.exists(Paths.get(localPath))) {
                 throw new RuntimeException(String.format("Duplication of %s", localPath));
             }
-            FileUtils.mkdir(localPath);
-            blob.downloadTo(Paths.get(localPath));
+            gcsService.downloadBlobTo(blob, localPath);
             localBamPaths.add(localPath);
         });
         return localBamPaths;
@@ -79,6 +78,7 @@ public class MergeBamQFn extends DoFn<KV<KV<String, String>, Iterable<KV<Cannabi
                 String destFileName = String.format(RESULT_SORTED_MERGED_DIR_NAME_PATTERN, jobTime) + metaData.getSraSample() + "_" + reference + MERGE_SORTED_FILE_PREFIX;
                 KV<String, String> destData = KV.of(resultsBucket, destFileName);
 
+                String filesDirPath;
                 if (!isNeedToMerge(bamList)) {
                     gcsService.copy(srcFileData.getKey(), srcFileData.getValue(), destData.getKey(), destData.getValue());
                     c.output(KV.of(metaData, destData));
@@ -86,7 +86,7 @@ public class MergeBamQFn extends DoFn<KV<KV<String, String>, Iterable<KV<Cannabi
                     LOG.info("To merge: " + bamList.stream().map(el -> Objects.requireNonNull(el.getKey()).getDirPrefix())
                             .collect(Collectors.joining(". ")));
 
-                    String filesDirPath = '/' + System.currentTimeMillis() + "_" + metaData.getSraSample() + "/";
+                    filesDirPath = '/' + System.currentTimeMillis() + "_" + metaData.getSraSample() + "/";
                     FileUtils.mkdir(filesDirPath);
 
                     String filePrefix = filesDirPath + metaData.getSraSample();
@@ -101,6 +101,8 @@ public class MergeBamQFn extends DoFn<KV<KV<String, String>, Iterable<KV<Cannabi
                         c.output(KV.of(metaData, destData));
                     } catch (IOException e) {
                         e.printStackTrace();
+                    } finally {
+                        FileUtils.deleteDir(filesDirPath);
                     }
                 }
             });

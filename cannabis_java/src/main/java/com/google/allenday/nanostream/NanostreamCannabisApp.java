@@ -33,6 +33,8 @@ public class NanostreamCannabisApp {
         NanostreamCannabisPipelineOptions pipelineOptions = PipelineOptionsFactory.fromArgs(args)
                 .withValidation()
                 .as(NanostreamCannabisPipelineOptions.class);
+        pipelineOptions.setNumberOfWorkerHarnessThreads(1);
+
         StringBuilder jobNameBuilder = new StringBuilder(JOB_NAME_PREFIX);
 
         List<String> sraSamplesToFilter = pipelineOptions.getSraSamplesToFilter();
