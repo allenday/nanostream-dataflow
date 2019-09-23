@@ -1,0 +1,16 @@
+--runner=org.apache.beam.runners.dataflow.DataflowRunner
+--project=upwork-nano-stream
+--streaming=true
+--processingMode=species
+--inputDataSubscription=projects/upwork-nano-stream/subscriptions/marva_albacore_fastq_paths_x1_emitter_subscription_1
+--alignmentWindow=60
+--statisticUpdatingDelay=60
+--servicesUrl=http://35.241.15.140
+--bwaEndpoint=/cgi-bin/bwa.cgi
+--bwaDatabase=genomeDB.fasta
+--kAlignEndpoint=/cgi-bin/kalign.cgi
+--outputFirestoreDbUrl=https://nano-stream1.firebaseio.com
+--outputFirestoreSequencesStatisticCollection=marva_albacore_sequences_statistic
+--outputFirestoreSequencesBodiesCollection=marva_albacore_sequences_bodies
+--outputFirestoreGeneCacheCollection=gene_cache
+--outputFirestoreCollectionNamePrefix=marva_albacore

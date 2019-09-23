@@ -8,7 +8,11 @@ setup () {
     --container-image=${DOCKER_IMAGE} \
     --container-env BWA_FILES=${BWA_FILES},REQUESTER_PROJECT=${REQUESTER_PROJECT} \
     --boot-disk-size=100GB \
+<<<<<<< HEAD:aligner/provision.sh
+    --tags http-server,http,allow-http \
+=======
     --tags ${NAME}-http \
+>>>>>>> cbfe24c5a164374bbb2014272ef10cc60acf6b75:aligner/provision_global.sh
     --preemptible \
     --machine-type=$MACHINE_TYPE
 
@@ -19,6 +23,7 @@ setup () {
     --size $MIN_REPLICAS \
     --template ${NAME}-template \
     --zone $ZONE
+
 
     # create HTTP health check
     gcloud compute http-health-checks \
@@ -92,27 +97,32 @@ setup () {
 
 cleanup () {
     # delete forwarding rule
-    gcloud compute forwarding-rules delete ${NAME}-forward --global
+    yes | gcloud compute forwarding-rules delete ${NAME}-forward --global
 
     # delete target proxy
-    gcloud compute target-http-proxies delete ${NAME}-target-proxy
+    yes | gcloud compute target-http-proxies delete ${NAME}-target-proxy
 
     # delete url-map
-    gcloud compute url-maps delete ${NAME}-url-map
+    yes | gcloud compute url-maps delete ${NAME}-url-map
 
     # delete backend service
-    gcloud compute backend-services delete ${NAME}-backend-service --global
+    yes | gcloud compute backend-services delete ${NAME}-backend-service --global
 
     # delete managed instance group
-    gcloud compute instance-groups managed \
+    yes | gcloud compute instance-groups managed \
     delete ${NAME}-managed-instance-group --zone $ZONE
 
     # delete instance template
-    gcloud compute instance-templates delete ${NAME}-template
+    yes | gcloud compute instance-templates delete ${NAME}-template
 
     # delete HTTP health check
-    gcloud compute http-health-checks delete ${NAME}-health-check
+    yes | gcloud compute http-health-checks delete ${NAME}-health-check
 
     # delete firewall rule
+<<<<<<< HEAD:aligner/provision.sh
+    yes | gcloud compute firewall-rules delete allow-http
+}
+=======
     gcloud compute firewall-rules delete ${NAME}-allow-http
 }
+>>>>>>> cbfe24c5a164374bbb2014272ef10cc60acf6b75:aligner/provision_global.sh

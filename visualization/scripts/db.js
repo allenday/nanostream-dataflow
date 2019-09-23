@@ -1,12 +1,12 @@
 define(function () {
   // Initialize Firebase
   const config = {
-    apiKey: "AIzaSyA5_c4nxV9sEew5Uvxc-zvoZi2ofg9sXfk",
-    authDomain: "nanostream-dataflow.firebaseapp.com",
-    databaseURL: "https://nanostream-dataflow.firebaseio.com",
-    projectId: "nanostream-dataflow",
-    storageBucket: "nanostream-dataflow.appspot.com",
-    messagingSenderId: "500629989505"
+    apiKey: "AIzaSyDLtxwk4r3ahh-R7aTGIXlMvgrBi5pc_P0",
+    authDomain: "nano-stream1.firebaseapp.com",
+    databaseURL: "https://nano-stream1.firebaseio.com",
+    projectId: "nano-stream1",
+    storageBucket: "nano-stream1.appspot.com",
+    messagingSenderId: "465460488211"
   };
 
   firebase.initializeApp(config);
