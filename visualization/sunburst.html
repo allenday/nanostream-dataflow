@@ -4,19 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Species Visualization</title>
-    <script src="https://www.gstatic.com/firebasejs/5.8.2/firebase.js"></script>
-    <script>
-      // Initialize Firebase
-      var config = {
-        apiKey: "AIzaSyDLtxwk4r3ahh-R7aTGIXlMvgrBi5pc_P0",
-        authDomain: "nano-stream1.firebaseapp.com",
-        databaseURL: "https://nano-stream1.firebaseio.com",
-        projectId: "nano-stream1",
-        storageBucket: "nano-stream1.appspot.com",
-        messagingSenderId: "465460488211"
-      };
-      firebase.initializeApp(config);
-    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
     <script src="https://nvd3.github.io/nvd3/build/nv.d3.js"></script>
     <link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet">
@@ -27,14 +14,9 @@
 </head>
 
 <body>
-  <h2>Nanostream Dataflow Visualizations</h2>
-  <div id="related_links">
-      <ul id="firebase_documents"></ul>
-      <script=urls.js></script>
-  </div>
-  <a href="index.html">Index</a>
-  <svg id="chart"></svg>
-  <script data-main="scripts/sunburst" src="scripts/require.js"></script>
+<a href="index.html">Index</a>
+<svg id="chart"></svg>
+<script data-main="scripts/sunburst" src="scripts/require.js"></script>
 </body>
 
 </html>
