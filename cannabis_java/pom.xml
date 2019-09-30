@@ -74,6 +74,11 @@
             <artifactId>htsjdk</artifactId>
             <version>2.20.3</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.allenday.genomics.core</groupId>
+            <artifactId>genomics-dataflow-core</artifactId>
+            <version>0.0.1</version>
+        </dependency>
         <!-- http services -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>

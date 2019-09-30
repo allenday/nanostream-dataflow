@@ -1,17 +1,15 @@
 package com.google.allenday.nanostream;
 
+import com.google.allenday.genomics.core.transform.AlignSortMergeTransform;
 import com.google.allenday.nanostream.cannabis_parsing.ParseCannabisDataFn;
 import com.google.allenday.nanostream.di.NanostreamCannabisModule;
-import com.google.allenday.nanostream.transforms.AlignSortFn;
 import com.google.allenday.nanostream.transforms.GroupByPairedReadsAndFilter;
-import com.google.allenday.nanostream.transforms.MergeBamQFn;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.TextIO;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.Filter;
-import org.apache.beam.sdk.transforms.GroupByKey;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.PCollection;
 
@@ -34,6 +32,8 @@ public class NanostreamCannabisApp {
                 .withValidation()
                 .as(NanostreamCannabisPipelineOptions.class);
         pipelineOptions.setNumberOfWorkerHarnessThreads(1);
+
+//        pipelineOptions.setRunner(DirectRunner.class);
 
         StringBuilder jobNameBuilder = new StringBuilder(JOB_NAME_PREFIX);
 
@@ -61,12 +61,8 @@ public class NanostreamCannabisApp {
         }
         csvLines
                 .apply("Parse data", ParDo.of(injector.getInstance(ParseCannabisDataFn.class)))
-                .apply("Group by paired reads and filter", new GroupByPairedReadsAndFilter())
-                .apply("Align fastq and sort", ParDo.of(injector.getInstance(AlignSortFn.class)))
-                .apply("Group by SRA (read group)", GroupByKey.create())
-                .apply("Merge BAM files", ParDo.of(injector.getInstance(MergeBamQFn.class)))
-//                .apply("To String", ToString.elements())
-//                .apply("Write results summary to GCS", TextIO.write().to("gs://cannabis-3k-results/results_cannabis"))
+                .apply(injector.getInstance(GroupByPairedReadsAndFilter.class))
+                .apply(injector.getInstance(AlignSortMergeTransform.class))
         ;
 
         pipeline.run();

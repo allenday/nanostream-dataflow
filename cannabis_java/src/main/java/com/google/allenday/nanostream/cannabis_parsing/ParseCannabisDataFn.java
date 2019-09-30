@@ -1,21 +1,26 @@
 package com.google.allenday.nanostream.cannabis_parsing;
 
-import com.google.allenday.nanostream.gcloud.GCSService;
+import com.google.allenday.genomics.core.gene.GeneData;
+import com.google.allenday.genomics.core.gene.GeneExampleMetaData;
+import com.google.allenday.genomics.core.io.FileUtils;
+import com.google.allenday.genomics.core.io.GCSService;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.values.KV;
+import org.javatuples.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-public class ParseCannabisDataFn extends DoFn<String, KV<CannabisSourceMetaData, List<String>>> {
+public class ParseCannabisDataFn extends DoFn<String, KV<GeneExampleMetaData, List<GeneData>>> {
 
     private String srcBucket;
     private Logger LOG = LoggerFactory.getLogger(ParseCannabisDataFn.class);
@@ -30,69 +35,119 @@ public class ParseCannabisDataFn extends DoFn<String, KV<CannabisSourceMetaData,
         gcsService = GCSService.initialize();
     }
 
+    private GeneExampleMetaData generateGeneExampleMetaDataFromCSVLine(String input) {
+        String[] parts = input.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
+        return new GeneExampleMetaData(parts[0], parts[1], parts[2], parts[3], parts[4], input);
+    }
+
+    private boolean isPaired(String input) {
+        String[] parts = input.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
+        return parts[6].toLowerCase().equals("paired");
+    }
+
+    private List<GeneData> generateGeneDataFromGeneExampleMetaData(GeneExampleMetaData geneExampleMetaData, boolean isPaired) {
+        String uriPrefix;
+        if (geneExampleMetaData.getProject().toLowerCase().equals("Kannapedia".toLowerCase())) {
+            uriPrefix = String.format("gs://%s/kannapedia/", srcBucket);
+        } else {
+            uriPrefix = String.format("gs://%s/sra/%s/%s/", srcBucket, geneExampleMetaData.getProjectId(),
+                    geneExampleMetaData.getSraSample());
+        }
+        String fileNameForward = geneExampleMetaData.getRun() + "_1.fastq";
+        List<GeneData> geneDataList =
+                new ArrayList<>(Collections.singletonList(GeneData.fromBlobUri(uriPrefix + fileNameForward, fileNameForward)));
+        if (isPaired) {
+            String fileNameBack = geneExampleMetaData.getRun() + "_2.fastq";
+            geneDataList.add(GeneData.fromBlobUri(uriPrefix + fileNameBack, fileNameBack));
+        }
+        return geneDataList;
+    }
+
     @ProcessElement
     public void processElement(ProcessContext c) {
         String input = c.element();
         LOG.info(String.format("Parse %s", input));
         try {
-            List<CannabisSourceFileMetaData> cannabisSourceFileMetaData = CannabisSourceFileMetaData.fromCSVLine(input);
-            List<String> fileNames = new ArrayList<>();
+            GeneExampleMetaData geneExampleMetaData = generateGeneExampleMetaDataFromCSVLine(input);
 
-            cannabisSourceFileMetaData.stream().findFirst()
-                    .map(CannabisSourceFileMetaData::getCannabisSourceMetaData).ifPresent(metaData -> {
+            boolean isPaired = isPaired(input);
+            List<GeneData> originalGeneDataList = generateGeneDataFromGeneExampleMetaData(geneExampleMetaData, isPaired);
+            List<GeneData> checkedGeneDataList = new ArrayList<>();
 
-                String dirPrefix = metaData.getDirPrefix();
+            if (originalGeneDataList.size() > 0) {
+                Pair<String, String> blobElementsFromUri = gcsService.getBlobElementsFromUri(originalGeneDataList.get(0).getBlobUri());
+                String dirPrefix = blobElementsFromUri.getValue1().replace(originalGeneDataList.get(0).getFileName(), "");
+
+                boolean hasAnomalyBlobs = false;
                 List<Blob> blobs = StreamSupport.stream(gcsService.getListOfBlobsInDir(srcBucket, dirPrefix).iterateAll()
                         .spliterator(), false).collect(Collectors.toList());
-
-                boolean hasAnomalyBlobs = blobs.stream().map(b -> {
-                    String[] parts = b.getName().split("_");
-                    return Integer.parseInt(parts[parts.length - 1].split("\\.")[0]);
-                }).anyMatch(i -> i > 2);
+                if (!dirPrefix.contains("kannapedia")) {
+                    Long reduce = blobs.stream().map(BlobInfo::getSize).reduce((long) 0, Long::sum);
+                    if ((reduce / (1024 * 1024) > 10000)) {
+                        hasAnomalyBlobs = true;
+                        geneExampleMetaData.setComment(String.format("Read group to large (%d MB)", reduce / (1024 * 1024)));
+                    }
+                    if (blobs.stream().map(b -> {
+                        String[] parts = b.getName().split("_");
+                        return Integer.parseInt(parts[parts.length - 1].split("\\.")[0]);
+                    }).anyMatch(i -> i > 2)) {
+                        hasAnomalyBlobs = true;
+                        geneExampleMetaData.setComment("There are to much reads in dir");
+                    }
+                }
                 if (hasAnomalyBlobs) {
-                    logAnomaly(blobs, metaData);
+                    logAnomaly(blobs, geneExampleMetaData);
                 } else {
-                    for (CannabisSourceFileMetaData fileMetaData : cannabisSourceFileMetaData) {
-                        boolean exists = gcsService.isExists(BlobId.of(srcBucket, fileMetaData.generateGCSBlobName()));
-                        if (exists) {
-                            fileNames.add(fileMetaData.generateGCSBlobName());
-                        } else {
+                    for (GeneData geneData : originalGeneDataList) {
+                        boolean exists = gcsService.isExists(BlobId.of(srcBucket, gcsService.getBlobElementsFromUri(geneData.getBlobUri()).getValue1()));
+                        if (!exists) {
+                            LOG.info(String.format("Blob %s doesn't exist. Trying to find blob with other SRA for %s", geneData.getBlobUri(), geneExampleMetaData.toString()));
                             Optional<Blob> blobOpt = blobs.stream().filter(blob -> {
-                                boolean containsIndex = blob.getName()
-                                        .contains(String.format("_%s", fileMetaData.getPairedIndex()));
+
+                                String searchIndex = geneData.getFileName().split("\\.")[0].split("_")[1];
+
+                                boolean containsIndex = blob.getName().contains(String.format("_%s", searchIndex));
                                 if (blobs.size() == 2) {
                                     return containsIndex;
                                 } else {
                                     int runInt = Integer.parseInt(blob.getName()
                                             .substring(blob.getName().lastIndexOf('/') + 1).split("_")[0]
                                             .substring(3));
-                                    int serchedRunInt = Integer.parseInt(fileMetaData.getCannabisSourceMetaData().getRun().substring(3));
+                                    int serchedRunInt = Integer.parseInt(geneExampleMetaData.getRun().substring(3));
                                     return Math.abs(serchedRunInt - runInt) == 1 && containsIndex;
                                 }
-                            })
-                                    .findFirst();
+                            }).findFirst();
                             if (blobOpt.isPresent()) {
-                                fileNames.add(blobOpt.get().getName());
+                                LOG.info(String.format("Found: %s", blobOpt.get().getName()));
+                                String fileUri = String.format("gs://%s/%s", blobOpt.get().getBucket(), blobOpt.get().getName());
+                                String fileName = FileUtils.getFilenameFromPath(fileUri);
+                                checkedGeneDataList.add(GeneData.fromBlobUri(fileUri, fileName));
                             } else {
-                                logAnomaly(blobs, metaData);
+                                logAnomaly(blobs, geneExampleMetaData);
+                                geneExampleMetaData.setComment("File not found");
                             }
+                        } else {
+                            checkedGeneDataList.add(geneData);
                         }
                     }
                 }
-                if (fileNames.size() == cannabisSourceFileMetaData.size()) {
-                    c.output(KV.of(metaData, fileNames));
+
+                if (originalGeneDataList.size() == checkedGeneDataList.size()) {
+                    c.output(KV.of(geneExampleMetaData, checkedGeneDataList));
+                } else {
+                    c.output(KV.of(geneExampleMetaData, Collections.emptyList()));
                 }
-            });
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void logAnomaly(List<Blob> blobs, CannabisSourceMetaData metaData) {
+    private void logAnomaly(List<Blob> blobs, GeneExampleMetaData geneExampleMetaData) {
         LOG.info(String.format("Anomaly: %s, %s, %s, blobs %s",
-                metaData.getProject(),
-                metaData.getSraSample(),
-                metaData.getRun(),
+                geneExampleMetaData.getProject(),
+                geneExampleMetaData.getSraSample(),
+                geneExampleMetaData.getRun(),
                 blobs.stream().map(BlobInfo::getName).collect(Collectors.joining(", "))));
     }
 }

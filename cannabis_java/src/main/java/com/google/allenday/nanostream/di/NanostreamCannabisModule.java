@@ -1,13 +1,9 @@
 package com.google.allenday.nanostream.di;
 
+import com.google.allenday.genomics.core.transform.AlignSortMergeTransform;
 import com.google.allenday.nanostream.NanostreamCannabisPipelineOptions;
 import com.google.allenday.nanostream.cannabis_parsing.ParseCannabisDataFn;
-import com.google.allenday.nanostream.cmd.CmdExecutor;
-import com.google.allenday.nanostream.cmd.WorkerSetupService;
-import com.google.allenday.nanostream.transforms.AddReferenceFn;
-import com.google.allenday.nanostream.transforms.AlignSortFn;
-import com.google.allenday.nanostream.transforms.MergeBamQFn;
-import com.google.allenday.nanostream.utils.BamFilesMerger;
+import com.google.allenday.nanostream.transforms.GroupByPairedReadsAndFilter;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
@@ -26,11 +22,26 @@ public class NanostreamCannabisModule extends AbstractModule {
     private List<String> geneReferences;
     private String jobTime;
 
+    private String referenceDir;
+    private String previousAlignedOutputDir;
+    private String alignedOutputDir;
+    private String sortedOutputDir;
+    private String mergedOutputDir;
+    private String anomalyOutputPath;
+    private long memoryOutputLimit;
+
     public NanostreamCannabisModule(Builder builder) {
         this.srcBucket = builder.srcBucket;
         this.geneReferences = builder.geneReferences;
         this.resultBucket = builder.resultBucket;
         this.jobTime = builder.jobTime;
+        this.referenceDir = builder.referenceDir;
+        this.previousAlignedOutputDir = builder.previousAlignedOutputDir;
+        this.alignedOutputDir = builder.alignedOutputDir;
+        this.sortedOutputDir = builder.sortedOutputDir;
+        this.mergedOutputDir = builder.mergedOutputDir;
+        this.anomalyOutputPath = builder.anomalyOutputPath;
+        this.memoryOutputLimit = builder.memoryOutputLimit;
     }
 
     public static class Builder {
@@ -39,6 +50,15 @@ public class NanostreamCannabisModule extends AbstractModule {
         private List<String> geneReferences;
         private String resultBucket;
         private String jobTime;
+
+        private String referenceDir;
+        private String previousAlignedOutputDir;
+        private String alignedOutputDir;
+        private String sortedOutputDir;
+        private String mergedOutputDir;
+        private String anomalyOutputPath;
+
+        private long memoryOutputLimit;
 
         public Builder setSrcBucket(String inputBucket) {
             this.srcBucket = inputBucket;
@@ -60,10 +80,52 @@ public class NanostreamCannabisModule extends AbstractModule {
             return this;
         }
 
+        public Builder setReferenceDir(String referenceDir) {
+            this.referenceDir = referenceDir;
+            return this;
+        }
+
+        public Builder setPreviousAlignedOutputDir(String previousAlignedOutputDir) {
+            this.previousAlignedOutputDir = previousAlignedOutputDir;
+            return this;
+        }
+
+        public Builder setAlignedOutputDir(String alignedOutputDir) {
+            this.alignedOutputDir = alignedOutputDir;
+            return this;
+        }
+
+        public Builder setSortedOutputDir(String sortedOutputDir) {
+            this.sortedOutputDir = sortedOutputDir;
+            return this;
+        }
+
+        public Builder setMergedOutputDir(String mergedOutputDir) {
+            this.mergedOutputDir = mergedOutputDir;
+            return this;
+        }
+
+        public Builder setMemoryOutputLimit(long memoryOutputLimit) {
+            this.memoryOutputLimit = memoryOutputLimit;
+            return this;
+        }
+
+        public Builder setAnomalyOutputPath(String anomalyOutputPath) {
+            this.anomalyOutputPath = anomalyOutputPath;
+            return this;
+        }
+
         public Builder setFromOptions(NanostreamCannabisPipelineOptions nanostreamPipelineOptions) {
             setSrcBucket(nanostreamPipelineOptions.getSrcBucket());
             setGeneReferences(nanostreamPipelineOptions.getReferenceNamesList());
             setResultBucket(nanostreamPipelineOptions.getResultBucket());
+            setReferenceDir(nanostreamPipelineOptions.getReferenceDir());
+            setPreviousAlignedOutputDir(nanostreamPipelineOptions.getPreviousAlignedOutputDir());
+            setAlignedOutputDir(nanostreamPipelineOptions.getAlignedOutputDir());
+            setSortedOutputDir(nanostreamPipelineOptions.getSortedOutputDir());
+            setMergedOutputDir(nanostreamPipelineOptions.getMergedOutputDir());
+            setMemoryOutputLimit(nanostreamPipelineOptions.getMemoryOutputLimit());
+            setAnomalyOutputPath(nanostreamPipelineOptions.getAnomalyOutputPath());
             return this;
         }
 
@@ -81,25 +143,28 @@ public class NanostreamCannabisModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public AddReferenceFn provideAddReferenceFn() {
-        return new AddReferenceFn(geneReferences);
+    public GroupByPairedReadsAndFilter provideGroupByPairedReadsAndFilter() {
+        return new GroupByPairedReadsAndFilter("Filter anomaly and prepare for processing", resultBucket,
+                String.format(anomalyOutputPath, jobTime));
     }
 
     @Provides
     @Singleton
-    public WorkerSetupService providWorkerSetupService(CmdExecutor cmdExecutor) {
-        return new WorkerSetupService(cmdExecutor);
+    public AlignSortMergeTransform provideAlignSortMergeTransform() {
+        AlignSortMergeTransform alignSortMergeTransform = new AlignSortMergeTransform("Align -> Sort -> Merge transform",
+                srcBucket,
+                resultBucket,
+                referenceDir,
+                geneReferences,
+                String.format(alignedOutputDir, jobTime),
+                String.format(sortedOutputDir, jobTime),
+                String.format(mergedOutputDir, jobTime),
+                memoryOutputLimit);
+        if (previousAlignedOutputDir != null){
+            alignSortMergeTransform = alignSortMergeTransform.withPreviousAlignDestGcsPrefix(previousAlignedOutputDir);
+        }
+        return alignSortMergeTransform;
     }
 
-    @Provides
-    @Singleton
-    public AlignSortFn provideAlignSortFn(CmdExecutor cmdExecutor, WorkerSetupService workerSetupService) {
-        return new AlignSortFn(cmdExecutor, workerSetupService, srcBucket, resultBucket, geneReferences, jobTime);
-    }
 
-    @Provides
-    @Singleton
-    public MergeBamQFn provideAlignSortFn(BamFilesMerger bamFilesMerger) {
-        return new MergeBamQFn(resultBucket, bamFilesMerger, jobTime);
-    }
 }
