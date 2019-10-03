@@ -2,7 +2,7 @@ package com.google.allenday.nanostream.util;
 
 import com.google.cloud.ReadChannel;
 import htsjdk.samtools.fastq.FastqRecord;
-import org.apache.beam.repackaged.beam_sdks_java_core.org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
