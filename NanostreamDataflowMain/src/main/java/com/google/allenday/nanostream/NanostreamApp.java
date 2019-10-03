@@ -54,62 +54,74 @@ public class NanostreamApp {
     }
 
     private static void runNanostreamPipeline(NanostreamPipelineOptions options) {
-        final ProcessingMode processingMode = ProcessingMode.findByLabel(options.getProcessingMode());
-        Injector injector = Guice.createInjector(new MainModule.Builder().buildFromOptions(options));
+        new NanostreamPipeline(options).invoke();
+    }
 
-        options.setJobName(injector.getInstance(EntityNamer.class)
-                .generateJobName(processingMode, options.getOutputCollectionNamePrefix()));
-        Pipeline pipeline = Pipeline.create(options);
-        CoderUtils.setupCoders(pipeline, new SequenceOnlyDNACoder());
+    private static class NanostreamPipeline {
+        private NanostreamPipelineOptions options;
 
-        PCollectionView<Map<String, GeneInfo>> geneInfoMapPCollectionView = null;
-        if (processingMode == ProcessingMode.RESISTANT_GENES) {
-            PCollection<KV<String, GeneInfo>> geneInfoMapPCollection = pipeline.apply(injector.getInstance(LoadGeneInfoTransform.class));
-            geneInfoMapPCollectionView = geneInfoMapPCollection.apply(View.asMap());
+        public NanostreamPipeline(NanostreamPipelineOptions options) {
+            this.options = options;
         }
 
-        PCollection<PubsubMessage> pubsubMessages = pipeline.apply("Reading PubSub", PubsubIO
-                .readMessagesWithAttributes()
-                .fromSubscription(options.getInputDataSubscription()));
+        public void invoke() {
+            final ProcessingMode processingMode = ProcessingMode.findByLabel(options.getProcessingMode());
+            Injector injector = Guice.createInjector(new MainModule.Builder().buildFromOptions(options));
 
-        pubsubMessages
-                .apply("Filter only ADD FILE", ParDo.of(new FilterObjectFinalizeMessage()))
-                .apply("Deserialize messages", ParDo.of(new DecodeNotificationJsonMessage()))
-                .apply("Parse GCloud notification", ParDo.of(new ParseGCloudNotification()))
+            options.setJobName(injector.getInstance(EntityNamer.class)
+                    .generateJobName(processingMode, options.getOutputCollectionNamePrefix()));
+            Pipeline pipeline = Pipeline.create(options);
+            CoderUtils.setupCoders(pipeline, new SequenceOnlyDNACoder());
 
-                .apply("Get data from FastQ", ParDo.of(new GetDataFromFastQFile()))
-                .apply("Parse FastQ data", ParDo.of(new ParseFastQFn()))
-                .apply(options.getAlignmentWindow() + "s FastQ collect window",
-                        Window.into(FixedWindows.of(Duration.standardSeconds(options.getAlignmentWindow()))))
-                .apply("Create batches of "+ options.getAlignmentBatchSize() +" FastQ records",
-                        GroupIntoBatches.ofSize(options.getAlignmentBatchSize()))
-                .apply("Alignment", ParDo.of(injector.getInstance(MakeAlignmentViaHttpFn.class)))
-                .apply("Extract Sequences",
-                        ParDo.of(new GetSequencesFromSamDataFn()))
-                .apply("Group by SAM reference", GroupByKey.create())
-                .apply("K-Align", ParDo.of(injector.getInstance(ProceedKAlignmentFn.class)))
-                .apply("Error correction", ParDo.of(new ErrorCorrectionFn()))
+            PCollectionView<Map<String, GeneInfo>> geneInfoMapPCollectionView = null;
+            if (processingMode == ProcessingMode.RESISTANT_GENES) {
+                PCollection<KV<String, GeneInfo>> geneInfoMapPCollection = pipeline.apply(injector.getInstance(LoadGeneInfoTransform.class));
+                geneInfoMapPCollectionView = geneInfoMapPCollection.apply(View.asMap());
+            }
 
-                .apply("Remove Sequence part", ParDo.of(new RemoveValueDoFn<>()))
-                .apply("Get Taxonomy data", processingMode == ProcessingMode.RESISTANT_GENES
-                        ? ParDo.of(injector.getInstance(GetResistanceGenesTaxonomyDataFn.class)
-                        .setGeneInfoMapPCollectionView(geneInfoMapPCollectionView))
-                        .withSideInputs(geneInfoMapPCollectionView)
-                        : ParDo.of(injector.getInstance(GetTaxonomyFromTree.class)))
-                .apply("Global Window with Repeatedly triggering" + options.getStatisticUpdatingDelay(),
-                        Window.<KV<KV<GCSSourceData, String>, GeneData>>into(new GlobalWindows())
-                                .triggering(Repeatedly.forever(AfterProcessingTime
-                                        .pastFirstElementInPane()
-                                        .plusDelayOf(Duration.standardSeconds(options.getStatisticUpdatingDelay()))))
-                                .withAllowedLateness(Duration.ZERO)
-                                .accumulatingFiredPanes())
-                .apply("Accumulate results to Map", Combine.globally(new KVCalculationAccumulatorFn()))
-                .apply("Flatten result map", ParDo.of(new FlattenMapToKV<>()))
-                .apply("Prepare sequences statistic to output",
-                        ParDo.of(injector.getInstance(PrepareSequencesStatisticToOutputDbFn.class)))
-                .apply("Write sequences statistic to Firestore",
-                        ParDo.of(injector.getInstance(WriteDataToFirestoreDbFn.class)));
+            PCollection<PubsubMessage> pubsubMessages = pipeline.apply("Reading PubSub", PubsubIO
+                    .readMessagesWithAttributes()
+                    .fromSubscription(options.getInputDataSubscription()));
 
-        pipeline.run();
+            pubsubMessages
+                    .apply("Filter only ADD FILE", ParDo.of(new FilterObjectFinalizeMessage()))
+                    .apply("Deserialize messages", ParDo.of(new DecodeNotificationJsonMessage()))
+                    .apply("Parse GCloud notification", ParDo.of(new ParseGCloudNotification()))
+
+                    .apply("Get data from FastQ", ParDo.of(new GetDataFromFastQFile()))
+                    .apply("Parse FastQ data", ParDo.of(new ParseFastQFn()))
+                    .apply(options.getAlignmentWindow() + "s FastQ collect window",
+                            Window.into(FixedWindows.of(Duration.standardSeconds(options.getAlignmentWindow()))))
+                    .apply("Create batches of "+ options.getAlignmentBatchSize() +" FastQ records",
+                            GroupIntoBatches.ofSize(options.getAlignmentBatchSize()))
+                    .apply("Alignment", ParDo.of(injector.getInstance(MakeAlignmentViaHttpFn.class)))
+                    .apply("Extract Sequences",
+                            ParDo.of(new GetSequencesFromSamDataFn()))
+                    .apply("Group by SAM reference", GroupByKey.create())
+                    .apply("K-Align", ParDo.of(injector.getInstance(ProceedKAlignmentFn.class)))
+                    .apply("Error correction", ParDo.of(new ErrorCorrectionFn()))
+
+                    .apply("Remove Sequence part", ParDo.of(new RemoveValueDoFn<>()))
+                    .apply("Get Taxonomy data", processingMode == ProcessingMode.RESISTANT_GENES
+                            ? ParDo.of(injector.getInstance(GetResistanceGenesTaxonomyDataFn.class)
+                            .setGeneInfoMapPCollectionView(geneInfoMapPCollectionView))
+                            .withSideInputs(geneInfoMapPCollectionView)
+                            : ParDo.of(injector.getInstance(GetTaxonomyFromTree.class)))
+                    .apply("Global Window with Repeatedly triggering" + options.getStatisticUpdatingDelay(),
+                            Window.<KV<KV<GCSSourceData, String>, GeneData>>into(new GlobalWindows())
+                                    .triggering(Repeatedly.forever(AfterProcessingTime
+                                            .pastFirstElementInPane()
+                                            .plusDelayOf(Duration.standardSeconds(options.getStatisticUpdatingDelay()))))
+                                    .withAllowedLateness(Duration.ZERO)
+                                    .accumulatingFiredPanes())
+                    .apply("Accumulate results to Map", Combine.globally(new KVCalculationAccumulatorFn()))
+                    .apply("Flatten result map", ParDo.of(new FlattenMapToKV<>()))
+                    .apply("Prepare sequences statistic to output",
+                            ParDo.of(injector.getInstance(PrepareSequencesStatisticToOutputDbFn.class)))
+                    .apply("Write sequences statistic to Firestore",
+                            ParDo.of(injector.getInstance(WriteDataToFirestoreDbFn.class)));
+
+            pipeline.run();
+        }
     }
 }
