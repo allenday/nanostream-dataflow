@@ -1,6 +1,6 @@
 package com.google.allenday.nanostream.integration;
 
-import com.google.allenday.nanostream.NanostreamApp;
+import com.google.allenday.nanostream.ProcessingMode;
 import com.google.allenday.nanostream.aligner.GetSequencesFromSamDataFn;
 import com.google.allenday.nanostream.aligner.MakeAlignmentViaHttpFn;
 import com.google.allenday.nanostream.errorcorrection.ErrorCorrectionFn;
@@ -81,7 +81,7 @@ public class EndToEndPipelineTest {
             }
             testParams.put(param.key, value);
         }
-        NanostreamApp.ProcessingMode processingMode = NanostreamApp.ProcessingMode.SPECIES;
+        ProcessingMode processingMode = ProcessingMode.SPECIES;
         Injector injector = Guice.createInjector(new MainModule.Builder()
                 .setProjectId(Param.getValueFromMap(testParams, Param.PROJECT_ID))
                 .setBwaEndpoint(Param.getValueFromMap(testParams, Param.BWA_ENDPOINT))

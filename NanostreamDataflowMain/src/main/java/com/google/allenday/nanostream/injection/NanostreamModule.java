@@ -1,7 +1,7 @@
 package com.google.allenday.nanostream.injection;
 
-import com.google.allenday.nanostream.NanostreamApp;
 import com.google.allenday.nanostream.NanostreamPipelineOptions;
+import com.google.allenday.nanostream.ProcessingMode;
 import com.google.allenday.nanostream.util.EntityNamer;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
@@ -20,7 +20,7 @@ public class NanostreamModule extends AbstractModule {
     protected String resistanceGenesList;
     protected String outputCollectionNamePrefix;
     protected String outputDocumentNamePrefix;
-    protected NanostreamApp.ProcessingMode processingMode;
+    protected ProcessingMode processingMode;
     protected String bwaArguments;
 
     public NanostreamModule(Builder builder) {
@@ -45,7 +45,7 @@ public class NanostreamModule extends AbstractModule {
         protected String kAlignEndpoint;
         protected String resistanceGenesList;
         protected String outputCollectionNamePrefix;
-        protected NanostreamApp.ProcessingMode processingMode;
+        protected ProcessingMode processingMode;
         protected String outputDocumentNamePrefix;
         protected String bwaArguments;
 
@@ -85,7 +85,7 @@ public class NanostreamModule extends AbstractModule {
             return this;
         }
 
-        public Builder setProcessingMode(NanostreamApp.ProcessingMode processingMode) {
+        public Builder setProcessingMode(ProcessingMode processingMode) {
             this.processingMode = processingMode;
             return this;
         }
@@ -129,7 +129,7 @@ public class NanostreamModule extends AbstractModule {
             setkAlignEndpoint(nanostreamPipelineOptions.getkAlignEndpoint());
             setResistanceGenesList(nanostreamPipelineOptions.getResistanceGenesList());
             setOutputCollectionNamePrefix(nanostreamPipelineOptions.getOutputCollectionNamePrefix());
-            setProcessingMode(NanostreamApp.ProcessingMode.findByLabel(nanostreamPipelineOptions.getProcessingMode()));
+            setProcessingMode(ProcessingMode.findByLabel(nanostreamPipelineOptions.getProcessingMode()));
             setOutputDocumentNamePrefix(nanostreamPipelineOptions.getOutputDocumentNamePrefix());
             setBwaArguments(nanostreamPipelineOptions.getBwaArguments());
             return build();

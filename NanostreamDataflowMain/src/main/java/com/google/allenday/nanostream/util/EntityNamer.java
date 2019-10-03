@@ -1,6 +1,6 @@
 package com.google.allenday.nanostream.util;
 
-import com.google.allenday.nanostream.NanostreamApp;
+import com.google.allenday.nanostream.ProcessingMode;
 import com.google.allenday.nanostream.other.Configuration;
 
 import java.text.SimpleDateFormat;
@@ -39,7 +39,7 @@ public class EntityNamer {
         return nameBuilder.toString();
     }
 
-    public String generateJobName(NanostreamApp.ProcessingMode processingMode, String prefix) {
+    public String generateJobName(ProcessingMode processingMode, String prefix) {
         return generateTimestampedName(addPrefix(processingMode.label, prefix));
     }
 
@@ -51,7 +51,7 @@ public class EntityNamer {
         return String.format("%s--%s", str, JOB_DATE_FORMAT.format(date)).replace("_", "-");
     }
 
-    public static String addPrefixWithProcessingMode(String base, NanostreamApp.ProcessingMode processingMode, String prefix) {
+    public static String addPrefixWithProcessingMode(String base, ProcessingMode processingMode, String prefix) {
         return addPrefix(addPrefix(base, processingMode.label), prefix);
     }
 

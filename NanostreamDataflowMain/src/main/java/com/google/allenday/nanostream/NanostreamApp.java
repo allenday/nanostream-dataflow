@@ -38,30 +38,12 @@ import org.apache.beam.sdk.values.PCollectionView;
 import org.joda.time.Duration;
 
 import java.util.Map;
-import java.util.stream.Stream;
 
 /**
  * Main class of the Nanostream Dataflow App that provides dataflow pipeline
  * with transformation from PubsubMessage to Sequences Statistic and Sequences Bodies
  */
 public class NanostreamApp {
-
-    public enum ProcessingMode {
-        SPECIES("species"),
-        RESISTANT_GENES("resistance_genes");
-
-        public final String label;
-
-        ProcessingMode(String label) {
-            this.label = label;
-        }
-
-        public static ProcessingMode findByLabel(String label) {
-            return Stream.of(ProcessingMode.values()).filter(
-                    processingMode -> processingMode.label.equals(label))
-                    .findFirst().orElse(SPECIES);
-        }
-    }
 
     public static void main(String[] args) {
         NanostreamPipelineOptions options = PipelineOptionsFactory.fromArgs(args)
