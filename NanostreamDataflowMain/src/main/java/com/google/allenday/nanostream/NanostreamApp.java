@@ -49,6 +49,11 @@ public class NanostreamApp {
         NanostreamPipelineOptions options = PipelineOptionsFactory.fromArgs(args)
                 .withValidation()
                 .as(NanostreamPipelineOptions.class);
+
+        runNanostreamPipeline(options);
+    }
+
+    private static void runNanostreamPipeline(NanostreamPipelineOptions options) {
         final ProcessingMode processingMode = ProcessingMode.findByLabel(options.getProcessingMode());
         Injector injector = Guice.createInjector(new MainModule.Builder().buildFromOptions(options));
 
