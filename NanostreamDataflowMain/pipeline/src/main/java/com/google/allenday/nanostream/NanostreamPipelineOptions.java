@@ -9,7 +9,7 @@ import static com.google.allenday.nanostream.other.Configuration.*;
 
 /**
  * Provides list of {@link org.apache.beam.sdk.Pipeline} options
- * for implementation {@link NanostreamApp} Dataflow transformation
+ * for implementation {@link NanostreamPipeline} Dataflow transformation
  */
 public interface NanostreamPipelineOptions extends DataflowPipelineOptions {
 
