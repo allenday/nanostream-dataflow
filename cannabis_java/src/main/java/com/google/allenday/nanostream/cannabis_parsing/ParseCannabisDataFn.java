@@ -9,7 +9,6 @@ import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.values.KV;
-import org.javatuples.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,14 +24,16 @@ public class ParseCannabisDataFn extends DoFn<String, KV<GeneExampleMetaData, Li
     private String srcBucket;
     private Logger LOG = LoggerFactory.getLogger(ParseCannabisDataFn.class);
     private GCSService gcsService;
+    private FileUtils fileUtils;
 
-    public ParseCannabisDataFn(String srcBucket) {
+    public ParseCannabisDataFn(String srcBucket, FileUtils fileUtils) {
         this.srcBucket = srcBucket;
+        this.fileUtils = fileUtils;
     }
 
     @Setup
     public void setUp() {
-        gcsService = GCSService.initialize();
+        gcsService = GCSService.initialize(fileUtils);
     }
 
     private GeneExampleMetaData generateGeneExampleMetaDataFromCSVLine(String input) {
@@ -75,8 +76,8 @@ public class ParseCannabisDataFn extends DoFn<String, KV<GeneExampleMetaData, Li
             List<GeneData> checkedGeneDataList = new ArrayList<>();
 
             if (originalGeneDataList.size() > 0) {
-                Pair<String, String> blobElementsFromUri = gcsService.getBlobElementsFromUri(originalGeneDataList.get(0).getBlobUri());
-                String dirPrefix = blobElementsFromUri.getValue1().replace(originalGeneDataList.get(0).getFileName(), "");
+                BlobId blobId = gcsService.getBlobIdFromUri(originalGeneDataList.get(0).getBlobUri());
+                String dirPrefix = blobId.getName().replace(originalGeneDataList.get(0).getFileName(), "");
 
                 boolean hasAnomalyBlobs = false;
                 List<Blob> blobs = StreamSupport.stream(gcsService.getListOfBlobsInDir(srcBucket, dirPrefix).iterateAll()
@@ -99,7 +100,7 @@ public class ParseCannabisDataFn extends DoFn<String, KV<GeneExampleMetaData, Li
                     logAnomaly(blobs, geneExampleMetaData);
                 } else {
                     for (GeneData geneData : originalGeneDataList) {
-                        boolean exists = gcsService.isExists(BlobId.of(srcBucket, gcsService.getBlobElementsFromUri(geneData.getBlobUri()).getValue1()));
+                        boolean exists = gcsService.isExists(gcsService.getBlobIdFromUri(geneData.getBlobUri()));
                         if (!exists) {
                             LOG.info(String.format("Blob %s doesn't exist. Trying to find blob with other SRA for %s", geneData.getBlobUri(), geneExampleMetaData.toString()));
                             Optional<Blob> blobOpt = blobs.stream().filter(blob -> {
@@ -120,7 +121,7 @@ public class ParseCannabisDataFn extends DoFn<String, KV<GeneExampleMetaData, Li
                             if (blobOpt.isPresent()) {
                                 LOG.info(String.format("Found: %s", blobOpt.get().getName()));
                                 String fileUri = String.format("gs://%s/%s", blobOpt.get().getBucket(), blobOpt.get().getName());
-                                String fileName = FileUtils.getFilenameFromPath(fileUri);
+                                String fileName = fileUtils.getFilenameFromPath(fileUri);
                                 checkedGeneDataList.add(GeneData.fromBlobUri(fileUri, fileName));
                             } else {
                                 logAnomaly(blobs, geneExampleMetaData);

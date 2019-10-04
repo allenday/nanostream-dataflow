@@ -1,6 +1,16 @@
 package com.google.allenday.nanostream.di;
 
+import com.google.allenday.genomics.core.align.AlignService;
+import com.google.allenday.genomics.core.align.SamBamManipulationService;
+import com.google.allenday.genomics.core.cmd.CmdExecutor;
+import com.google.allenday.genomics.core.cmd.WorkerSetupService;
+import com.google.allenday.genomics.core.io.FileUtils;
+import com.google.allenday.genomics.core.io.IoHandler;
+import com.google.allenday.genomics.core.reference.ReferencesProvider;
 import com.google.allenday.genomics.core.transform.AlignSortMergeTransform;
+import com.google.allenday.genomics.core.transform.fn.AlignFn;
+import com.google.allenday.genomics.core.transform.fn.MergeFn;
+import com.google.allenday.genomics.core.transform.fn.SortFn;
 import com.google.allenday.nanostream.NanostreamCannabisPipelineOptions;
 import com.google.allenday.nanostream.cannabis_parsing.ParseCannabisDataFn;
 import com.google.allenday.nanostream.transforms.GroupByPairedReadsAndFilter;
@@ -23,7 +33,6 @@ public class NanostreamCannabisModule extends AbstractModule {
     private String jobTime;
 
     private String referenceDir;
-    private String previousAlignedOutputDir;
     private String alignedOutputDir;
     private String sortedOutputDir;
     private String mergedOutputDir;
@@ -36,7 +45,6 @@ public class NanostreamCannabisModule extends AbstractModule {
         this.resultBucket = builder.resultBucket;
         this.jobTime = builder.jobTime;
         this.referenceDir = builder.referenceDir;
-        this.previousAlignedOutputDir = builder.previousAlignedOutputDir;
         this.alignedOutputDir = builder.alignedOutputDir;
         this.sortedOutputDir = builder.sortedOutputDir;
         this.mergedOutputDir = builder.mergedOutputDir;
@@ -52,7 +60,6 @@ public class NanostreamCannabisModule extends AbstractModule {
         private String jobTime;
 
         private String referenceDir;
-        private String previousAlignedOutputDir;
         private String alignedOutputDir;
         private String sortedOutputDir;
         private String mergedOutputDir;
@@ -82,11 +89,6 @@ public class NanostreamCannabisModule extends AbstractModule {
 
         public Builder setReferenceDir(String referenceDir) {
             this.referenceDir = referenceDir;
-            return this;
-        }
-
-        public Builder setPreviousAlignedOutputDir(String previousAlignedOutputDir) {
-            this.previousAlignedOutputDir = previousAlignedOutputDir;
             return this;
         }
 
@@ -120,7 +122,6 @@ public class NanostreamCannabisModule extends AbstractModule {
             setGeneReferences(nanostreamPipelineOptions.getReferenceNamesList());
             setResultBucket(nanostreamPipelineOptions.getResultBucket());
             setReferenceDir(nanostreamPipelineOptions.getReferenceDir());
-            setPreviousAlignedOutputDir(nanostreamPipelineOptions.getPreviousAlignedOutputDir());
             setAlignedOutputDir(nanostreamPipelineOptions.getAlignedOutputDir());
             setSortedOutputDir(nanostreamPipelineOptions.getSortedOutputDir());
             setMergedOutputDir(nanostreamPipelineOptions.getMergedOutputDir());
@@ -137,8 +138,8 @@ public class NanostreamCannabisModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public ParseCannabisDataFn provideParseCannabisDataFn() {
-        return new ParseCannabisDataFn(srcBucket);
+    public ParseCannabisDataFn provideParseCannabisDataFn(FileUtils fileUtils) {
+        return new ParseCannabisDataFn(srcBucket, fileUtils);
     }
 
     @Provides
@@ -150,20 +151,74 @@ public class NanostreamCannabisModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public AlignSortMergeTransform provideAlignSortMergeTransform() {
-        AlignSortMergeTransform alignSortMergeTransform = new AlignSortMergeTransform("Align -> Sort -> Merge transform",
-                srcBucket,
-                resultBucket,
-                referenceDir,
-                geneReferences,
-                String.format(alignedOutputDir, jobTime),
-                String.format(sortedOutputDir, jobTime),
-                String.format(mergedOutputDir, jobTime),
-                memoryOutputLimit);
-        if (previousAlignedOutputDir != null){
-            alignSortMergeTransform = alignSortMergeTransform.withPreviousAlignDestGcsPrefix(previousAlignedOutputDir);
-        }
-        return alignSortMergeTransform;
+    public ReferencesProvider provideReferencesProvider(FileUtils fileUtils){
+        return new ReferencesProvider(fileUtils, referenceDir, referenceDir);
+    }
+
+    @Provides
+    @Singleton
+    public FileUtils provideFileUtils(){
+        return new FileUtils();
+    }
+
+    @Provides
+    @Singleton
+    public CmdExecutor provideCmdExecutor(){
+        return new CmdExecutor();
+    }
+
+    @Provides
+    @Singleton
+    public WorkerSetupService provideWorkerSetupService(CmdExecutor cmdExecutor){
+        return new WorkerSetupService(cmdExecutor);
+    }
+
+    @Provides
+    @Singleton
+    public AlignService provideAlignService(WorkerSetupService workerSetupService, CmdExecutor cmdExecutor, FileUtils fileUtils){
+        return new AlignService(workerSetupService, cmdExecutor, fileUtils);
+    }
+
+    @Provides
+    @Singleton
+    public SamBamManipulationService provideSamBamManipulationService(FileUtils fileUtils){
+        return new SamBamManipulationService(fileUtils);
+    }
+
+    @Provides
+    @Singleton
+    public MergeFn provideMergeFn(SamBamManipulationService samBamManipulationService, FileUtils fileUtils){
+        IoHandler mergeIoHandler = new IoHandler(resultBucket, String.format(mergedOutputDir, jobTime),
+                memoryOutputLimit, fileUtils);
+
+        return new MergeFn(mergeIoHandler, samBamManipulationService, fileUtils);
+    }
+
+    @Provides
+    @Singleton
+    public SortFn provideSortFn(SamBamManipulationService samBamManipulationService, FileUtils fileUtils){
+        IoHandler sortIoHandler = new IoHandler(resultBucket, String.format(sortedOutputDir, jobTime),
+                memoryOutputLimit, fileUtils);
+
+        return new SortFn(sortIoHandler, fileUtils, samBamManipulationService);
+    }
+
+    @Provides
+    @Singleton
+    public AlignFn provideAlignFn(AlignService alignService, ReferencesProvider referencesProvider, FileUtils fileUtils){
+        IoHandler alignIoHandler = new IoHandler(resultBucket, String.format(alignedOutputDir, jobTime),
+                memoryOutputLimit, fileUtils);
+
+        return new AlignFn(alignService, referencesProvider, geneReferences, alignIoHandler, fileUtils);
+    }
+
+    @Provides
+    @Singleton
+    public AlignSortMergeTransform provideAlignSortMergeTransform(AlignFn alignFn, SortFn sortFn, MergeFn mergeFn) {
+        return new AlignSortMergeTransform("Align -> Sort -> Merge transform",
+                alignFn,
+                sortFn,
+                mergeFn);
     }
 
 
