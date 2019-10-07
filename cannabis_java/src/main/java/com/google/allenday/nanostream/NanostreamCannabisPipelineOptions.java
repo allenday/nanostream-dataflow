@@ -40,9 +40,9 @@ public interface NanostreamCannabisPipelineOptions extends DataflowPipelineOptio
     void setSraSamplesToFilter(List<String> value);
 
     @Description("GCS dir path with references")
-    String getReferenceDir();
+    String getAllReferencesDirGcsUri();
 
-    void setReferenceDir(String value);
+    void setAllReferencesDirGcsUri(String value);
 
     @Description("GCS dir path of previous run align output")
     String getPreviousAlignedOutputDir();

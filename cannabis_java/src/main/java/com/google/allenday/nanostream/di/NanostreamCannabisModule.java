@@ -32,7 +32,7 @@ public class NanostreamCannabisModule extends AbstractModule {
     private List<String> geneReferences;
     private String jobTime;
 
-    private String referenceDir;
+    private String allReferencesDirGcsUri;
     private String alignedOutputDir;
     private String sortedOutputDir;
     private String mergedOutputDir;
@@ -44,7 +44,7 @@ public class NanostreamCannabisModule extends AbstractModule {
         this.geneReferences = builder.geneReferences;
         this.resultBucket = builder.resultBucket;
         this.jobTime = builder.jobTime;
-        this.referenceDir = builder.referenceDir;
+        this.allReferencesDirGcsUri = builder.allReferencesDirGcsUri;
         this.alignedOutputDir = builder.alignedOutputDir;
         this.sortedOutputDir = builder.sortedOutputDir;
         this.mergedOutputDir = builder.mergedOutputDir;
@@ -59,7 +59,7 @@ public class NanostreamCannabisModule extends AbstractModule {
         private String resultBucket;
         private String jobTime;
 
-        private String referenceDir;
+        private String allReferencesDirGcsUri;
         private String alignedOutputDir;
         private String sortedOutputDir;
         private String mergedOutputDir;
@@ -87,8 +87,8 @@ public class NanostreamCannabisModule extends AbstractModule {
             return this;
         }
 
-        public Builder setReferenceDir(String referenceDir) {
-            this.referenceDir = referenceDir;
+        public Builder setAllReferencesDirGcsUri(String allReferencesDirGcsUri) {
+            this.allReferencesDirGcsUri = allReferencesDirGcsUri;
             return this;
         }
 
@@ -121,7 +121,7 @@ public class NanostreamCannabisModule extends AbstractModule {
             setSrcBucket(nanostreamPipelineOptions.getSrcBucket());
             setGeneReferences(nanostreamPipelineOptions.getReferenceNamesList());
             setResultBucket(nanostreamPipelineOptions.getResultBucket());
-            setReferenceDir(nanostreamPipelineOptions.getReferenceDir());
+            setAllReferencesDirGcsUri(nanostreamPipelineOptions.getAllReferencesDirGcsUri());
             setAlignedOutputDir(nanostreamPipelineOptions.getAlignedOutputDir());
             setSortedOutputDir(nanostreamPipelineOptions.getSortedOutputDir());
             setMergedOutputDir(nanostreamPipelineOptions.getMergedOutputDir());
@@ -152,7 +152,7 @@ public class NanostreamCannabisModule extends AbstractModule {
     @Provides
     @Singleton
     public ReferencesProvider provideReferencesProvider(FileUtils fileUtils){
-        return new ReferencesProvider(fileUtils, referenceDir, referenceDir);
+        return new ReferencesProvider(fileUtils, allReferencesDirGcsUri);
     }
 
     @Provides
