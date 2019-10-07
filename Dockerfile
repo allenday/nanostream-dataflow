@@ -6,6 +6,5 @@ RUN mvn --version
 
 WORKDIR /application
 COPY ./ /application
-COPY ../NanostreamDataflowMain /application/NanostreamDataflowMain
 
-CMD ["python", "-u", "/application/install.py"]
+CMD ["python", "-u", "/application/launcher/install.py"]
