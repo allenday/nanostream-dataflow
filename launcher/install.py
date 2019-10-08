@@ -1,4 +1,4 @@
-import shlex, subprocess
+import subprocess
 import os
 
 
@@ -27,7 +27,7 @@ class Install:
         self.configure_bucket_file_upload_notifications()
         self.create_pub_sub_subscription()
         self.initialize_app_engine_in_project()
-        # self.deploy_app_engine_management_application()
+        self.deploy_app_engine_management_application()
 
     def get_google_cloud_env_var(self):
         if 'GOOGLE_CLOUD_PROJECT' in os.environ:
@@ -90,7 +90,7 @@ class Install:
             subprocess.check_output(cmd, shell=True)
 
     def deploy_app_engine_management_application(self):
-        cmd = 'mvn clean package appengine:deploy -DskipTests=true -f ../NanostreamDataflowMain/webapp/pom.xml'
+        cmd = 'mvn clean package appengine:deploy -DskipTests=true -f NanostreamDataflowMain/webapp/pom.xml'
         print 'Compile and deploy App Engine management application: %s' % cmd
         subprocess.call(cmd, shell=True)
 
