@@ -6,15 +6,25 @@ class Install:
     def __init__(self):
         self.google_cloud_project = self.get_google_cloud_env_var()
         self.upload_bucket_name = self.google_cloud_project + '-upload-bucket'
+        self.dataflow_bucket_name = self.google_cloud_project + '-dataflow'
         self.upload_pub_sub_topic = self.google_cloud_project + '-pubsub-topic'
         self.upload_subscription = self.google_cloud_project + '-upload-subscription'
         self.app_engine_region = 'us-central'  # TODO: parametrize
 
-        self.bucket_url = 'gs://%s/' % self.upload_bucket_name
+        self.upload_bucket_url = 'gs://%s/' % self.upload_bucket_name
+        self.dataflow_bucket_url = 'gs://%s/' % self.dataflow_bucket_name
 
-        print "Used names: \n  project: %s\n  bucket: %s\n  pubsub topic: %s\n  subscription: %s\n  app engine region: %s" % (
+        self.upload_subscription_fullname = 'projects/%s/subscriptions/%s' % (
+            self.google_cloud_project,
+            self.upload_subscription
+        )
+
+
+        print "Used names: \n  project: %s\n  uploads bucket: %s\n  dataflow bucket: %s\n" \
+              "  pubsub topic: %s\n  subscription: %s\n  app engine region: %s" % (
             self.google_cloud_project,
             self.upload_bucket_name,
+            self.dataflow_bucket_name,
             self.upload_pub_sub_topic,
             self.upload_subscription,
             self.app_engine_region
@@ -23,9 +33,10 @@ class Install:
     def main(self):
         self.set_default_project_for_gcloud()
         self.enable_apis()
-        self.create_storage_bucket()
+        self.create_storage_buckets()
         self.configure_bucket_file_upload_notifications()
         self.create_pub_sub_subscription()
+        self.deploy_dataflow_template()
         self.initialize_app_engine_in_project()
         self.deploy_app_engine_management_application()
 
@@ -49,23 +60,31 @@ class Install:
         print 'Enable apis: %s' % cmd
         subprocess.call(cmd, shell=True)
 
-    def create_storage_bucket(self):
+    def create_storage_buckets(self):
         cmd = 'gsutil ls'
         bucket_list = subprocess.check_output(cmd, shell=True)
-        if self.bucket_url in bucket_list:
+
+        if self.upload_bucket_url in bucket_list:
             print 'Bucket %s already exists' % self.upload_bucket_name
         else:
-            cmd = 'gsutil mb %s' % self.bucket_url
+            cmd = 'gsutil mb %s' % self.upload_bucket_url
             print 'Create a Google Cloud Storage bucket for FastQ files: %s' % cmd
             subprocess.call(cmd, shell=True)
 
+        if self.dataflow_bucket_url in bucket_list:
+            print 'Bucket %s already exists' % self.dataflow_bucket_name
+        else:
+            cmd = 'gsutil mb %s' % self.dataflow_bucket_url
+            print 'Create a Google Cloud Storage bucket for Dataflow files: %s' % cmd
+            subprocess.call(cmd, shell=True)
+
     def configure_bucket_file_upload_notifications(self):
-        cmd = 'gsutil notifications list %s' % self.bucket_url
+        cmd = 'gsutil notifications list %s' % self.upload_bucket_url
         notifications = subprocess.check_output(cmd, shell=True)
         if self.upload_pub_sub_topic in notifications:
             print 'Bucket notification already exists: %s' % notifications
         else:
-            cmd = 'gsutil notification create -t %s -f json -e OBJECT_FINALIZE %s' % (self.upload_pub_sub_topic, self.bucket_url)
+            cmd = 'gsutil notification create -t %s -f json -e OBJECT_FINALIZE %s' % (self.upload_pub_sub_topic, self.upload_bucket_url)
             print 'Create bucket notification: %s' % cmd
             subprocess.call(cmd, shell=True)
 
@@ -92,6 +111,41 @@ class Install:
     def deploy_app_engine_management_application(self):
         cmd = 'mvn clean package appengine:deploy -DskipTests=true -f NanostreamDataflowMain/webapp/pom.xml'
         print 'Compile and deploy App Engine management application: %s' % cmd
+        subprocess.call(cmd, shell=True)
+
+    def deploy_dataflow_template(self):
+        cmd = 'mvn install:install-file -Dfile=NanostreamDataflowMain/libs/japsa.jar -DgroupId=coin -DartifactId=japsa -Dversion=1.9-3c -Dpackaging=jar'
+        print 'Add japsa dependency: %s' % cmd
+        subprocess.call(cmd, shell=True)
+
+        cmd = 'mvn install:install-file -Dfile=NanostreamDataflowMain/libs/pal1.5.1.1.jar -DgroupId=nz.ac.auckland -DartifactId=pal -Dversion=1.5.1.1 -Dpackaging=jar'
+        print 'Add pal dependency: %s' % cmd
+        subprocess.call(cmd, shell=True)
+
+        cmd = 'mvn compile exec:java ' \
+              '-f NanostreamDataflowMain/pipeline/pom.xml ' \
+              '-Dexec.mainClass=com.google.allenday.nanostream.NanostreamApp ' \
+              '-Dexec.args="' \
+              '--project=%s ' \
+              '--runner=DataflowRunner ' \
+              '--streaming=true ' \
+              '--processingMode=species ' \
+              '--inputDataSubscription=%s ' \
+              '--servicesUrl=http://130.211.33.64 ' \
+              '--bwaEndpoint=/cgi-bin/bwa.cgi ' \
+              '--bwaDatabase=DB.fasta ' \
+              '--kAlignEndpoint=/cgi-bin/kalign.cgi ' \
+              '--gcpTempLocation=%s ' \
+              '--stagingLocation=%s ' \
+              '--templateLocation=%s ' \
+              '"' % (
+            self.google_cloud_project,
+            self.upload_subscription_fullname,
+            self.dataflow_bucket_url + 'tmp',
+            self.dataflow_bucket_url + 'staging',
+            self.dataflow_bucket_url + 'templates/nanostream-species'
+        )
+        print 'Compile and deploy Dataflow template: %s' % cmd
         subprocess.call(cmd, shell=True)
 
 

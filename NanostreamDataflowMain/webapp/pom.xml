@@ -45,6 +45,18 @@ limitations under the License.
       <artifactId>google-cloud-storage</artifactId>
       <version>1.93.0</version>
     </dependency>
+    <!-- JSON utility -->
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>20180813</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.6</version>
+    </dependency>
 
     <!-- App Engine SDK dependency : only required if you need to explicitly use App Engine API -->
     <dependency>
