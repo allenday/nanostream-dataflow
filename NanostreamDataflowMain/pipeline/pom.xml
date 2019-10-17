@@ -140,7 +140,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.20.1</version>
+                <version>2.22.0</version>
                 <!-- Fixes build for OpenJDK, see: https://stackoverflow.com/questions/53010200/maven-surefire-could-not-find-forkedbooter-class -->
                 <configuration>
                     <useSystemClassLoader>false</useSystemClassLoader>
@@ -154,33 +154,33 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.0.2</version>
             </plugin>
-            <!--
-                Configures `mvn package` to produce a bundled jar ("fat jar") for runners
-                that require this for job submission to a cluster.
-            -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.1.0</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <transformers>
-                                <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.google.allenday.nanostream.NanostreamPipeline</mainClass>
-                                </transformer>
-                                <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-                            </transformers>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+            <!--&lt;!&ndash;-->
+                <!--Configures `mvn package` to produce a bundled jar ("fat jar") for runners-->
+                <!--that require this for job submission to a cluster.-->
+            <!--&ndash;&gt;-->
+            <!--<plugin>-->
+                <!--<groupId>org.apache.maven.plugins</groupId>-->
+                <!--<artifactId>maven-shade-plugin</artifactId>-->
+                <!--<version>3.1.0</version>-->
+                <!--<executions>-->
+                    <!--<execution>-->
+                        <!--<phase>package</phase>-->
+                        <!--<goals>-->
+                            <!--<goal>shade</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
+                            <!--<transformers>-->
+                                <!--<transformer-->
+                                        <!--implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">-->
+                                    <!--<mainClass>com.google.allenday.nanostream.NanostreamPipeline</mainClass>-->
+                                <!--</transformer>-->
+                                <!--<transformer-->
+                                        <!--implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>-->
+                            <!--</transformers>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
+                <!--</executions>-->
+            <!--</plugin>-->
         </plugins>
     </build>
 </project>
