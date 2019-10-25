@@ -1,7 +1,7 @@
 package com.google.allenday.nanostream.main.injection;
 
-import com.google.allenday.nanostream.aligner.MakeAlignmentViaHttpFn;
-import com.google.allenday.nanostream.http.NanostreamHttpService;
+import com.google.allenday.genomics.core.align.KAlignService;
+import com.google.allenday.genomics.core.io.FileUtils;
 import com.google.allenday.nanostream.injection.NanostreamModule;
 import com.google.allenday.nanostream.kalign.ProceedKAlignmentFn;
 import com.google.allenday.nanostream.pubsub.GCSSourceData;
@@ -36,21 +36,10 @@ public class TestModule extends NanostreamModule {
         return Mockito.mock(HttpHelper.class);
     }
 
-    @Provides
-    @Singleton
-    public NanostreamHttpService provideNanostreamHttpService(HttpHelper httpHelper) {
-        return mock(NanostreamHttpService.class,
-                withSettings().serializable());
-    }
 
     @Provides
-    public MakeAlignmentViaHttpFn provideMakeAlignmentViaHttpFn(NanostreamHttpService service) {
-        return new MakeAlignmentViaHttpFn(service, bwaDB, bwaEndpoint, bwaArguments);
-    }
-
-    @Provides
-    public ProceedKAlignmentFn provideProceedKAlignmentFn(NanostreamHttpService service) {
-        return new ProceedKAlignmentFn(service, kAlignEndpoint);
+    public ProceedKAlignmentFn provideProceedKAlignmentFn() {
+        return new ProceedKAlignmentFn(Mockito.mock(FileUtils.class), Mockito.mock(KAlignService.class));
     }
 
     @Provides

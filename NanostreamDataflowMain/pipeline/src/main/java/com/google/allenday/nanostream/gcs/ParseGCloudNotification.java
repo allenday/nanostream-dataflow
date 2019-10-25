@@ -1,18 +1,42 @@
 package com.google.allenday.nanostream.gcs;
 
+import com.google.allenday.genomics.core.gene.GeneData;
+import com.google.allenday.genomics.core.gene.GeneExampleMetaData;
+import com.google.allenday.genomics.core.io.FileUtils;
+import com.google.allenday.genomics.core.io.GCSService;
 import com.google.allenday.nanostream.pubsub.GCSSourceData;
 import com.google.allenday.nanostream.pubsub.GCloudNotification;
+import com.google.cloud.storage.BlobId;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.values.KV;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  *
  */
-public class ParseGCloudNotification extends DoFn<GCloudNotification, KV<GCSSourceData, String>> {
+public class ParseGCloudNotification extends DoFn<GCloudNotification, KV<GeneExampleMetaData, List<GeneData>>> {
+
+    private FileUtils fileUtils;
+    private GCSService gcsService;
+
+    public ParseGCloudNotification(FileUtils fileUtils) {
+        this.fileUtils = fileUtils;
+    }
+
+    @Setup
+    public void setUp() {
+        gcsService = GCSService.initialize(fileUtils);
+    }
 
     @ProcessElement
     public void processElement(ProcessContext c) {
         GCloudNotification gCloudNotification = c.element();
-        c.output(KV.of(GCSSourceData.fromGCloudNotification(gCloudNotification), gCloudNotification.getName()));
+
+        GCSSourceData gcsSourceData = GCSSourceData.fromGCloudNotification(gCloudNotification);
+        BlobId blobId = BlobId.of(gCloudNotification.getBucket(), gCloudNotification.getName());
+        c.output(KV.of(GeneExampleMetaData.createSingleEndUnique(gcsSourceData.toJsonString()),
+                Collections.singletonList(GeneData.fromBlobUri(gcsService.getUriFromBlob(blobId), fileUtils.getFilenameFromPath(blobId.getName())))));
     }
 }

@@ -1,8 +1,17 @@
 package com.google.allenday.nanostream.injection;
 
-import com.google.allenday.nanostream.aligner.MakeAlignmentViaHttpFn;
+import com.google.allenday.genomics.core.align.AlignService;
+import com.google.allenday.genomics.core.align.KAlignService;
+import com.google.allenday.genomics.core.align.SamBamManipulationService;
+import com.google.allenday.genomics.core.align.transform.AlignFn;
+import com.google.allenday.genomics.core.cmd.CmdExecutor;
+import com.google.allenday.genomics.core.cmd.WorkerSetupService;
+import com.google.allenday.genomics.core.io.FileUtils;
+import com.google.allenday.genomics.core.io.TransformIoHandler;
+import com.google.allenday.genomics.core.reference.ReferencesProvider;
+import com.google.allenday.nanostream.aligner.GetSequencesFromSamDataFn;
+import com.google.allenday.nanostream.gcs.ParseGCloudNotification;
 import com.google.allenday.nanostream.geneinfo.LoadGeneInfoTransform;
-import com.google.allenday.nanostream.http.NanostreamHttpService;
 import com.google.allenday.nanostream.kalign.ProceedKAlignmentFn;
 import com.google.allenday.nanostream.other.Configuration;
 import com.google.allenday.nanostream.output.PrepareSequencesStatisticToOutputDbFn;
@@ -11,7 +20,6 @@ import com.google.allenday.nanostream.taxonomy.GetResistanceGenesTaxonomyDataFn;
 import com.google.allenday.nanostream.taxonomy.GetSpeciesTaxonomyDataFn;
 import com.google.allenday.nanostream.taxonomy.GetTaxonomyFromTree;
 import com.google.allenday.nanostream.util.EntityNamer;
-import com.google.allenday.nanostream.util.HttpHelper;
 import com.google.allenday.nanostream.util.ResourcesHelper;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
@@ -38,19 +46,13 @@ public class MainModule extends NanostreamModule {
     }
 
     @Provides
-    @Singleton
-    public NanostreamHttpService provideNanostreamHttpService(HttpHelper httpHelper) {
-        return new NanostreamHttpService(httpHelper, servicesUrl);
+    public KAlignService provideKAlignService(WorkerSetupService workerSetupService, CmdExecutor cmdExecutor) {
+        return new KAlignService(workerSetupService, cmdExecutor);
     }
 
     @Provides
-    public MakeAlignmentViaHttpFn provideMakeAlignmentViaHttpFn(NanostreamHttpService service) {
-        return new MakeAlignmentViaHttpFn(service, bwaDB, bwaEndpoint, bwaArguments);
-    }
-
-    @Provides
-    public ProceedKAlignmentFn provideProceedKAlignmentFn(NanostreamHttpService service) {
-        return new ProceedKAlignmentFn(service, kAlignEndpoint);
+    public ProceedKAlignmentFn provideProceedKAlignmentFn(FileUtils fileUtils, KAlignService kAlignService) {
+        return new ProceedKAlignmentFn(fileUtils, kAlignService);
     }
 
     @Provides
@@ -84,5 +86,63 @@ public class MainModule extends NanostreamModule {
     @Provides
     public GetResistanceGenesTaxonomyDataFn provideGetResistanceGenesTaxonomyDataFn() {
         return new GetResistanceGenesTaxonomyDataFn(new ResourcesHelper().getFileContent(RESISTANCE_GENES_GENE_DATA_FILE_NAME));
+    }
+
+    @Provides
+    public ParseGCloudNotification provideParseGCloudNotification(FileUtils fileUtils) {
+        return new ParseGCloudNotification(fileUtils);
+    }
+
+    @Provides
+    @Singleton
+    public ReferencesProvider provideReferencesProvider(FileUtils fileUtils) {
+        return new ReferencesProvider(fileUtils, alignerOptions.getAllReferencesDirGcsUri(), ".fsa_nt");
+    }
+
+    @Provides
+    @Singleton
+    public FileUtils provideFileUtils() {
+        return new FileUtils();
+    }
+
+    @Provides
+    @Singleton
+    public CmdExecutor provideCmdExecutor() {
+        return new CmdExecutor();
+    }
+
+    @Provides
+    @Singleton
+    public WorkerSetupService provideWorkerSetupService(CmdExecutor cmdExecutor) {
+        return new WorkerSetupService(cmdExecutor);
+    }
+
+    @Provides
+    @Singleton
+    public AlignService provideAlignService(WorkerSetupService workerSetupService, CmdExecutor cmdExecutor, FileUtils fileUtils) {
+        return new AlignService(workerSetupService, cmdExecutor, fileUtils);
+    }
+
+    @Provides
+    @Singleton
+    public AlignFn provideAlignFn(AlignService alignService, ReferencesProvider referencesProvider, FileUtils fileUtils) {
+        TransformIoHandler alignIoHandler = new TransformIoHandler(alignerOptions.getResultBucket(), String.format(alignerOptions.getAlignedOutputDir(), jobTime),
+                alignerOptions.getMemoryOutputLimit(), fileUtils);
+
+        return new AlignFn(alignService, referencesProvider, alignerOptions.getGeneReferences(), alignIoHandler, fileUtils);
+    }
+
+    @Provides
+    @Singleton
+    public SamBamManipulationService provideSamBamManipulationService(FileUtils fileUtils){
+        return new SamBamManipulationService(fileUtils);
+    }
+
+    @Provides
+    @Singleton
+    public GetSequencesFromSamDataFn provideGetSequencesFromSamDataFn(FileUtils fileUtils, SamBamManipulationService samBamManipulationService){
+        TransformIoHandler ioHandler = new TransformIoHandler(alignerOptions.getResultBucket(), String.format(alignerOptions.getAlignedOutputDir(), jobTime),
+                alignerOptions.getMemoryOutputLimit(), fileUtils);
+        return new GetSequencesFromSamDataFn(fileUtils, ioHandler, samBamManipulationService);
     }
 }

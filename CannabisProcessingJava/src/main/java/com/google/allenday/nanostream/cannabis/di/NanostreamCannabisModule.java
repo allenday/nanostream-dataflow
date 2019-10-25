@@ -163,7 +163,7 @@ public class NanostreamCannabisModule extends AbstractModule {
     @Provides
     @Singleton
     public AlignFn provideAlignFn(AlignService alignService, ReferencesProvider referencesProvider, FileUtils fileUtils) {
-        TransformIoHandler alignIoHandler = new TransformIoHandler(alignerOptions.getResultBucket(), String.format(alignerOptions.getSortedOutputDir(), jobTime),
+        TransformIoHandler alignIoHandler = new TransformIoHandler(alignerOptions.getResultBucket(), String.format(alignerOptions.getAlignedOutputDir(), jobTime),
                 alignerOptions.getMemoryOutputLimit(), fileUtils);
 
         return new AlignFn(alignService, referencesProvider, alignerOptions.getGeneReferences(), alignIoHandler, fileUtils);

@@ -1,6 +1,9 @@
 package com.google.allenday.nanostream.kalign;
 
-import com.google.allenday.nanostream.http.NanostreamHttpService;
+import com.google.allenday.genomics.core.align.KAlignService;
+import com.google.allenday.genomics.core.cmd.CmdExecutor;
+import com.google.allenday.genomics.core.io.FileUtils;
+import com.google.allenday.genomics.core.io.GCSService;
 import com.google.allenday.nanostream.pubsub.GCSSourceData;
 import japsa.seq.Alphabet;
 import japsa.seq.FastaReader;
@@ -11,14 +14,11 @@ import org.apache.beam.sdk.values.KV;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
-import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.StreamSupport;
 
 /**
@@ -28,63 +28,80 @@ import java.util.stream.StreamSupport;
  */
 public class ProceedKAlignmentFn extends DoFn<KV<KV<GCSSourceData, String>, Iterable<Sequence>>, KV<KV<GCSSourceData, String>, Iterable<Sequence>>> {
 
-    private final static String FASTA_DATA_MULTIPART_KEY = "fasta";
-
     private Logger LOG = LoggerFactory.getLogger(ProceedKAlignmentFn.class);
 
-    private NanostreamHttpService nanostreamHttpService;
-    private String endpoint;
+    private FileUtils fileUtils;
+    private KAlignService kAlignService;
 
-    public ProceedKAlignmentFn(NanostreamHttpService nanostreamHttpService,
-                               String endpoint) {
-        this.nanostreamHttpService = nanostreamHttpService;
-        this.endpoint = endpoint;
+    public ProceedKAlignmentFn(FileUtils fileUtils, KAlignService kAlignService) {
+        this.fileUtils = fileUtils;
+        this.kAlignService = kAlignService;
     }
 
+    @Setup
+    public void setUp() {
+        kAlignService.setupKAlign2();
+    }
 
     @ProcessElement
     public void processElement(ProcessContext c) {
         Iterable<Sequence> sequenceIterable = c.element().getValue();
         long sequenceIterableSize = StreamSupport.stream(sequenceIterable.spliterator(), false)
                 .count();
+        LOG.info(c.element().getKey().toString());
+        LOG.info(String.format("Fasta size %d", sequenceIterableSize));
         if (sequenceIterableSize <= 1) {
             c.output(c.element());
             return;
         }
+        String refName = c.element().getKey().getValue().replace(".","_");
+        String workingDir = fileUtils.makeUniqueDirWithTimestampAndSuffix(refName);
 
-        Map<String, String> content = new HashMap<>();
-        content.put(FASTA_DATA_MULTIPART_KEY, prepareFastAData(sequenceIterable));
-
+        String currentTimestamp = String.valueOf(System.currentTimeMillis());
         try {
-            LOG.info(String.format("Sending K-Align request with %d elements...", sequenceIterableSize));
-            @Nonnull
-            String responseBody = nanostreamHttpService.generateAlignData(endpoint, content);
 
-            List<Sequence> seqList = new ArrayList<>();
-            SequenceReader fastaReader = FastaReader.getReader(new ByteArrayInputStream(responseBody.getBytes()));
+            try {
+                String fastaFilePath = prepareFastaFile(sequenceIterable,
+                        workingDir + refName + "_" + currentTimestamp + KAlignService.FASTA_FILE_EXTENSION);
+                GCSService gcsService = GCSService.initialize(new FileUtils());
+                gcsService.writeToGcs("nanostream-clinic",fastaFilePath, fastaFilePath);
 
-            if (fastaReader == null) {
-                return;
+                String kalignedFilePath = kAlignService.kAlignFasta(fastaFilePath, workingDir,
+                        refName + "_" + "kalined", currentTimestamp);
+
+                List<Sequence> seqList = new ArrayList<>();
+                SequenceReader fastaReader = FastaReader.getReader(new FileInputStream(kalignedFilePath));
+
+                if (fastaReader == null) {
+                    return;
+                }
+                Sequence nSeq;
+                while ((nSeq = fastaReader.nextSequence(Alphabet.DNA())) != null) {
+                    seqList.add(nSeq);
+                }
+                fastaReader.close();
+
+
+                c.output(KV.of(c.element().getKey(), seqList));
+
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            Sequence nSeq;
-            while ((nSeq = fastaReader.nextSequence(Alphabet.DNA())) != null) {
-                seqList.add(nSeq);
-            }
-            fastaReader.close();
 
-
-            c.output(KV.of(c.element().getKey(), seqList));
-        } catch (URISyntaxException | IOException e) {
+        } catch (RuntimeException e) {
             LOG.error(e.getMessage());
+            e.printStackTrace();
         }
-
+        fileUtils.deleteDir(workingDir);
     }
 
-    private String prepareFastAData(Iterable<Sequence> sequenceIterable) {
-        StringBuilder fasta = new StringBuilder();
+    private String prepareFastaFile(Iterable<Sequence> sequenceIterable, String filePath) throws IOException {
+        FileWriter fileWriter = new FileWriter(filePath);
         for (Sequence s : sequenceIterable) {
-            fasta.append(">").append(s.getName()).append("\n").append(s.toString()).append("\n");
+            fileWriter.write(">" + s.getName() + "\n" + s.toString() + "\n");
         }
-        return fasta.toString();
+        fileWriter.flush();
+        fileWriter.close();
+        return filePath;
     }
 }

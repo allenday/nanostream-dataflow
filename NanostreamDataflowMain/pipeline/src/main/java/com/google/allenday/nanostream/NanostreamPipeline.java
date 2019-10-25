@@ -1,10 +1,8 @@
 package com.google.allenday.nanostream;
 
+import com.google.allenday.genomics.core.align.transform.AlignFn;
 import com.google.allenday.nanostream.aligner.GetSequencesFromSamDataFn;
-import com.google.allenday.nanostream.aligner.MakeAlignmentViaHttpFn;
 import com.google.allenday.nanostream.errorcorrection.ErrorCorrectionFn;
-import com.google.allenday.nanostream.fastq.ParseFastQFn;
-import com.google.allenday.nanostream.gcs.GetDataFromFastQFile;
 import com.google.allenday.nanostream.gcs.ParseGCloudNotification;
 import com.google.allenday.nanostream.geneinfo.GeneData;
 import com.google.allenday.nanostream.geneinfo.GeneInfo;
@@ -29,7 +27,10 @@ import com.google.inject.Injector;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
-import org.apache.beam.sdk.transforms.*;
+import org.apache.beam.sdk.transforms.Combine;
+import org.apache.beam.sdk.transforms.GroupByKey;
+import org.apache.beam.sdk.transforms.ParDo;
+import org.apache.beam.sdk.transforms.View;
 import org.apache.beam.sdk.transforms.windowing.*;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
@@ -48,7 +49,7 @@ public class NanostreamPipeline {
 
     public void run() {
         final ProcessingMode processingMode = ProcessingMode.findByLabel(options.getProcessingMode());
-        Injector injector = Guice.createInjector(new MainModule.Builder().buildFromOptions(options));
+        Injector injector = Guice.createInjector(new MainModule.Builder().fromOptions(options).build());
 
         options.setJobName(injector.getInstance(EntityNamer.class)
                 .generateJobName(processingMode, options.getOutputCollectionNamePrefix()));
@@ -68,21 +69,15 @@ public class NanostreamPipeline {
         pubsubMessages
                 .apply("Filter only ADD FILE", ParDo.of(new FilterObjectFinalizeMessage()))
                 .apply("Deserialize messages", ParDo.of(new DecodeNotificationJsonMessage()))
-                .apply("Parse GCloud notification", ParDo.of(new ParseGCloudNotification()))
-
-                .apply("Get data from FastQ", ParDo.of(new GetDataFromFastQFile()))
-                .apply("Parse FastQ data", ParDo.of(new ParseFastQFn()))
+                .apply("Parse GCloud notification", ParDo.of(injector.getInstance(ParseGCloudNotification.class)))
                 .apply(options.getAlignmentWindow() + "s FastQ collect window",
                         Window.into(FixedWindows.of(Duration.standardSeconds(options.getAlignmentWindow()))))
-                .apply("Create batches of "+ options.getAlignmentBatchSize() +" FastQ records",
-                        GroupIntoBatches.ofSize(options.getAlignmentBatchSize()))
-                .apply("Alignment", ParDo.of(injector.getInstance(MakeAlignmentViaHttpFn.class)))
+                .apply("Alignment", ParDo.of(injector.getInstance(AlignFn.class)))
                 .apply("Extract Sequences",
-                        ParDo.of(new GetSequencesFromSamDataFn()))
+                        ParDo.of(injector.getInstance(GetSequencesFromSamDataFn.class)))
                 .apply("Group by SAM reference", GroupByKey.create())
                 .apply("K-Align", ParDo.of(injector.getInstance(ProceedKAlignmentFn.class)))
                 .apply("Error correction", ParDo.of(new ErrorCorrectionFn()))
-
                 .apply("Remove Sequence part", ParDo.of(new RemoveValueDoFn<>()))
                 .apply("Get Taxonomy data", processingMode == ProcessingMode.RESISTANT_GENES
                         ? ParDo.of(injector.getInstance(GetResistanceGenesTaxonomyDataFn.class)
