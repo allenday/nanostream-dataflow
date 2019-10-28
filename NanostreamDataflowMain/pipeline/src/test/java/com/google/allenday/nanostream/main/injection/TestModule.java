@@ -1,7 +1,7 @@
 package com.google.allenday.nanostream.main.injection;
 
-import com.google.allenday.nanostream.aligner.MakeAlignmentViaHttpFn;
-import com.google.allenday.nanostream.http.NanostreamHttpService;
+import com.google.allenday.genomics.core.align.KAlignService;
+import com.google.allenday.genomics.core.io.FileUtils;
 import com.google.allenday.nanostream.injection.NanostreamModule;
 import com.google.allenday.nanostream.kalign.ProceedKAlignmentFn;
 import com.google.allenday.nanostream.pubsub.GCSSourceData;
@@ -9,9 +9,6 @@ import com.google.allenday.nanostream.util.HttpHelper;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import org.mockito.Mockito;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.withSettings;
 
 public class TestModule extends NanostreamModule {
 
@@ -32,28 +29,31 @@ public class TestModule extends NanostreamModule {
 
     @Provides
     @Singleton
-    public HttpHelper provideHttpHelper() {
-        return Mockito.mock(HttpHelper.class);
+    public KAlignService provideKAlignService() {
+        return Mockito.mock(KAlignService.class, Mockito.withSettings().serializable());
     }
 
     @Provides
     @Singleton
-    public NanostreamHttpService provideNanostreamHttpService(HttpHelper httpHelper) {
-        return mock(NanostreamHttpService.class,
-                withSettings().serializable());
+    public FileUtils provideFileUtils() {
+        return new FileUtils();
     }
 
     @Provides
-    public MakeAlignmentViaHttpFn provideMakeAlignmentViaHttpFn(NanostreamHttpService service) {
-        return new MakeAlignmentViaHttpFn(service, bwaDB, bwaEndpoint, bwaArguments);
+    @Singleton
+    public HttpHelper provideHttpHelper() {
+        return Mockito.mock(HttpHelper.class, Mockito.withSettings().serializable());
+    }
+
+
+    @Provides
+    @Singleton
+    public ProceedKAlignmentFn provideProceedKAlignmentFn(KAlignService kAlignService, FileUtils fileUtils) {
+        return new ProceedKAlignmentFn(fileUtils, kAlignService);
     }
 
     @Provides
-    public ProceedKAlignmentFn provideProceedKAlignmentFn(NanostreamHttpService service) {
-        return new ProceedKAlignmentFn(service, kAlignEndpoint);
-    }
-
-    @Provides
+    @Singleton
     public GCSSourceData provideGCSSourceData() {
         return new GCSSourceData(TEST_BUCKET, TEST_FOLDER);
     }

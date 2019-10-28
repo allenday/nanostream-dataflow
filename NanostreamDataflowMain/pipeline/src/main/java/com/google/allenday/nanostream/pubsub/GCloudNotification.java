@@ -186,5 +186,41 @@ public class GCloudNotification implements Serializable {
         public String getGoogReservedPosixUid() {
             return googReservedPosixUid;
         }
+
+        @Override
+        public String toString() {
+            return "Metadata{" +
+                    "googReservedFileAtime='" + googReservedFileAtime + '\'' +
+                    ", googReservedFileMtime='" + googReservedFileMtime + '\'' +
+                    ", googReservedPosixGid='" + googReservedPosixGid + '\'' +
+                    ", googReservedPosixMode='" + googReservedPosixMode + '\'' +
+                    ", googReservedPosixUid='" + googReservedPosixUid + '\'' +
+                    '}';
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "GCloudNotification{" +
+                "kind='" + kind + '\'' +
+                ", id='" + id + '\'' +
+                ", selfLink='" + selfLink + '\'' +
+                ", name='" + name + '\'' +
+                ", bucket='" + bucket + '\'' +
+                ", generation='" + generation + '\'' +
+                ", metageneration='" + metageneration + '\'' +
+                ", contentType='" + contentType + '\'' +
+                ", timeCreated='" + timeCreated + '\'' +
+                ", updated='" + updated + '\'' +
+                ", storageClass='" + storageClass + '\'' +
+                ", timeStorageClassUpdated='" + timeStorageClassUpdated + '\'' +
+                ", size='" + size + '\'' +
+                ", md5Hash='" + md5Hash + '\'' +
+                ", mediaLink='" + mediaLink + '\'' +
+                ", contentLanguage='" + contentLanguage + '\'' +
+                ", metadata=" + metadata +
+                ", crc32c='" + crc32c + '\'' +
+                ", etag='" + etag + '\'' +
+                '}';
     }
 }

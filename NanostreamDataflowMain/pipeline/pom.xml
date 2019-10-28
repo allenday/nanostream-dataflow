@@ -85,6 +85,11 @@
             <artifactId>pal</artifactId>
             <version>1.5.1.1</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.allenday.genomics.core</groupId>
+            <artifactId>genomics-dataflow-core</artifactId>
+            <version>0.0.1</version>
+        </dependency>
         <!-- http services -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>

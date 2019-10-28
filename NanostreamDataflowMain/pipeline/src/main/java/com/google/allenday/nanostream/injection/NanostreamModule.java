@@ -1,5 +1,6 @@
 package com.google.allenday.nanostream.injection;
 
+import com.google.allenday.genomics.core.align.AlignerOptions;
 import com.google.allenday.nanostream.NanostreamPipelineOptions;
 import com.google.allenday.nanostream.ProcessingMode;
 import com.google.allenday.nanostream.util.EntityNamer;
@@ -12,66 +13,42 @@ import com.google.inject.Singleton;
  */
 public class NanostreamModule extends AbstractModule {
 
+    protected String jobTime;
     protected String projectId;
-    protected String servicesUrl;
-    protected String bwaEndpoint;
-    protected String bwaDB;
-    protected String kAlignEndpoint;
     protected String resistanceGenesList;
     protected String outputCollectionNamePrefix;
     protected String outputDocumentNamePrefix;
     protected ProcessingMode processingMode;
-    protected String bwaArguments;
+    protected AlignerOptions alignerOptions;
 
     public NanostreamModule(Builder builder) {
         this.projectId = builder.projectId;
-        this.servicesUrl = builder.servicesUrl;
-        this.bwaEndpoint = builder.bwaEndpoint;
-        this.bwaDB = builder.bwaDB;
-        this.kAlignEndpoint = builder.kAlignEndpoint;
         this.resistanceGenesList = builder.resistanceGenesList;
         this.outputCollectionNamePrefix = builder.outputCollectionNamePrefix;
         this.processingMode = builder.processingMode;
         this.outputDocumentNamePrefix = builder.outputDocumentNamePrefix;
-        this.bwaArguments = builder.bwaArguments;
+        this.alignerOptions = builder.alignerOptions;
+        this.jobTime = builder.jobTime;
     }
 
     public static class Builder {
 
+        protected String jobTime;
         protected String projectId;
-        protected String servicesUrl;
-        protected String bwaEndpoint;
-        protected String bwaDB;
-        protected String kAlignEndpoint;
         protected String resistanceGenesList;
         protected String outputCollectionNamePrefix;
         protected ProcessingMode processingMode;
         protected String outputDocumentNamePrefix;
-        protected String bwaArguments;
+        protected AlignerOptions alignerOptions;
 
+
+        public Builder setJobTime(String jobTime) {
+            this.jobTime = jobTime;
+            return this;
+        }
 
         public Builder setProjectId(String projectId) {
             this.projectId = projectId;
-            return this;
-        }
-
-        public Builder setServicesUrl(String servicesUrl) {
-            this.servicesUrl = servicesUrl;
-            return this;
-        }
-
-        public Builder setBwaEndpoint(String bwaEndpoint) {
-            this.bwaEndpoint = bwaEndpoint;
-            return this;
-        }
-
-        public Builder setBwaDB(String bwaDB) {
-            this.bwaDB = bwaDB;
-            return this;
-        }
-
-        public Builder setkAlignEndpoint(String kAlignEndpoint) {
-            this.kAlignEndpoint = kAlignEndpoint;
             return this;
         }
 
@@ -95,8 +72,8 @@ public class NanostreamModule extends AbstractModule {
             return this;
         }
 
-        public Builder setBwaArguments(String bwaArguments) {
-            this.bwaArguments = bwaArguments;
+        public Builder setAlignerOptions(AlignerOptions alignerOptions) {
+            this.alignerOptions = alignerOptions;
             return this;
         }
 
@@ -104,35 +81,15 @@ public class NanostreamModule extends AbstractModule {
             return projectId;
         }
 
-        public String getServicesUrl() {
-            return servicesUrl;
-        }
 
-        public String getBwaEndpoint() {
-            return bwaEndpoint;
-        }
-
-        public String getBwaDB() {
-            return bwaDB;
-        }
-
-        public String getkAlignEndpoint() {
-            return kAlignEndpoint;
-        }
-
-
-        public NanostreamModule buildFromOptions(NanostreamPipelineOptions nanostreamPipelineOptions) {
+        public NanostreamModule.Builder fromOptions(NanostreamPipelineOptions nanostreamPipelineOptions) {
             setProjectId(nanostreamPipelineOptions.getProject());
-            setServicesUrl(nanostreamPipelineOptions.getServicesUrl());
-            setBwaEndpoint(nanostreamPipelineOptions.getBwaEndpoint());
-            setBwaDB(nanostreamPipelineOptions.getBwaDatabase());
-            setkAlignEndpoint(nanostreamPipelineOptions.getkAlignEndpoint());
             setResistanceGenesList(nanostreamPipelineOptions.getResistanceGenesList());
             setOutputCollectionNamePrefix(nanostreamPipelineOptions.getOutputCollectionNamePrefix());
             setProcessingMode(ProcessingMode.findByLabel(nanostreamPipelineOptions.getProcessingMode()));
             setOutputDocumentNamePrefix(nanostreamPipelineOptions.getOutputDocumentNamePrefix());
-            setBwaArguments(nanostreamPipelineOptions.getBwaArguments());
-            return build();
+            setAlignerOptions(AlignerOptions.fromAlignerPipelineOptions(nanostreamPipelineOptions));
+            return this;
         }
 
         public NanostreamModule build() {

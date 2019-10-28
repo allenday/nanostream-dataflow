@@ -1,10 +1,11 @@
 package com.google.allenday.nanostream.integration;
 
+import com.google.allenday.genomics.core.align.AlignerOptions;
+import com.google.allenday.genomics.core.align.transform.AlignFn;
+import com.google.allenday.genomics.core.gene.GeneExampleMetaData;
 import com.google.allenday.nanostream.ProcessingMode;
 import com.google.allenday.nanostream.aligner.GetSequencesFromSamDataFn;
-import com.google.allenday.nanostream.aligner.MakeAlignmentViaHttpFn;
 import com.google.allenday.nanostream.errorcorrection.ErrorCorrectionFn;
-import com.google.allenday.nanostream.fastq.ParseFastQFn;
 import com.google.allenday.nanostream.geneinfo.GeneData;
 import com.google.allenday.nanostream.injection.MainModule;
 import com.google.allenday.nanostream.kalign.ProceedKAlignmentFn;
@@ -32,6 +33,7 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +46,6 @@ import java.util.stream.StreamSupport;
 public class EndToEndPipelineTest {
 
     private final static int FASTQ_GROUPING_WINDOW_TIME_SEC = 20;
-    private static final int FASTQ_GROUPING_BATCH_SIZE = 10;
     private final static int OUTPUT_TRIGGERING_WINDOW_TIME_SEC = 10;
 
     private String TEST_BUCKET_NAME = "test_bucket";
@@ -55,10 +56,10 @@ public class EndToEndPipelineTest {
 
     public enum Param {
         PROJECT_ID("projectId"),
-        BWA_ENDPOINT("bwaEndpoint"),
-        SERVICES_URL("servicesUrl"),
-        BWA_DB("bwaDB"),
-        K_ALIGN_ENDPOINT("kAlignEndpoint");
+        RESULT_BUCKET("resultBucket"),
+        REFERENCE_NAME_LIST("referenceNamesList"),
+        ALL_REFERENCES_GCS_URI("allReferencesDirGcsUri"),
+        ALIGNED_OUTPUT_DIR("alignedOutputDir");
 
         public final String key;
 
@@ -66,7 +67,7 @@ public class EndToEndPipelineTest {
             this.key = key;
         }
 
-        public static String getValueFromMap(Map<String, String> map, Param param){
+        public static String getValueFromMap(Map<String, String> map, Param param) {
             return map.get(param.key);
         }
     }
@@ -74,9 +75,9 @@ public class EndToEndPipelineTest {
     @Test
     public void testEndToEndPipelineSpeciesMode() {
         Map<String, String> testParams = new HashMap<>();
-        for (Param param: Param.values()){
+        for (Param param : Param.values()) {
             String value = System.getProperty(param.key);
-            if (value == null || value.isEmpty()){
+            if (value == null || value.isEmpty()) {
                 throw new RuntimeException(String.format("You should provide %s", param.name()));
             }
             testParams.put(param.key, value);
@@ -84,11 +85,13 @@ public class EndToEndPipelineTest {
         ProcessingMode processingMode = ProcessingMode.SPECIES;
         Injector injector = Guice.createInjector(new MainModule.Builder()
                 .setProjectId(Param.getValueFromMap(testParams, Param.PROJECT_ID))
-                .setBwaEndpoint(Param.getValueFromMap(testParams, Param.BWA_ENDPOINT))
-                .setServicesUrl(Param.getValueFromMap(testParams, Param.SERVICES_URL))
-                .setBwaDB(Param.getValueFromMap(testParams, Param.BWA_DB))
-                .setkAlignEndpoint(Param.getValueFromMap(testParams, Param.K_ALIGN_ENDPOINT))
                 .setProcessingMode(processingMode)
+                .setAlignerOptions(new AlignerOptions(Param.getValueFromMap(testParams, Param.RESULT_BUCKET),
+                        Collections.singletonList(Param.getValueFromMap(testParams, Param.REFERENCE_NAME_LIST)),
+                        Param.getValueFromMap(testParams, Param.ALL_REFERENCES_GCS_URI),
+                        Param.getValueFromMap(testParams, Param.ALIGNED_OUTPUT_DIR),
+                        0
+                ))
                 .build());
 
         GCSSourceData gcsSourceData = new GCSSourceData(TEST_BUCKET_NAME, TEST_FOLDER_NAME);
@@ -97,14 +100,24 @@ public class EndToEndPipelineTest {
 
         PCollection<KV<KV<String, String>, SequenceStatisticResult>> sequnceStatisticResultPCollection = testPipeline
                 .apply(Create.of(KV.of(gcsSourceData, new ResourcesHelper().getFileContent("testFastQFile.fastq"))))
-                .apply("Parse FasQ data", ParDo.of(new ParseFastQFn()))
+                .apply("Parse FasQ data", ParDo.of(new DoFn<KV<GCSSourceData, String>,
+                        KV<GeneExampleMetaData, List<com.google.allenday.genomics.core.gene.GeneData>>>() {
+
+                    @ProcessElement
+                    public void processElement(ProcessContext c) {
+                        KV<GCSSourceData, String> element = c.element();
+                        com.google.allenday.genomics.core.gene.GeneData geneData =
+                                com.google.allenday.genomics.core.gene.GeneData.fromByteArrayContent(element.getValue().getBytes(), "fileName");
+                        GeneExampleMetaData geneExampleMetaData = new GeneExampleMetaData("TestProject", "TestProjectId", "TestBioSample",
+                                "testExampleSra", "TestRun", false, c.element().getKey().toJsonString());
+                        c.output(KV.of(geneExampleMetaData, Collections.singletonList(geneData)));
+                    }
+                }))
                 .apply(FASTQ_GROUPING_WINDOW_TIME_SEC + " Window",
                         Window.into(FixedWindows.of(Duration.standardSeconds(FASTQ_GROUPING_WINDOW_TIME_SEC))))
-                .apply("Create batches of " + FASTQ_GROUPING_BATCH_SIZE + " FastQ records",
-                        GroupIntoBatches.ofSize(FASTQ_GROUPING_BATCH_SIZE))
-                .apply("Alignment", ParDo.of(injector.getInstance(MakeAlignmentViaHttpFn.class)))
+                .apply("Alignment", ParDo.of(injector.getInstance(AlignFn.class)))
                 .apply("Extract Sequences",
-                        ParDo.of(new GetSequencesFromSamDataFn()))
+                        ParDo.of(injector.getInstance(GetSequencesFromSamDataFn.class)))
                 .apply("Group by SAM reference", GroupByKey.create())
                 .apply("K-Align", ParDo.of(injector.getInstance(ProceedKAlignmentFn.class)))
                 .apply("Error correction", ParDo.of(new ErrorCorrectionFn()))

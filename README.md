@@ -54,9 +54,8 @@ gsutil notification create -t $UPLOAD_EVENTS -f json -e OBJECT_FINALIZE $UPLOAD_
 ```
 gcloud pubsub subscriptions create $UPLOAD_SUBSCRIPTION --topic $UPLOAD_EVENTS
 ```
-5. Provision an aligner cluster, see [aligner](aligner)
-6. Create a **Cloud Firestore DB** ([See details in section Create a Cloud Firestore project](https://cloud.google.com/firestore/docs/quickstart-mobile-web#create_a_project)) for saving cache and result data.
-7. *optional* If you running the pipeline in `resistance_genes` mode you should provide "gene list" file stored in GCS.
+5. Create a **Cloud Firestore DB** ([See details in section Create a Cloud Firestore project](https://cloud.google.com/firestore/docs/quickstart-mobile-web#create_a_project)) for saving cache and result data.
+6. *optional* If you running the pipeline in `resistance_genes` mode you should provide "gene list" file stored in GCS.
 
 
 ### Running the Pipeline
@@ -81,26 +80,19 @@ ALIGNMENT_WINDOW=20
 # how frequently (in wallclock seconds) are statistics updated for dashboard visualizaiton?
 STATS_UPDATE_FREQUENCY=30
 
-# Region where aligner cluster is running
-ALIGNER_REGION=us-central1
-# IP address of the aligner cluster created by running aligner/provision_species.sh
-SPECIES_ALIGNER_CLUSTER_IP=$(gcloud compute forwarding-rules describe bwa-species-forward --region=${ALIGNER_REGION} --format="value(IPAddress)")
-# IP address of the aligner cluster created by running aligner/provision_resistance_genes.sh
-RESISTANCE_GENES_ALIGNER_CLUSTER_IP=$(gcloud compute forwarding-rules describe bwa-resistance-genes-forward --region=${ALIGNER_REGION} --format="value(IPAddress)")
-# base URL for http services (bwa and kalign)
-# value for species, for resistance_genes use 'SERVICES_HOST=http://$RESISTANCE_GENES_ALIGNER_CLUSTER_IP'
-SERVICES_HOST=http://$SPECIES_ALIGNER_CLUSTER_IP
-# bwa path
-BWA_ENDPOINT=/cgi-bin/bwa.cgi
-# bwa database name
-BWA_DATABASE=DB.fasta
-# kalign path
-KALIGN_ENDPOINT=/cgi-bin/kalign.cgi
+
+# Reference database name
+REFERENCE_DATABASE=genomeDB
+# Bucket for storing aligned files
+ALIGN_RESULTS_BUCKET=$FILES_BUCKET
+# GCS path to directory which will be used for storing aligned files. "%s" will be replaces with job time
+ALIGNED_OUTPUT_DIR=clinic_processing_output/%s/result_aligned_bam/
+# GCS path to directory with references db. References should be stored as ${ALL_REFERENCES_DIR_GCS_URI}${REFERENCE_DATABASE}/(reference_files)
+ALL_REFERENCES_DIR_GCS_URI=gs://$FILES_BUCKET/references/
+
 
 # Collections name prefix of the Firestore database that will be used for writing results
 FIRESTORE_COLLECTION_NAME_PREFIX=new_scanning
-# (OPTIONAL) Firestore database document name prefix that will be used for writing statistic results
-FIRESTORE_DOCUMENT_NAME_PREFIX=statistic_document
 ```
 If you run the pipeline in the `resistance_genes` mode you should add additional argument with path of file stored in the GCS. With a placeholder name `$FILES_BUCKET` add next argument:
 ```
@@ -108,12 +100,14 @@ If you run the pipeline in the `resistance_genes` mode you should add additional
 RESISTANCE_GENES_LIST=gs://$FILES_BUCKET/gene-info/resistance_genes_list.txt
 ```
 **(Optional) Additional parameters**
-You can manually specify some parameters such as *Alignment batch size* and *BWA Aligner arguments*:
+You can manually specify some parameters such as *Alignment batch size*, *Memory output limit*, *Firestore document name prefix*:
 ```
-# Max size of batch that will be generated before alignment. Default value - 2000
+# (OPTIONAL) Max size of batch that will be generated before alignment. Default value - 2000
 ALIGNMENT_BATCH_SIZE=1000
-# Arguments that will be passed to BWA aligner. Default value - "-t 4"
-BWA_ARGUMENTS='-t 4'
+# (OPTIONAL) Threshold to decide how to pass data after alignment
+MEMORY_OUTPUT_LIMIT=100
+# (OPTIONAL) Firestore database document name prefix that will be used for writing statistic results
+FIRESTORE_DOCUMENT_NAME_PREFIX=statistic_document
 ```
 
 To start **Nanostream Pipeline** run following command:
@@ -127,15 +121,15 @@ java -cp (path_to_nanostream_app_jar) \
   --inputDataSubscription=$UPLOAD_SUBSCRIPTION \
   --alignmentWindow=$ALIGNMENT_WINDOW \
   --statisticUpdatingDelay=$STATS_UPDATE_FREQUENCY \
-  --servicesUrl=$SERVICES_HOST \
-  --bwaEndpoint=$BWA_ENDPOINT \
-  --bwaDatabase=$BWA_DATABASE \ 
-  --kAlignEndpoint=$KALIGN_ENDPOINT \
+  --referenceNamesList=$REFERENCE_DATABASE \ 
   --outputCollectionNamePrefix=$FIRESTORE_COLLECTION_NAME_PREFIX \
   --outputDocumentNamePrefix=$FIRESTORE_DOCUMENT_NAME_PREFIX \
   --resistanceGenesList=$RESISTANCE_GENES_LIST \
+  --resultBucket=$ALIGN_RESULTS_BUCKET \
+  --alignedOutputDir=$ALIGNED_OUTPUT_DIR \
+  --allReferencesDirGcsUri=$ALL_REFERENCES_DIR_GCS_URI \
+  --memoryOutputLimit=$MEMORY_OUTPUT_LIMIT `# (Optional)`\
   --alignmentBatchSize=$ALIGNMENT_BATCH_SIZE `# (Optional)`\
-  --bwaArguments=$BWA_ARGUMENTS `# (Optional)`
 ```
 
 ### Available databases
@@ -164,9 +158,11 @@ where:
 To build jar from source, follow next steps:
 1) Use Java 1.8. Dataflow does not yet support 1.9 or greater.
 2) Install [Maven](https://maven.apache.org/install.html)
-3) Add [**Japsa 1.9-3c**](https://github.com/mdcao/japsa) package and it dependencies to local Maven repository. To do this you should run following command from project root:
+3) Add required Maven dependecies to local Maven repository, such as [**Japsa 1.9-3c**](https://github.com/mdcao/japsa) package. To do this you should run following command from project root:
 ```
 mvn install:install-file -Dfile=NanostreamDataflowMain/libs/japsa.jar -DgroupId=coin -DartifactId=japsa -Dversion=1.9-3c -Dpackaging=jar
+mvn install:install-file -Dfile=NanostreamDataflowMain/libs/pal1.5.1.1.jar -DgroupId=nz.ac.auckland -DartifactId=pal -Dversion=1.5.1.1 -Dpackaging=jar
+
 mvn install:install-file -Dfile=NanostreamDataflowMain/libs/pal1.5.1.1.jar -DgroupId=nz.ac.auckland -DartifactId=pal -Dversion=1.5.1.1 -Dpackaging=jar
 ```
 4) Build uber-jar file

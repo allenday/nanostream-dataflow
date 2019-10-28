@@ -1,6 +1,7 @@
 package com.google.allenday.nanostream.main.kalign;
 
-import com.google.allenday.nanostream.http.NanostreamHttpService;
+import com.google.allenday.genomics.core.align.KAlignService;
+import com.google.allenday.genomics.core.io.FileUtils;
 import com.google.allenday.nanostream.kalign.ProceedKAlignmentFn;
 import com.google.allenday.nanostream.kalign.SequenceOnlyDNACoder;
 import com.google.allenday.nanostream.main.injection.TestModule;
@@ -20,7 +21,9 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mockito;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URISyntaxException;
@@ -78,30 +81,26 @@ public class KAlignmentFnTests implements Serializable {
         String sequesnceName = "test_sequnce_name";
         Sequence testSequence = new Sequence(Alphabet.DNA(), TEST_SEQUENCE, sequesnceName);
 
-        try {
-            String kAlignmentResult = IOUtils.toString(
-                    getClass().getClassLoader().getResourceAsStream("kAlignResult.txt"), UTF_8.name());
+        String kAlignmentResult = getClass().getClassLoader().getResource("kAlignResult.txt").getFile();
+//            String kAlignmentContent = IOUtils.toString(
+//                    getClass().getClassLoader().getResourceAsStream("kAlignResult.txt"), UTF_8.name());
 
-            NanostreamHttpService mockHttpService = injector.getInstance(NanostreamHttpService.class);
-            when(mockHttpService.generateAlignData(any(), any())).thenReturn(kAlignmentResult);
+        when(injector.getInstance(KAlignService.class).kAlignFasta(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString()))
+                .thenReturn(kAlignmentResult);
 
-            testKAlignment(KV.of(KV.of(mockGCSSourceData, geneId), Arrays.asList(testSequence, testSequence)),
-                    input -> {
-                        Assert.assertTrue(input.iterator().hasNext());
-                        KV<KV<GCSSourceData, String>, Iterable<Sequence>> resultData = input.iterator().next();
-                        Assert.assertEquals(geneId, resultData.getKey().getValue());
+        testKAlignment(KV.of(KV.of(mockGCSSourceData, geneId), Arrays.asList(testSequence, testSequence)),
+                input -> {
+                    Assert.assertTrue(input.iterator().hasNext());
+                    KV<KV<GCSSourceData, String>, Iterable<Sequence>> resultData = input.iterator().next();
+                    Assert.assertEquals(geneId, resultData.getKey().getValue());
 
-                        List<Sequence> sequences = StreamSupport.stream(resultData.getValue().spliterator(), false)
-                                .collect(Collectors.toList());
-                        Assert.assertEquals(3, sequences.size());
-                        Assert.assertEquals(0, sequences.stream().filter(Objects::isNull).count());
-                        return null;
-                    }, injector);
-        } catch (IOException | URISyntaxException e) {
-            Assert.fail(e.getMessage());
-        }
+                    List<Sequence> sequences = StreamSupport.stream(resultData.getValue().spliterator(), false)
+                            .collect(Collectors.toList());
+                    Assert.assertEquals(3, sequences.size());
+                    Assert.assertEquals(0, sequences.stream().filter(Objects::isNull).count());
+                    return null;
+                }, injector);
     }
-
 
     private void testKAlignment(KV<KV<GCSSourceData, String>, Iterable<Sequence>> sourceData,
                                 SerializableFunction<Iterable<KV<KV<GCSSourceData, String>, Iterable<Sequence>>>, Void> assertFunction,

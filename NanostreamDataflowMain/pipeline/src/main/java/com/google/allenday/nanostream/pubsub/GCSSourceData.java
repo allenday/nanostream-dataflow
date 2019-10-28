@@ -2,6 +2,7 @@ package com.google.allenday.nanostream.pubsub;
 
 import org.apache.beam.sdk.coders.AvroCoder;
 import org.apache.beam.sdk.coders.DefaultCoder;
+import org.json.JSONObject;
 
 import javax.annotation.Nonnull;
 import java.io.Serializable;
@@ -12,6 +13,9 @@ import java.util.Objects;
  */
 @DefaultCoder(AvroCoder.class)
 public class GCSSourceData implements Serializable {
+
+    private final static String BUCKET_KEY = "bucket";
+    private final static String FOLDER_KEY = "folder";
 
     private String bucket;
     private String folder;
@@ -69,6 +73,21 @@ public class GCSSourceData implements Serializable {
                 "bucket='" + bucket + '\'' +
                 ", folder='" + folder + '\'' +
                 '}';
+    }
+
+    public String toJsonString(){
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put(BUCKET_KEY, bucket);
+        jsonObject.put(FOLDER_KEY, folder);
+        return jsonObject.toString();
+    }
+
+    public static GCSSourceData fromJsonString(String jsonString){
+        JSONObject jsonObject =  new JSONObject(jsonString);
+        GCSSourceData gcsSourceData = new GCSSourceData();
+        gcsSourceData.setBucket(jsonObject.getString(BUCKET_KEY));
+        gcsSourceData.setFolder(jsonObject.getString(FOLDER_KEY));
+        return gcsSourceData;
     }
 }
 
