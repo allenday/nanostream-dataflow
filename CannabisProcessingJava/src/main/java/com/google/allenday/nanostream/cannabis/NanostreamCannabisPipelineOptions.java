@@ -8,6 +8,12 @@ import java.util.List;
 
 public interface NanostreamCannabisPipelineOptions extends AlignerPipelineOptions {
 
+    @Description("Name of GCS bucket with all source data")
+    @Validation.Required
+    String getSrcBucket();
+
+    void setSrcBucket(String value);
+
     @Description("GCS uri of CSV file with input data")
     @Validation.Required
     String getInputCsvUri();

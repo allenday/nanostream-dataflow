@@ -31,6 +31,7 @@ import java.util.List;
  */
 public class NanostreamCannabisModule extends AbstractModule {
 
+    private String srcBucket;
     private String inputCsvUri;
     private String jobTime;
     private String anomalyOutputPath;
@@ -44,9 +45,11 @@ public class NanostreamCannabisModule extends AbstractModule {
         this.anomalyOutputPath = builder.anomalyOutputPath;
         this.sraSamplesToFilter = builder.sraSamplesToFilter;
         this.alignerOptions = builder.alignerOptions;
+        this.srcBucket = builder.srcBucket;
     }
 
     public static class Builder {
+        private String srcBucket;
         private String inputCsvUri;
         private String jobTime;
         private String anomalyOutputPath;
@@ -79,11 +82,17 @@ public class NanostreamCannabisModule extends AbstractModule {
             return this;
         }
 
+        public Builder setSrcBucket(String srcBucket) {
+            this.srcBucket = srcBucket;
+            return this;
+        }
+
         public Builder setFromOptions(NanostreamCannabisPipelineOptions nanostreamPipelineOptions) {
             setInputCsvUri(nanostreamPipelineOptions.getInputCsvUri());
             setAnomalyOutputPath(nanostreamPipelineOptions.getAnomalyOutputPath());
             setSraSamplesToFilter(nanostreamPipelineOptions.getSraSamplesToFilter());
             setAlignerOptions(AlignerOptions.fromAlignerPipelineOptions(nanostreamPipelineOptions));
+            setSrcBucket(nanostreamPipelineOptions.getSrcBucket());
             return this;
         }
 
@@ -96,7 +105,7 @@ public class NanostreamCannabisModule extends AbstractModule {
     @Provides
     @Singleton
     public RecognizePairedReadsWithAnomalyFn provideParseCannabisDataFn(FileUtils fileUtils) {
-        return new RecognizePairedReadsWithAnomalyFn(alignerOptions.getSrcBucket(), fileUtils);
+        return new RecognizePairedReadsWithAnomalyFn(srcBucket, fileUtils);
     }
 
     @Provides
@@ -187,7 +196,7 @@ public class NanostreamCannabisModule extends AbstractModule {
     @Provides
     @Singleton
     public CannabisUriProvider provideCannabisUriProvider() {
-        return CannabisUriProvider.withDefaultProviderRule(alignerOptions.getSrcBucket());
+        return CannabisUriProvider.withDefaultProviderRule(srcBucket);
     }
 
     @Provides
