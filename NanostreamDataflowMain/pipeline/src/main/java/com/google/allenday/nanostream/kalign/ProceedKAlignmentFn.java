@@ -70,7 +70,7 @@ public class ProceedKAlignmentFn extends DoFn<KV<KV<GCSSourceData, String>, Iter
                         refName + "_" + "kalined", currentTimestamp);
 
                 List<Sequence> seqList = new ArrayList<>();
-                SequenceReader fastaReader = FastaReader.getReader(new FileInputStream(kalignedFilePath));
+                SequenceReader fastaReader = FastaReader.getReader(fileUtils.getInputStreamFromFile(kalignedFilePath));
 
                 if (fastaReader == null) {
                     return;

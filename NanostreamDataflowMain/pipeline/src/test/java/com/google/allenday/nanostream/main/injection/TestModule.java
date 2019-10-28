@@ -10,9 +10,6 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import org.mockito.Mockito;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.withSettings;
-
 public class TestModule extends NanostreamModule {
 
     public final static String TEST_BUCKET = "test_bucket";
@@ -32,17 +29,31 @@ public class TestModule extends NanostreamModule {
 
     @Provides
     @Singleton
+    public KAlignService provideKAlignService() {
+        return Mockito.mock(KAlignService.class, Mockito.withSettings().serializable());
+    }
+
+    @Provides
+    @Singleton
+    public FileUtils provideFileUtils() {
+        return new FileUtils();
+    }
+
+    @Provides
+    @Singleton
     public HttpHelper provideHttpHelper() {
-        return Mockito.mock(HttpHelper.class);
+        return Mockito.mock(HttpHelper.class, Mockito.withSettings().serializable());
     }
 
 
     @Provides
-    public ProceedKAlignmentFn provideProceedKAlignmentFn() {
-        return new ProceedKAlignmentFn(Mockito.mock(FileUtils.class), Mockito.mock(KAlignService.class));
+    @Singleton
+    public ProceedKAlignmentFn provideProceedKAlignmentFn(KAlignService kAlignService, FileUtils fileUtils) {
+        return new ProceedKAlignmentFn(fileUtils, kAlignService);
     }
 
     @Provides
+    @Singleton
     public GCSSourceData provideGCSSourceData() {
         return new GCSSourceData(TEST_BUCKET, TEST_FOLDER);
     }
