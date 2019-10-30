@@ -1,6 +1,6 @@
 package com.google.allenday.nanostream.cannabis.anomaly;
 
-import com.google.allenday.genomics.core.gene.GeneData;
+import com.google.allenday.genomics.core.gene.FileWrapper;
 import com.google.allenday.genomics.core.gene.GeneExampleMetaData;
 import com.google.allenday.genomics.core.io.FileUtils;
 import com.google.allenday.genomics.core.io.GCSService;
@@ -19,7 +19,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-public class RecognizePairedReadsWithAnomalyFn extends DoFn<KV<GeneExampleMetaData, List<GeneData>>, KV<GeneExampleMetaData, List<GeneData>>> {
+public class RecognizePairedReadsWithAnomalyFn extends DoFn<KV<GeneExampleMetaData, List<FileWrapper>>, KV<GeneExampleMetaData, List<FileWrapper>>> {
 
     private Logger LOG = LoggerFactory.getLogger(RecognizePairedReadsWithAnomalyFn.class);
 
@@ -39,13 +39,13 @@ public class RecognizePairedReadsWithAnomalyFn extends DoFn<KV<GeneExampleMetaDa
 
     @ProcessElement
     public void processElement(ProcessContext c) {
-        KV<GeneExampleMetaData, List<GeneData>> input = c.element();
+        KV<GeneExampleMetaData, List<FileWrapper>> input = c.element();
         LOG.info(String.format("RecognizePairedReadsWithAnomalyFn %s", input.toString()));
 
-        List<GeneData> originalGeneDataList = input.getValue();
+        List<FileWrapper> originalGeneDataList = input.getValue();
         GeneExampleMetaData geneExampleMetaData = input.getKey();
         try {
-            List<GeneData> checkedGeneDataList = new ArrayList<>();
+            List<FileWrapper> checkedGeneDataList = new ArrayList<>();
             if (originalGeneDataList.size() > 0) {
                 BlobId blobId = gcsService.getBlobIdFromUri(originalGeneDataList.get(0).getBlobUri());
                 String dirPrefix = blobId.getName().replace(originalGeneDataList.get(0).getFileName(), "");
@@ -71,13 +71,13 @@ public class RecognizePairedReadsWithAnomalyFn extends DoFn<KV<GeneExampleMetaDa
                 if (hasAnomalyBlobs) {
                     logAnomaly(blobs, geneExampleMetaData);
                 } else {
-                    for (GeneData geneData : originalGeneDataList) {
-                        boolean exists = gcsService.isExists(gcsService.getBlobIdFromUri(geneData.getBlobUri()));
+                    for (FileWrapper fileWrapper : originalGeneDataList) {
+                        boolean exists = gcsService.isExists(gcsService.getBlobIdFromUri(fileWrapper.getBlobUri()));
                         if (!exists) {
-                            LOG.info(String.format("Blob %s doesn't exist. Trying to find blob with other SRA for %s", geneData.getBlobUri(), geneExampleMetaData.toString()));
+                            LOG.info(String.format("Blob %s doesn't exist. Trying to find blob with other SRA for %s", fileWrapper.getBlobUri(), geneExampleMetaData.toString()));
                             Optional<Blob> blobOpt = blobs.stream().filter(blob -> {
 
-                                String searchIndex = geneData.getFileName().split("\\.")[0].split("_")[1];
+                                String searchIndex = fileWrapper.getFileName().split("\\.")[0].split("_")[1];
 
                                 boolean containsIndex = blob.getName().contains(String.format("_%s", searchIndex));
                                 if (blobs.size() == 2) {
@@ -94,13 +94,13 @@ public class RecognizePairedReadsWithAnomalyFn extends DoFn<KV<GeneExampleMetaDa
                                 LOG.info(String.format("Found: %s", blobOpt.get().getName()));
                                 String fileUri = String.format("gs://%s/%s", blobOpt.get().getBucket(), blobOpt.get().getName());
                                 String fileName = fileUtils.getFilenameFromPath(fileUri);
-                                checkedGeneDataList.add(GeneData.fromBlobUri(fileUri, fileName));
+                                checkedGeneDataList.add(FileWrapper.fromBlobUri(fileUri, fileName));
                             } else {
                                 logAnomaly(blobs, geneExampleMetaData);
                                 geneExampleMetaData.setComment("File not found");
                             }
                         } else {
-                            checkedGeneDataList.add(geneData);
+                            checkedGeneDataList.add(fileWrapper);
                         }
                     }
                 }

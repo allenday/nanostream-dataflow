@@ -1,6 +1,6 @@
 package com.google.allenday.nanostream.cannabis.anomaly;
 
-import com.google.allenday.genomics.core.gene.GeneData;
+import com.google.allenday.genomics.core.gene.FileWrapper;
 import com.google.allenday.genomics.core.gene.GeneExampleMetaData;
 import com.google.allenday.genomics.core.utils.ValueIterableToValueListTransform;
 import org.apache.beam.sdk.io.TextIO;
@@ -14,8 +14,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-public class DetectAnomalyTransform extends PTransform<PCollection<KV<GeneExampleMetaData, List<GeneData>>>,
-        PCollection<KV<GeneExampleMetaData, List<GeneData>>>> {
+public class DetectAnomalyTransform extends PTransform<PCollection<KV<GeneExampleMetaData, List<FileWrapper>>>,
+        PCollection<KV<GeneExampleMetaData, List<FileWrapper>>>> {
 
     private String resultBucket;
     private String anomalyOutputPath;
@@ -35,14 +35,14 @@ public class DetectAnomalyTransform extends PTransform<PCollection<KV<GeneExampl
     }
 
     @Override
-    public PCollection<KV<GeneExampleMetaData, List<GeneData>>> expand(PCollection<KV<GeneExampleMetaData, List<GeneData>>> input) {
-        PCollection<KV<GeneExampleMetaData, List<GeneData>>> recognizeAnomaly = input
+    public PCollection<KV<GeneExampleMetaData, List<FileWrapper>>> expand(PCollection<KV<GeneExampleMetaData, List<FileWrapper>>> input) {
+        PCollection<KV<GeneExampleMetaData, List<FileWrapper>>> recognizeAnomaly = input
                 .apply("Recognize anomaly", ParDo.of(recognizePairedReadsWithAnomalyFn));
         recognizeAnomaly
                 .apply(Filter.by(element -> element.getValue().size() == 0))
-                .apply(MapElements.via(new SimpleFunction<KV<GeneExampleMetaData, List<GeneData>>, String>() {
+                .apply(MapElements.via(new SimpleFunction<KV<GeneExampleMetaData, List<FileWrapper>>, String>() {
                     @Override
-                    public String apply(KV<GeneExampleMetaData, List<GeneData>> input) {
+                    public String apply(KV<GeneExampleMetaData, List<FileWrapper>> input) {
                         return Optional.ofNullable(input.getKey())
                                 .map(geneExampleMetaData -> geneExampleMetaData.getComment() + "," + geneExampleMetaData.getSrcRawMetaData())
                                 .orElse("");
@@ -51,22 +51,22 @@ public class DetectAnomalyTransform extends PTransform<PCollection<KV<GeneExampl
                 .apply(TextIO.write().withNumShards(1).to(String.format("gs://%s/%s", resultBucket, anomalyOutputPath)));
 
         return recognizeAnomaly.apply(Filter.by(element -> element.getValue().size() > 0))
-                .apply(MapElements.via(new SimpleFunction<KV<GeneExampleMetaData, List<GeneData>>, KV<String, KV<GeneExampleMetaData, List<GeneData>>>>() {
+                .apply(MapElements.via(new SimpleFunction<KV<GeneExampleMetaData, List<FileWrapper>>, KV<String, KV<GeneExampleMetaData, List<FileWrapper>>>>() {
                     @Override
-                    public KV<String, KV<GeneExampleMetaData, List<GeneData>>> apply(KV<GeneExampleMetaData, List<GeneData>> input) {
-                        return KV.of(input.getValue().stream().map(GeneData::getBlobUri).collect(Collectors.joining(",")), input);
+                    public KV<String, KV<GeneExampleMetaData, List<FileWrapper>>> apply(KV<GeneExampleMetaData, List<FileWrapper>> input) {
+                        return KV.of(input.getValue().stream().map(FileWrapper::getBlobUri).collect(Collectors.joining(",")), input);
                     }
                 }))
                 .apply(GroupByKey.create())
-                .apply(MapElements.via(new SimpleFunction<KV<String, Iterable<KV<GeneExampleMetaData, List<GeneData>>>>, KV<GeneExampleMetaData, List<GeneData>>>() {
+                .apply(MapElements.via(new SimpleFunction<KV<String, Iterable<KV<GeneExampleMetaData, List<FileWrapper>>>>, KV<GeneExampleMetaData, List<FileWrapper>>>() {
                     @Override
-                    public KV<GeneExampleMetaData, List<GeneData>> apply(KV<String, Iterable<KV<GeneExampleMetaData, List<GeneData>>>> input) {
+                    public KV<GeneExampleMetaData, List<FileWrapper>> apply(KV<String, Iterable<KV<GeneExampleMetaData, List<FileWrapper>>>> input) {
                         return StreamSupport.stream(input.getValue().spliterator(), false).findFirst().orElse(null);
                     }
                 }))
-                .apply(MapElements.via(new SimpleFunction<KV<GeneExampleMetaData, List<GeneData>>, KV<GeneExampleMetaData, Iterable<GeneData>>>() {
+                .apply(MapElements.via(new SimpleFunction<KV<GeneExampleMetaData, List<FileWrapper>>, KV<GeneExampleMetaData, Iterable<FileWrapper>>>() {
                     @Override
-                    public KV<GeneExampleMetaData, Iterable<GeneData>> apply(KV<GeneExampleMetaData, List<GeneData>> input) {
+                    public KV<GeneExampleMetaData, Iterable<FileWrapper>> apply(KV<GeneExampleMetaData, List<FileWrapper>> input) {
                         return KV.of(input.getKey(), input.getValue());
                     }
                 }))
