@@ -1,6 +1,6 @@
 package com.google.allenday.nanostream.gcs;
 
-import com.google.allenday.genomics.core.gene.GeneData;
+import com.google.allenday.genomics.core.gene.FileWrapper;
 import com.google.allenday.genomics.core.gene.GeneExampleMetaData;
 import com.google.allenday.genomics.core.io.FileUtils;
 import com.google.allenday.genomics.core.io.GCSService;
@@ -16,7 +16,7 @@ import java.util.List;
 /**
  *
  */
-public class ParseGCloudNotification extends DoFn<GCloudNotification, KV<GeneExampleMetaData, List<GeneData>>> {
+public class ParseGCloudNotification extends DoFn<GCloudNotification, KV<GeneExampleMetaData, List<FileWrapper>>> {
 
     private FileUtils fileUtils;
     private GCSService gcsService;
@@ -37,6 +37,6 @@ public class ParseGCloudNotification extends DoFn<GCloudNotification, KV<GeneExa
         GCSSourceData gcsSourceData = GCSSourceData.fromGCloudNotification(gCloudNotification);
         BlobId blobId = BlobId.of(gCloudNotification.getBucket(), gCloudNotification.getName());
         c.output(KV.of(GeneExampleMetaData.createSingleEndUnique(gcsSourceData.toJsonString()),
-                Collections.singletonList(GeneData.fromBlobUri(gcsService.getUriFromBlob(blobId), fileUtils.getFilenameFromPath(blobId.getName())))));
+                Collections.singletonList(FileWrapper.fromBlobUri(gcsService.getUriFromBlob(blobId), fileUtils.getFilenameFromPath(blobId.getName())))));
     }
 }

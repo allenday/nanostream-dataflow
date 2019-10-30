@@ -2,6 +2,7 @@ package com.google.allenday.nanostream.integration;
 
 import com.google.allenday.genomics.core.align.AlignerOptions;
 import com.google.allenday.genomics.core.align.transform.AlignFn;
+import com.google.allenday.genomics.core.gene.FileWrapper;
 import com.google.allenday.genomics.core.gene.GeneExampleMetaData;
 import com.google.allenday.nanostream.ProcessingMode;
 import com.google.allenday.nanostream.aligner.GetSequencesFromSamDataFn;
@@ -101,16 +102,16 @@ public class EndToEndPipelineTest {
         PCollection<KV<KV<String, String>, SequenceStatisticResult>> sequnceStatisticResultPCollection = testPipeline
                 .apply(Create.of(KV.of(gcsSourceData, new ResourcesHelper().getFileContent("testFastQFile.fastq"))))
                 .apply("Parse FasQ data", ParDo.of(new DoFn<KV<GCSSourceData, String>,
-                        KV<GeneExampleMetaData, List<com.google.allenday.genomics.core.gene.GeneData>>>() {
+                        KV<GeneExampleMetaData, List<FileWrapper>>>() {
 
                     @ProcessElement
                     public void processElement(ProcessContext c) {
                         KV<GCSSourceData, String> element = c.element();
-                        com.google.allenday.genomics.core.gene.GeneData geneData =
-                                com.google.allenday.genomics.core.gene.GeneData.fromByteArrayContent(element.getValue().getBytes(), "fileName");
+                        FileWrapper fileWrapper =
+                                FileWrapper.fromByteArrayContent(element.getValue().getBytes(), "fileName");
                         GeneExampleMetaData geneExampleMetaData = new GeneExampleMetaData("TestProject", "TestProjectId", "TestBioSample",
                                 "testExampleSra", "TestRun", false, c.element().getKey().toJsonString());
-                        c.output(KV.of(geneExampleMetaData, Collections.singletonList(geneData)));
+                        c.output(KV.of(geneExampleMetaData, Collections.singletonList(fileWrapper)));
                     }
                 }))
                 .apply(FASTQ_GROUPING_WINDOW_TIME_SEC + " Window",
