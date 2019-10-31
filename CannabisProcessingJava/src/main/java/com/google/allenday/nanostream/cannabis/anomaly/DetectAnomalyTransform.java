@@ -1,7 +1,7 @@
 package com.google.allenday.nanostream.cannabis.anomaly;
 
-import com.google.allenday.genomics.core.gene.FileWrapper;
-import com.google.allenday.genomics.core.gene.GeneExampleMetaData;
+import com.google.allenday.genomics.core.model.FileWrapper;
+import com.google.allenday.genomics.core.model.GeneExampleMetaData;
 import com.google.allenday.genomics.core.utils.ValueIterableToValueListTransform;
 import org.apache.beam.sdk.io.TextIO;
 import org.apache.beam.sdk.transforms.*;

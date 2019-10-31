@@ -1,7 +1,6 @@
 package com.google.allenday.nanostream.cannabis.io;
 
-import com.google.allenday.genomics.core.gene.GeneExampleMetaData;
-import com.google.allenday.genomics.core.gene.UriProvider;
+import com.google.allenday.genomics.core.io.UriProvider;
 
 import java.util.ArrayList;
 import java.util.Collections;

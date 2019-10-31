@@ -79,17 +79,6 @@
             <artifactId>genomics-dataflow-core</artifactId>
             <version>0.0.1</version>
         </dependency>
-        <!-- http services -->
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.5.3</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpmime</artifactId>
-            <version>4.5.3</version>
-        </dependency>
         <!--output-->
         <dependency>
             <groupId>com.google.firebase</groupId>
