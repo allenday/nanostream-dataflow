@@ -36,6 +36,7 @@ class Install:
         self.create_storage_buckets()
         self.configure_bucket_file_upload_notifications()
         self.create_pub_sub_subscription()
+        self.install_required_libs()
         self.deploy_dataflow_template()
         self.initialize_app_engine_in_project()
         self.deploy_app_engine_management_application()
@@ -98,6 +99,69 @@ class Install:
             print 'Create a PubSub subscription: %s' % cmd
             subprocess.check_call(cmd, shell=True)
 
+    def install_required_libs(self):
+        cmd = 'mvn install:install-file -Dfile=NanostreamDataflowMain/libs/japsa.jar -DgroupId=coin -DartifactId=japsa -Dversion=1.9-3c -Dpackaging=jar'
+        print 'Add japsa dependency: %s' % cmd
+        subprocess.check_call(cmd, shell=True)
+
+        cmd = 'mvn install:install-file -Dfile=NanostreamDataflowMain/libs/pal1.5.1.1.jar -DgroupId=nz.ac.auckland -DartifactId=pal -Dversion=1.5.1.1 -Dpackaging=jar'
+        print 'Add pal dependency: %s' % cmd
+        subprocess.check_call(cmd, shell=True)
+
+        cmd = 'mvn install:install-file -Dfile=NanostreamDataflowMain/libs/genomics-dataflow-core.jar -DgroupId=com.google.allenday.genomics.core -DartifactId=genomics-dataflow-core -Dversion=0.0.1 -Dpackaging=jar'
+        print 'Add genomics.core dependency: %s' % cmd
+        subprocess.check_call(cmd, shell=True)
+
+    def deploy_dataflow_template(self):
+        alignment_window = 20
+        stats_update_frequency = 30
+        reference_database = 'genomeDB'
+        firestore_collection_name_prefix = 'prefix_'
+        firestore_document_name_prefix = 'doc_'
+        resistance_genes_list = self.upload_bucket_url + 'gene-info/resistance_genes_list.txt'
+        aligned_output_dir = 'clinic_processing_output/%s/result_aligned_bam/'
+        all_references_dir_gcs_uri = 'self.dataflow_bucket_url' + 'references/'
+
+        cmd = 'mvn compile exec:java ' \
+              '-f NanostreamDataflowMain/pipeline/pom.xml ' \
+              '-Dexec.mainClass=com.google.allenday.nanostream.NanostreamApp ' \
+              '-Dexec.args="' \
+              '--project=%s ' \
+              '--runner=DataflowRunner ' \
+              '--streaming=true ' \
+              '--processingMode=species ' \
+              '--inputDataSubscription=%s ' \
+              '--alignmentWindow=%s ' \
+              '--statisticUpdatingDelay=%s ' \
+              '--referenceNamesList=%s ' \
+              '--outputCollectionNamePrefix=%s ' \
+              '--outputDocumentNamePrefix=%s ' \
+              '--resistanceGenesList=%s ' \
+              '--resultBucket=%s ' \
+              '--alignedOutputDir=%s ' \
+              '--allReferencesDirGcsUri=%s ' \
+              '--gcpTempLocation=%s ' \
+              '--stagingLocation=%s ' \
+              '--templateLocation=%s ' \
+              '"' % (
+                    self.google_cloud_project,
+                    self.upload_subscription_fullname,
+                    alignment_window,
+                    stats_update_frequency,
+                    reference_database,
+                    firestore_collection_name_prefix,
+                    firestore_document_name_prefix,
+                    resistance_genes_list,
+                    self.dataflow_bucket_url,
+                    aligned_output_dir,
+                    all_references_dir_gcs_uri,
+                    self.dataflow_bucket_url + 'tmp',
+                    self.dataflow_bucket_url + 'staging',
+                    self.dataflow_bucket_url + 'templates/nanostream-species'
+                    )
+        print 'Compile and deploy Dataflow template: %s' % cmd
+        subprocess.check_call(cmd, shell=True)
+
     def initialize_app_engine_in_project(self):
         cmd = 'gcloud app describe'
         try:
@@ -111,45 +175,6 @@ class Install:
     def deploy_app_engine_management_application(self):
         cmd = 'mvn clean package appengine:deploy -DskipTests=true -f NanostreamDataflowMain/webapp/pom.xml'
         print 'Compile and deploy App Engine management application: %s' % cmd
-        subprocess.check_call(cmd, shell=True)
-
-    def deploy_dataflow_template(self):
-        cmd = 'mvn install:install-file -Dfile=NanostreamDataflowMain/libs/japsa.jar -DgroupId=coin -DartifactId=japsa -Dversion=1.9-3c -Dpackaging=jar'
-        print 'Add japsa dependency: %s' % cmd
-        subprocess.check_call(cmd, shell=True)
-
-        cmd = 'mvn install:install-file -Dfile=NanostreamDataflowMain/libs/pal1.5.1.1.jar -DgroupId=nz.ac.auckland -DartifactId=pal -Dversion=1.5.1.1 -Dpackaging=jar'
-        print 'Add pal dependency: %s' % cmd
-        subprocess.check_call(cmd, shell=True)
-
-        cmd = 'mvn install:install-file -Dfile=NanostreamDataflowMain/libs/genomics-dataflow-core.jar -DgroupId=com.google.allenday.genomics.core -DartifactId=genomics-dataflow-core -Dversion=0.0.1 -Dpackaging=jar'
-        print 'Add pal dependency: %s' % cmd
-        subprocess.check_call(cmd, shell=True)
-
-        cmd = 'mvn compile exec:java ' \
-              '-f NanostreamDataflowMain/pipeline/pom.xml ' \
-              '-Dexec.mainClass=com.google.allenday.nanostream.NanostreamApp ' \
-              '-Dexec.args="' \
-              '--project=%s ' \
-              '--runner=DataflowRunner ' \
-              '--streaming=true ' \
-              '--processingMode=species ' \
-              '--inputDataSubscription=%s ' \
-              '--servicesUrl=http://130.211.33.64 ' \
-              '--bwaEndpoint=/cgi-bin/bwa.cgi ' \
-              '--bwaDatabase=DB.fasta ' \
-              '--kAlignEndpoint=/cgi-bin/kalign.cgi ' \
-              '--gcpTempLocation=%s ' \
-              '--stagingLocation=%s ' \
-              '--templateLocation=%s ' \
-              '"' % (
-            self.google_cloud_project,
-            self.upload_subscription_fullname,
-            self.dataflow_bucket_url + 'tmp',
-            self.dataflow_bucket_url + 'staging',
-            self.dataflow_bucket_url + 'templates/nanostream-species'
-        )
-        print 'Compile and deploy Dataflow template: %s' % cmd
         subprocess.check_call(cmd, shell=True)
 
 
