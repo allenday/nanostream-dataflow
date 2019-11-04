@@ -1,39 +1,33 @@
 package com.google.allenday.nanostream;
 
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-
 import com.google.appengine.api.appidentity.AppIdentityService;
 import com.google.appengine.api.appidentity.AppIdentityServiceFactory;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.StringWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.UUID;
-
 import com.google.apphosting.api.ApiProxy;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 @WebServlet(name = "LaunchDataflow", value = "/launch")
 public class LaunchDataflow extends HttpServlet {
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse response) throws IOException {
         ApiProxy.Environment env = ApiProxy.getCurrentEnvironment();
         String project = env.getAppId();
         String bucket = "gs://" + project + "-dataflow";
 
 
-        ArrayList<String> scopes = new ArrayList<String>();
+        List<String> scopes = new ArrayList<>();
         scopes.add("https://www.googleapis.com/auth/cloud-platform");
         final AppIdentityService appIdentity = AppIdentityServiceFactory.getAppIdentityService();
         final AppIdentityService.GetAccessTokenResult accessToken = appIdentity.getAccessToken(scopes);
