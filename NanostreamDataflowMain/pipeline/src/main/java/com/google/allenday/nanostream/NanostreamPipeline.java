@@ -1,6 +1,6 @@
 package com.google.allenday.nanostream;
 
-import com.google.allenday.genomics.core.align.transform.AlignFn;
+import com.google.allenday.genomics.core.processing.align.AlignFn;
 import com.google.allenday.nanostream.aligner.GetSequencesFromSamDataFn;
 import com.google.allenday.nanostream.errorcorrection.ErrorCorrectionFn;
 import com.google.allenday.nanostream.gcs.ParseGCloudNotification;

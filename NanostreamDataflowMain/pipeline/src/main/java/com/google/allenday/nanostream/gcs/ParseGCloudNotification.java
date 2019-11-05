@@ -1,9 +1,9 @@
 package com.google.allenday.nanostream.gcs;
 
-import com.google.allenday.genomics.core.gene.FileWrapper;
-import com.google.allenday.genomics.core.gene.GeneExampleMetaData;
 import com.google.allenday.genomics.core.io.FileUtils;
 import com.google.allenday.genomics.core.io.GCSService;
+import com.google.allenday.genomics.core.model.FileWrapper;
+import com.google.allenday.genomics.core.model.GeneExampleMetaData;
 import com.google.allenday.nanostream.pubsub.GCSSourceData;
 import com.google.allenday.nanostream.pubsub.GCloudNotification;
 import com.google.cloud.storage.BlobId;

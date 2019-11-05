@@ -1,6 +1,6 @@
 package com.google.allenday.nanostream.injection;
 
-import com.google.allenday.genomics.core.align.AlignerOptions;
+import com.google.allenday.genomics.core.processing.align.AlignerOptions;
 import com.google.allenday.nanostream.NanostreamPipelineOptions;
 import com.google.allenday.nanostream.ProcessingMode;
 import com.google.allenday.nanostream.util.EntityNamer;
@@ -13,7 +13,6 @@ import com.google.inject.Singleton;
  */
 public class NanostreamModule extends AbstractModule {
 
-    protected String jobTime;
     protected String projectId;
     protected String resistanceGenesList;
     protected String outputCollectionNamePrefix;
@@ -28,12 +27,10 @@ public class NanostreamModule extends AbstractModule {
         this.processingMode = builder.processingMode;
         this.outputDocumentNamePrefix = builder.outputDocumentNamePrefix;
         this.alignerOptions = builder.alignerOptions;
-        this.jobTime = builder.jobTime;
     }
 
     public static class Builder {
 
-        protected String jobTime;
         protected String projectId;
         protected String resistanceGenesList;
         protected String outputCollectionNamePrefix;
@@ -41,11 +38,6 @@ public class NanostreamModule extends AbstractModule {
         protected String outputDocumentNamePrefix;
         protected AlignerOptions alignerOptions;
 
-
-        public Builder setJobTime(String jobTime) {
-            this.jobTime = jobTime;
-            return this;
-        }
 
         public Builder setProjectId(String projectId) {
             this.projectId = projectId;

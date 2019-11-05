@@ -1,7 +1,7 @@
 package com.google.allenday.nanostream.main.injection;
 
-import com.google.allenday.genomics.core.align.KAlignService;
 import com.google.allenday.genomics.core.io.FileUtils;
+import com.google.allenday.genomics.core.processing.align.KAlignService;
 import com.google.allenday.nanostream.injection.NanostreamModule;
 import com.google.allenday.nanostream.kalign.ProceedKAlignmentFn;
 import com.google.allenday.nanostream.pubsub.GCSSourceData;

@@ -1,9 +1,9 @@
 package com.google.allenday.nanostream.integration;
 
-import com.google.allenday.genomics.core.align.AlignerOptions;
-import com.google.allenday.genomics.core.align.transform.AlignFn;
-import com.google.allenday.genomics.core.gene.FileWrapper;
-import com.google.allenday.genomics.core.gene.GeneExampleMetaData;
+import com.google.allenday.genomics.core.model.FileWrapper;
+import com.google.allenday.genomics.core.model.GeneExampleMetaData;
+import com.google.allenday.genomics.core.processing.align.AlignFn;
+import com.google.allenday.genomics.core.processing.align.AlignerOptions;
 import com.google.allenday.nanostream.ProcessingMode;
 import com.google.allenday.nanostream.aligner.GetSequencesFromSamDataFn;
 import com.google.allenday.nanostream.errorcorrection.ErrorCorrectionFn;

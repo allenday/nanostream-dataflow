@@ -86,7 +86,7 @@ REFERENCE_DATABASE=genomeDB
 # Bucket for storing aligned files
 ALIGN_RESULTS_BUCKET=$FILES_BUCKET
 # GCS path to directory which will be used for storing aligned files. "%s" will be replaces with job time
-ALIGNED_OUTPUT_DIR=clinic_processing_output/%s/result_aligned_bam/
+ALIGNED_OUTPUT_DIR=clinic_processing_output/
 # GCS path to directory with references db. References should be stored as ${ALL_REFERENCES_DIR_GCS_URI}${REFERENCE_DATABASE}/(reference_files)
 ALL_REFERENCES_DIR_GCS_URI=gs://$FILES_BUCKET/references/
 
@@ -126,7 +126,7 @@ java -cp (path_to_nanostream_app_jar) \
   --outputDocumentNamePrefix=$FIRESTORE_DOCUMENT_NAME_PREFIX \
   --resistanceGenesList=$RESISTANCE_GENES_LIST \
   --resultBucket=$ALIGN_RESULTS_BUCKET \
-  --alignedOutputDir=$ALIGNED_OUTPUT_DIR \
+  --outputDir=$ALIGNED_OUTPUT_DIR \
   --allReferencesDirGcsUri=$ALL_REFERENCES_DIR_GCS_URI \
   --memoryOutputLimit=$MEMORY_OUTPUT_LIMIT `# (Optional)`\
   --alignmentBatchSize=$ALIGNMENT_BATCH_SIZE `# (Optional)`\
