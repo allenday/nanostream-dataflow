@@ -37,7 +37,7 @@ class Install:
         self.configure_bucket_file_upload_notifications()
         self.create_pub_sub_subscription()
         self.install_required_libs()
-        self.deploy_dataflow_template()
+        self.deploy_dataflow_templates()
         self.initialize_app_engine_in_project()
         self.deploy_app_engine_management_application()
 
@@ -112,19 +112,26 @@ class Install:
         print 'Add genomics.core dependency: %s' % cmd
         subprocess.check_call(cmd, shell=True)
 
-    def deploy_dataflow_template(self):
+    def deploy_dataflow_templates(self):
+        self.deploy_dataflow_template('species')
+        self.deploy_dataflow_template('resistance_genes')
+
+    def deploy_dataflow_template(self, processing_mode):
+        template_name = 'nanostream-' + processing_mode
         alignment_window = 20
         stats_update_frequency = 30
         reference_database = 'genomeDB'
         firestore_collection_name_prefix = 'prefix_'
+
         firestore_document_name_prefix = 'doc_'
+
         resistance_genes_list = self.upload_bucket_url + 'gene-info/resistance_genes_list.txt'
         aligned_output_dir = 'clinic_processing_output/%s/result_aligned_bam/'
+
         all_references_dir_gcs_uri = 'self.dataflow_bucket_url' + 'references/'
 
         # '--outputDocumentNamePrefix=%s ' \
         # firestore_document_name_prefix,
-        # '--processingMode=species ' \
 
         cmd = 'mvn compile exec:java ' \
               '-f NanostreamDataflowMain/pipeline/pom.xml ' \
@@ -133,7 +140,7 @@ class Install:
               '--project=%s ' \
               '--runner=DataflowRunner ' \
               '--streaming=true ' \
-              '--processingMode=species ' \
+              '--processingMode=%s ' \
               '--inputDataSubscription=%s ' \
               '--alignmentWindow=%s ' \
               '--statisticUpdatingDelay=%s ' \
@@ -149,21 +156,22 @@ class Install:
               '" ' \
               '-Dexec.cleanupDaemonThreads=false' \
               % (
-                    self.google_cloud_project,
-                    self.upload_subscription_fullname,
-                    alignment_window,
-                    stats_update_frequency,
-                    reference_database,
-                    firestore_collection_name_prefix,
-                    resistance_genes_list,
-                    self.upload_bucket_url,
-                    aligned_output_dir,
-                    all_references_dir_gcs_uri,
-                    self.dataflow_bucket_url + 'tmp',
-                    self.dataflow_bucket_url + 'staging',
-                    self.dataflow_bucket_url + 'templates/nanostream-species'
-                    )
-        print 'Compile and deploy Dataflow template: %s' % cmd
+                  self.google_cloud_project,
+                  processing_mode,
+                  self.upload_subscription_fullname,
+                  alignment_window,
+                  stats_update_frequency,
+                  reference_database,
+                  firestore_collection_name_prefix,
+                  resistance_genes_list,
+                  self.upload_bucket_url,
+                  aligned_output_dir,
+                  all_references_dir_gcs_uri,
+                  self.dataflow_bucket_url + 'tmp',
+                  self.dataflow_bucket_url + 'staging',
+                  self.dataflow_bucket_url + 'templates/' + template_name
+              )
+        print 'Compile and deploy Dataflow template for processing mode %s: %s' % (processing_mode, cmd)
         subprocess.check_call(cmd, shell=True)
 
     def initialize_app_engine_in_project(self):

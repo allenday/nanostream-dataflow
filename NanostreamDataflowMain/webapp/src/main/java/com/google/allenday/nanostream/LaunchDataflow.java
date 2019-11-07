@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.UUID;
 
 import static com.google.apphosting.api.ApiProxy.getCurrentEnvironment;
 import static java.lang.String.format;
+import static java.net.HttpURLConnection.HTTP_OK;
 
 @WebServlet(name = "LaunchDataflow", value = "/launch")
 public class LaunchDataflow extends HttpServlet {
@@ -30,6 +32,7 @@ public class LaunchDataflow extends HttpServlet {
     }
 
     private class PipelineStarter {
+        private final String templateName;
         private HttpServletRequest request;
         private HttpServletResponse response;
         private String project;
@@ -41,7 +44,8 @@ public class LaunchDataflow extends HttpServlet {
 
             Environment env = getCurrentEnvironment();
             project = env.getAppId();
-            bucket = "gs://" + project + "-dataflow";
+            bucket = format("gs://%s-dataflow", project);
+            templateName = format("nanostream-%s", getProcessingMode());
         }
 
         public void invoke() throws IOException {
@@ -80,34 +84,48 @@ public class LaunchDataflow extends HttpServlet {
         }
 
         private HttpURLConnection sendLaunchDataflowJobFromTemplateRequest(JSONObject jsonObj) throws IOException {
-            URL url = new URL(format("https://dataflow.googleapis.com/v1b3/projects/%s/templates:launch?gcs_path=%s/templates/nanostream-species",
-                    project, bucket));
+            URL url = getUrl();
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setDoOutput(true);
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Authorization", "Bearer " + getAccessToken());
             conn.setRequestProperty("Content-Type", "application/json");
 
-            OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
-            jsonObj.write(writer);
-            writer.close();
+            try (OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream())) {
+                jsonObj.write(writer);
+            }
             return conn;
+        }
+
+        private URL getUrl() throws MalformedURLException {
+            return new URL(format("https://dataflow.googleapis.com/v1b3/projects/%s/templates:launch?gcs_path=%s/templates/%s",
+                            project, bucket, templateName));
+        }
+
+        private String getProcessingMode() {
+            String processingMode = request.getParameter("processing_mode");
+            if (processingMode == null) {
+                processingMode = "species";
+            }
+            return processingMode;
         }
 
         private void printOutput(HttpURLConnection conn) throws IOException {
             int respCode = conn.getResponseCode();
-            if (respCode == HttpURLConnection.HTTP_OK) {
-                response.setContentType("application/json");
-                String line;
-                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                while ((line = reader.readLine()) != null) {
-                    response.getWriter().println(line);
+            try (PrintWriter writer = response.getWriter()) {
+                if (respCode == HTTP_OK) {
+                    response.setContentType("application/json");
+                    String line;
+                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+                        while ((line = reader.readLine()) != null) {
+                            writer.println(line);
+                        }
+                    }
+                } else {
+                    StringWriter w = new StringWriter();
+                    IOUtils.copy(conn.getErrorStream(), w, "UTF-8");
+                    writer.println(w.toString());
                 }
-                reader.close();
-            } else {
-                StringWriter w = new StringWriter();
-                IOUtils.copy(conn.getErrorStream(), w, "UTF-8");
-                response.getWriter().println(w.toString());
             }
         }
 

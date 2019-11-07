@@ -14,14 +14,14 @@
         </div>
         <div>
             <label for="document_name_prefix">Document name prefix</label>
-            <input type="text" id="document_name_prefix" name="document_name_prefix" />
+            <input type="text" id="document_name_prefix" name="document_name_prefix" title="Prefix for Firestore statistic result document" />
         </div>
         <div>
             <label>Reference database</label>
             <div>
                 <label for="reference_database_predefined">Use predefined:</label>
                 <input type="radio" name="reference-database" id="reference_database_predefined" checked>
-                <select name="reference_database_predefined_name" autofocus="true">
+                <select name="processing_mode" autofocus="true">
                     <option value="species">Species</option>
                     <option value="resistance_genes">Resistance genes</option>
                 </select>
