@@ -47,9 +47,9 @@ public interface NanostreamPipelineOptions extends AlignerPipelineOptions {
     void setResistanceGenesList(String value);
 
     @Description("Prefix for Firestore collections names that used for output")
-    String getOutputCollectionNamePrefix();
+    ValueProvider<String> getOutputCollectionNamePrefix();
 
-    void setOutputCollectionNamePrefix(String value);
+    void setOutputCollectionNamePrefix(ValueProvider<String> value);
 
 
     @Description("Prefix for Firestore statistic result document")

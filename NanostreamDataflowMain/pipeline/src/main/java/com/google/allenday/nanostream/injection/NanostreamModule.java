@@ -17,7 +17,7 @@ public class NanostreamModule extends AbstractModule {
     protected String jobTime;
     protected String projectId;
     protected String resistanceGenesList;
-    protected String outputCollectionNamePrefix;
+    protected ValueProvider<String> outputCollectionNamePrefix;
     protected ValueProvider<String> outputDocumentNamePrefix;
     protected ProcessingMode processingMode;
     protected AlignerOptions alignerOptions;
@@ -37,9 +37,9 @@ public class NanostreamModule extends AbstractModule {
         protected String jobTime;
         protected String projectId;
         protected String resistanceGenesList;
-        protected String outputCollectionNamePrefix;
-        protected ProcessingMode processingMode;
+        protected ValueProvider<String> outputCollectionNamePrefix;
         protected ValueProvider<String> outputDocumentNamePrefix;
+        protected ProcessingMode processingMode;
         protected AlignerOptions alignerOptions;
 
 
@@ -58,7 +58,7 @@ public class NanostreamModule extends AbstractModule {
             return this;
         }
 
-        public Builder setOutputCollectionNamePrefix(String outputCollectionNamePrefix) {
+        public Builder setOutputCollectionNamePrefix(ValueProvider<String> outputCollectionNamePrefix) {
             this.outputCollectionNamePrefix = outputCollectionNamePrefix;
             return this;
         }

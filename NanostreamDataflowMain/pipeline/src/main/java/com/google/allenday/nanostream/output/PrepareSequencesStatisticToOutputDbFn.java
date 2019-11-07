@@ -10,6 +10,8 @@ import org.apache.beam.sdk.values.KV;
 import javax.annotation.Nonnull;
 import java.util.Map;
 
+import static java.util.Objects.requireNonNull;
+
 
 /**
  * Prepare {@link SequenceStatisticResult} data to output
@@ -17,11 +19,11 @@ import java.util.Map;
 public class PrepareSequencesStatisticToOutputDbFn extends DoFn<KV<GCSSourceData, Map<String, SequenceCountAndTaxonomyData>>,
         KV<KV<String, String>, SequenceStatisticResult>> {
 
-    private String collectionNamePrefix;
+    private ValueProvider<String> collectionNamePrefix;
     private ValueProvider<String> documentNamePrefix;
     private long startTimestamp;
 
-    public PrepareSequencesStatisticToOutputDbFn(String collectionNamePrefix, ValueProvider<String> documentNamePrefix, long startTimestamp) {
+    public PrepareSequencesStatisticToOutputDbFn(ValueProvider<String> collectionNamePrefix, ValueProvider<String> documentNamePrefix, long startTimestamp) {
         this.collectionNamePrefix = collectionNamePrefix;
         this.documentNamePrefix = documentNamePrefix;
         this.startTimestamp = startTimestamp;
@@ -33,10 +35,10 @@ public class PrepareSequencesStatisticToOutputDbFn extends DoFn<KV<GCSSourceData
         SequenceStatisticResult.Generator sequenceStatisticGenerator = new SequenceStatisticResult.Generator();
 
         @Nonnull
-        GCSSourceData gcsSourceData = gcsSourceDataMapKV.getKey();
+        GCSSourceData gcsSourceData = requireNonNull(gcsSourceDataMapKV.getKey());
         SequenceStatisticResult sequenceStatisticResult =
                 sequenceStatisticGenerator.genereteSequnceInfo(gcsSourceDataMapKV.getValue(), gcsSourceDataMapKV.getKey(), startTimestamp);
-        c.output(KV.of(KV.of(EntityNamer.generateNameForCollection(collectionNamePrefix, gcsSourceData.getBucket()),
+        c.output(KV.of(KV.of(EntityNamer.generateNameForCollection(collectionNamePrefix.get(), gcsSourceData.getBucket()),
                 EntityNamer.generateNameForDocument(documentNamePrefix.get(), gcsSourceData.getFolder())), sequenceStatisticResult));
     }
 }

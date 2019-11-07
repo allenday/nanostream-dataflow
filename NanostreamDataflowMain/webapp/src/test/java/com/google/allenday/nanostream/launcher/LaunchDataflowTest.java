@@ -1,4 +1,4 @@
-package com.google.allenday.nanostream;
+package com.google.allenday.nanostream.launcher;
 
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import org.junit.After;

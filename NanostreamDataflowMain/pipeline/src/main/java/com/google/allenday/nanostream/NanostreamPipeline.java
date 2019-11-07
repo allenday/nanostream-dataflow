@@ -19,14 +19,12 @@ import com.google.allenday.nanostream.pubsub.GCSSourceData;
 import com.google.allenday.nanostream.taxonomy.GetResistanceGenesTaxonomyDataFn;
 import com.google.allenday.nanostream.taxonomy.GetTaxonomyFromTree;
 import com.google.allenday.nanostream.util.CoderUtils;
-import com.google.allenday.nanostream.util.EntityNamer;
 import com.google.allenday.nanostream.util.trasform.FlattenMapToKV;
 import com.google.allenday.nanostream.util.trasform.RemoveValueDoFn;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
-import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.transforms.Combine;
 import org.apache.beam.sdk.transforms.GroupByKey;
 import org.apache.beam.sdk.transforms.ParDo;
@@ -39,34 +37,25 @@ import org.joda.time.Duration;
 
 import java.util.Map;
 
+import static com.google.allenday.nanostream.ProcessingMode.RESISTANT_GENES;
+
 public class NanostreamPipeline {
 
     private NanostreamPipelineOptions options;
+    private Injector injector;
+    private ProcessingMode processingMode;
 
     public NanostreamPipeline(NanostreamPipelineOptions options) {
         this.options = options;
+        this.injector = Guice.createInjector(new MainModule.Builder().fromOptions(options).build());
+        processingMode = ProcessingMode.findByLabel(options.getProcessingMode());
     }
 
     public void run() {
-        final ProcessingMode processingMode = ProcessingMode.findByLabel(options.getProcessingMode());
-        Injector injector = Guice.createInjector(new MainModule.Builder().fromOptions(options).build());
-
-//        options.setJobName(injector.getInstance(EntityNamer.class)
-//                .generateJobName(processingMode, options.getOutputCollectionNamePrefix()));
         Pipeline pipeline = Pipeline.create(options);
         CoderUtils.setupCoders(pipeline, new SequenceOnlyDNACoder());
 
-        PCollectionView<Map<String, GeneInfo>> geneInfoMapPCollectionView = null;
-        if (processingMode == ProcessingMode.RESISTANT_GENES) {
-            PCollection<KV<String, GeneInfo>> geneInfoMapPCollection = pipeline.apply(injector.getInstance(LoadGeneInfoTransform.class));
-            geneInfoMapPCollectionView = geneInfoMapPCollection.apply(View.asMap());
-        }
-
-        PCollection<PubsubMessage> pubsubMessages = pipeline.apply("Reading PubSub", PubsubIO
-                .readMessagesWithAttributes()
-                .fromSubscription(options.getInputDataSubscription()));
-
-        pubsubMessages
+        pipeline.apply("Reading PubSub", PubsubIO.readMessagesWithAttributes().fromSubscription(options.getInputDataSubscription()))
                 .apply("Filter only ADD FILE", ParDo.of(new FilterObjectFinalizeMessage()))
                 .apply("Deserialize messages", ParDo.of(new DecodeNotificationJsonMessage()))
                 .apply("Parse GCloud notification", ParDo.of(injector.getInstance(ParseGCloudNotification.class)))
@@ -79,11 +68,7 @@ public class NanostreamPipeline {
                 .apply("K-Align", ParDo.of(injector.getInstance(ProceedKAlignmentFn.class)))
                 .apply("Error correction", ParDo.of(new ErrorCorrectionFn()))
                 .apply("Remove Sequence part", ParDo.of(new RemoveValueDoFn<>()))
-                .apply("Get Taxonomy data", processingMode == ProcessingMode.RESISTANT_GENES
-                        ? ParDo.of(injector.getInstance(GetResistanceGenesTaxonomyDataFn.class)
-                        .setGeneInfoMapPCollectionView(geneInfoMapPCollectionView))
-                        .withSideInputs(geneInfoMapPCollectionView)
-                        : ParDo.of(injector.getInstance(GetTaxonomyFromTree.class)))
+                .apply("Get Taxonomy data", getTaxonomyData(pipeline))
                 .apply("Global Window with Repeatedly triggering" + options.getStatisticUpdatingDelay(),
                         Window.<KV<KV<GCSSourceData, String>, GeneData>>into(new GlobalWindows())
                                 .triggering(Repeatedly.forever(AfterProcessingTime
@@ -99,5 +84,19 @@ public class NanostreamPipeline {
                         ParDo.of(injector.getInstance(WriteDataToFirestoreDbFn.class)));
 
         pipeline.run();
+    }
+
+    private ParDo.SingleOutput<KV<GCSSourceData, String>, KV<KV<GCSSourceData, String>, GeneData>> getTaxonomyData(Pipeline pipeline) {
+        ParDo.SingleOutput<KV<GCSSourceData, String>, KV<KV<GCSSourceData, String>, GeneData>> taxonomy;
+        if (processingMode == RESISTANT_GENES) {
+            PCollection<KV<String, GeneInfo>> geneInfoMapPCollection = pipeline.apply(injector.getInstance(LoadGeneInfoTransform.class));
+            PCollectionView<Map<String, GeneInfo>> geneInfoMapPCollectionView = geneInfoMapPCollection.apply(View.asMap());
+            taxonomy = ParDo.of(injector.getInstance(GetResistanceGenesTaxonomyDataFn.class)
+                    .setGeneInfoMapPCollectionView(geneInfoMapPCollectionView))
+                    .withSideInputs(geneInfoMapPCollectionView);
+        } else {
+            taxonomy = ParDo.of(injector.getInstance(GetTaxonomyFromTree.class));
+        }
+        return taxonomy;
     }
 }

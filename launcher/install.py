@@ -120,18 +120,12 @@ class Install:
         template_name = 'nanostream-' + processing_mode
         alignment_window = 20
         stats_update_frequency = 30
-        reference_database = 'genomeDB'
-        firestore_collection_name_prefix = 'prefix_'
-
-        firestore_document_name_prefix = 'doc_'
 
         resistance_genes_list = self.upload_bucket_url + 'gene-info/resistance_genes_list.txt'
         aligned_output_dir = 'clinic_processing_output/%s/result_aligned_bam/'
 
-        all_references_dir_gcs_uri = 'self.dataflow_bucket_url' + 'references/'
-
-        # '--outputDocumentNamePrefix=%s ' \
-        # firestore_document_name_prefix,
+        reference_database = 'genomeDB'
+        all_references_dir_gcs_uri = self.upload_bucket_url + 'references/'
 
         cmd = 'mvn compile exec:java ' \
               '-f NanostreamDataflowMain/pipeline/pom.xml ' \
@@ -144,11 +138,10 @@ class Install:
               '--inputDataSubscription=%s ' \
               '--alignmentWindow=%s ' \
               '--statisticUpdatingDelay=%s ' \
-              '--referenceNamesList=%s ' \
-              '--outputCollectionNamePrefix=%s ' \
               '--resistanceGenesList=%s ' \
               '--resultBucket=%s ' \
               '--alignedOutputDir=%s ' \
+              '--referenceNamesList=%s ' \
               '--allReferencesDirGcsUri=%s ' \
               '--gcpTempLocation=%s ' \
               '--stagingLocation=%s ' \
@@ -161,11 +154,10 @@ class Install:
                   self.upload_subscription_fullname,
                   alignment_window,
                   stats_update_frequency,
-                  reference_database,
-                  firestore_collection_name_prefix,
                   resistance_genes_list,
                   self.upload_bucket_url,
                   aligned_output_dir,
+                  reference_database,
                   all_references_dir_gcs_uri,
                   self.dataflow_bucket_url + 'tmp',
                   self.dataflow_bucket_url + 'staging',
