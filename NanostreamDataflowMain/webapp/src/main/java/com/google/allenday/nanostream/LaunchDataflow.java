@@ -56,6 +56,8 @@ public class LaunchDataflow extends HttpServlet {
             JSONObject jsonObj = null;
             try {
                 JSONObject parameters = new JSONObject();
+                parameters.put("outputDocumentNamePrefix", request.getParameter("document_name_prefix"));
+
                 JSONObject environment = new JSONObject()
                         .put("tempLocation", bucket + "/tmp/")
                         .put("bypassTempDirValidation", false);

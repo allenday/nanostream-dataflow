@@ -3,6 +3,7 @@ import os
 
 
 class Install:
+
     def __init__(self):
         self.google_cloud_project = self.get_google_cloud_env_var()
         self.upload_bucket_name = self.google_cloud_project + '-upload-bucket'
@@ -18,7 +19,6 @@ class Install:
             self.google_cloud_project,
             self.upload_subscription
         )
-
 
         print "Used names: \n  project: %s\n  uploads bucket: %s\n  dataflow bucket: %s\n" \
               "  pubsub topic: %s\n  subscription: %s\n  app engine region: %s" % (
@@ -122,6 +122,10 @@ class Install:
         aligned_output_dir = 'clinic_processing_output/%s/result_aligned_bam/'
         all_references_dir_gcs_uri = 'self.dataflow_bucket_url' + 'references/'
 
+        # '--outputDocumentNamePrefix=%s ' \
+        # firestore_document_name_prefix,
+        # '--processingMode=species ' \
+
         cmd = 'mvn compile exec:java ' \
               '-f NanostreamDataflowMain/pipeline/pom.xml ' \
               '-Dexec.mainClass=com.google.allenday.nanostream.NanostreamApp ' \
@@ -135,7 +139,6 @@ class Install:
               '--statisticUpdatingDelay=%s ' \
               '--referenceNamesList=%s ' \
               '--outputCollectionNamePrefix=%s ' \
-              '--outputDocumentNamePrefix=%s ' \
               '--resistanceGenesList=%s ' \
               '--resultBucket=%s ' \
               '--alignedOutputDir=%s ' \
@@ -143,16 +146,17 @@ class Install:
               '--gcpTempLocation=%s ' \
               '--stagingLocation=%s ' \
               '--templateLocation=%s ' \
-              '"' % (
+              '" ' \
+              '-Dexec.cleanupDaemonThreads=false' \
+              % (
                     self.google_cloud_project,
                     self.upload_subscription_fullname,
                     alignment_window,
                     stats_update_frequency,
                     reference_database,
                     firestore_collection_name_prefix,
-                    firestore_document_name_prefix,
                     resistance_genes_list,
-                    self.dataflow_bucket_url,
+                    self.upload_bucket_url,
                     aligned_output_dir,
                     all_references_dir_gcs_uri,
                     self.dataflow_bucket_url + 'tmp',

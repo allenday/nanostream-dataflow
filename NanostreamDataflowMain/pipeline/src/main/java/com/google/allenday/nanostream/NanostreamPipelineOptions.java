@@ -4,6 +4,7 @@ import com.google.allenday.genomics.core.pipeline.AlignerPipelineOptions;
 import org.apache.beam.sdk.options.Default;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.Validation;
+import org.apache.beam.sdk.options.ValueProvider;
 
 import static com.google.allenday.nanostream.other.Configuration.*;
 
@@ -52,9 +53,9 @@ public interface NanostreamPipelineOptions extends AlignerPipelineOptions {
 
 
     @Description("Prefix for Firestore statistic result document")
-    String getOutputDocumentNamePrefix();
+    ValueProvider<String> getOutputDocumentNamePrefix();
 
-    void setOutputDocumentNamePrefix(String value);
+    void setOutputDocumentNamePrefix(ValueProvider<String> value);
 
 
     //TODO implement

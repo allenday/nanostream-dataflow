@@ -51,8 +51,8 @@ public class NanostreamPipeline {
         final ProcessingMode processingMode = ProcessingMode.findByLabel(options.getProcessingMode());
         Injector injector = Guice.createInjector(new MainModule.Builder().fromOptions(options).build());
 
-        options.setJobName(injector.getInstance(EntityNamer.class)
-                .generateJobName(processingMode, options.getOutputCollectionNamePrefix()));
+//        options.setJobName(injector.getInstance(EntityNamer.class)
+//                .generateJobName(processingMode, options.getOutputCollectionNamePrefix()));
         Pipeline pipeline = Pipeline.create(options);
         CoderUtils.setupCoders(pipeline, new SequenceOnlyDNACoder());
 

@@ -10,11 +10,11 @@
     <form action='/launch' method='post'>
         <div>
             <label for="pipeline_name">Pipeline name</label>
-            <input type="text" id="pipeline_name" name="pipeline_name"  title="This is the text of the tooltip"  />
+            <input type="text" id="pipeline_name" name="pipeline_name" />
         </div>
         <div>
-            <label for="document_name">Document name</label>
-            <input type="text" id="document_name" name="document_name" />
+            <label for="document_name_prefix">Document name prefix</label>
+            <input type="text" id="document_name_prefix" name="document_name_prefix" />
         </div>
         <div>
             <label>Reference database</label>
