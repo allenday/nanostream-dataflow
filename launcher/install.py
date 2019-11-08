@@ -3,6 +3,7 @@ import os
 
 
 class Install:
+
     def __init__(self):
         self.google_cloud_project = self.get_google_cloud_env_var()
         self.upload_bucket_name = self.google_cloud_project + '-upload-bucket'
@@ -18,7 +19,6 @@ class Install:
             self.google_cloud_project,
             self.upload_subscription
         )
-
 
         print "Used names: \n  project: %s\n  uploads bucket: %s\n  dataflow bucket: %s\n" \
               "  pubsub topic: %s\n  subscription: %s\n  app engine region: %s" % (
@@ -36,7 +36,8 @@ class Install:
         self.create_storage_buckets()
         self.configure_bucket_file_upload_notifications()
         self.create_pub_sub_subscription()
-        self.deploy_dataflow_template()
+        self.install_required_libs()
+        self.deploy_dataflow_templates()
         self.initialize_app_engine_in_project()
         self.deploy_app_engine_management_application()
 
@@ -53,12 +54,12 @@ class Install:
     def set_default_project_for_gcloud(self):
         cmd = "gcloud config set project %s" % self.google_cloud_project
         print 'Set default project for gcloud: %s' % cmd
-        subprocess.call(cmd, shell=True)
+        subprocess.check_call(cmd, shell=True)
 
     def enable_apis(self):
         cmd = 'gcloud services enable dataflow.googleapis.com'
         print 'Enable apis: %s' % cmd
-        subprocess.call(cmd, shell=True)
+        subprocess.check_call(cmd, shell=True)
 
     def create_storage_buckets(self):
         cmd = 'gsutil ls'
@@ -69,14 +70,14 @@ class Install:
         else:
             cmd = 'gsutil mb %s' % self.upload_bucket_url
             print 'Create a Google Cloud Storage bucket for FastQ files: %s' % cmd
-            subprocess.call(cmd, shell=True)
+            subprocess.check_call(cmd, shell=True)
 
         if self.dataflow_bucket_url in bucket_list:
             print 'Bucket %s already exists' % self.dataflow_bucket_name
         else:
             cmd = 'gsutil mb %s' % self.dataflow_bucket_url
             print 'Create a Google Cloud Storage bucket for Dataflow files: %s' % cmd
-            subprocess.call(cmd, shell=True)
+            subprocess.check_call(cmd, shell=True)
 
     def configure_bucket_file_upload_notifications(self):
         cmd = 'gsutil notifications list %s' % self.upload_bucket_url
@@ -86,7 +87,7 @@ class Install:
         else:
             cmd = 'gsutil notification create -t %s -f json -e OBJECT_FINALIZE %s' % (self.upload_pub_sub_topic, self.upload_bucket_url)
             print 'Create bucket notification: %s' % cmd
-            subprocess.call(cmd, shell=True)
+            subprocess.check_call(cmd, shell=True)
 
     def create_pub_sub_subscription(self):
         cmd = 'gcloud pubsub subscriptions list'
@@ -96,7 +97,74 @@ class Install:
         else:
             cmd = 'gcloud pubsub subscriptions create %s --topic %s' % (self.upload_subscription, self.upload_pub_sub_topic)
             print 'Create a PubSub subscription: %s' % cmd
-            subprocess.call(cmd, shell=True)
+            subprocess.check_call(cmd, shell=True)
+
+    def install_required_libs(self):
+        cmd = 'mvn install:install-file -Dfile=NanostreamDataflowMain/libs/japsa.jar -DgroupId=coin -DartifactId=japsa -Dversion=1.9-3c -Dpackaging=jar'
+        print 'Add japsa dependency: %s' % cmd
+        subprocess.check_call(cmd, shell=True)
+
+        cmd = 'mvn install:install-file -Dfile=NanostreamDataflowMain/libs/pal1.5.1.1.jar -DgroupId=nz.ac.auckland -DartifactId=pal -Dversion=1.5.1.1 -Dpackaging=jar'
+        print 'Add pal dependency: %s' % cmd
+        subprocess.check_call(cmd, shell=True)
+
+        cmd = 'mvn install:install-file -Dfile=NanostreamDataflowMain/libs/genomics-dataflow-core.jar -DgroupId=com.google.allenday.genomics.core -DartifactId=genomics-dataflow-core -Dversion=0.0.1 -Dpackaging=jar'
+        print 'Add genomics.core dependency: %s' % cmd
+        subprocess.check_call(cmd, shell=True)
+
+    def deploy_dataflow_templates(self):
+        self.deploy_dataflow_template('species')
+        self.deploy_dataflow_template('resistance_genes')
+
+    def deploy_dataflow_template(self, processing_mode):
+        template_name = 'nanostream-' + processing_mode
+        alignment_window = 20
+        stats_update_frequency = 30
+
+        resistance_genes_list = self.upload_bucket_url + 'gene-info/resistance_genes_list.txt'
+        aligned_output_dir = 'clinic_processing_output/%s/result_aligned_bam/'
+
+        reference_database = 'genomeDB'
+        all_references_dir_gcs_uri = self.upload_bucket_url + 'references/'
+
+        cmd = 'mvn compile exec:java ' \
+              '-f NanostreamDataflowMain/pipeline/pom.xml ' \
+              '-Dexec.mainClass=com.google.allenday.nanostream.NanostreamApp ' \
+              '-Dexec.args="' \
+              '--project=%s ' \
+              '--runner=DataflowRunner ' \
+              '--streaming=true ' \
+              '--processingMode=%s ' \
+              '--inputDataSubscription=%s ' \
+              '--alignmentWindow=%s ' \
+              '--statisticUpdatingDelay=%s ' \
+              '--resistanceGenesList=%s ' \
+              '--resultBucket=%s ' \
+              '--alignedOutputDir=%s ' \
+              '--referenceNamesList=%s ' \
+              '--allReferencesDirGcsUri=%s ' \
+              '--gcpTempLocation=%s ' \
+              '--stagingLocation=%s ' \
+              '--templateLocation=%s ' \
+              '" ' \
+              '-Dexec.cleanupDaemonThreads=false' \
+              % (
+                  self.google_cloud_project,
+                  processing_mode,
+                  self.upload_subscription_fullname,
+                  alignment_window,
+                  stats_update_frequency,
+                  resistance_genes_list,
+                  self.upload_bucket_url,
+                  aligned_output_dir,
+                  reference_database,
+                  all_references_dir_gcs_uri,
+                  self.dataflow_bucket_url + 'tmp',
+                  self.dataflow_bucket_url + 'staging',
+                  self.dataflow_bucket_url + 'templates/' + template_name
+              )
+        print 'Compile and deploy Dataflow template for processing mode %s: %s' % (processing_mode, cmd)
+        subprocess.check_call(cmd, shell=True)
 
     def initialize_app_engine_in_project(self):
         cmd = 'gcloud app describe'
@@ -111,42 +179,7 @@ class Install:
     def deploy_app_engine_management_application(self):
         cmd = 'mvn clean package appengine:deploy -DskipTests=true -f NanostreamDataflowMain/webapp/pom.xml'
         print 'Compile and deploy App Engine management application: %s' % cmd
-        subprocess.call(cmd, shell=True)
-
-    def deploy_dataflow_template(self):
-        cmd = 'mvn install:install-file -Dfile=NanostreamDataflowMain/libs/japsa.jar -DgroupId=coin -DartifactId=japsa -Dversion=1.9-3c -Dpackaging=jar'
-        print 'Add japsa dependency: %s' % cmd
-        subprocess.call(cmd, shell=True)
-
-        cmd = 'mvn install:install-file -Dfile=NanostreamDataflowMain/libs/pal1.5.1.1.jar -DgroupId=nz.ac.auckland -DartifactId=pal -Dversion=1.5.1.1 -Dpackaging=jar'
-        print 'Add pal dependency: %s' % cmd
-        subprocess.call(cmd, shell=True)
-
-        cmd = 'mvn compile exec:java ' \
-              '-f NanostreamDataflowMain/pipeline/pom.xml ' \
-              '-Dexec.mainClass=com.google.allenday.nanostream.NanostreamApp ' \
-              '-Dexec.args="' \
-              '--project=%s ' \
-              '--runner=DataflowRunner ' \
-              '--streaming=true ' \
-              '--processingMode=species ' \
-              '--inputDataSubscription=%s ' \
-              '--servicesUrl=http://130.211.33.64 ' \
-              '--bwaEndpoint=/cgi-bin/bwa.cgi ' \
-              '--bwaDatabase=DB.fasta ' \
-              '--kAlignEndpoint=/cgi-bin/kalign.cgi ' \
-              '--gcpTempLocation=%s ' \
-              '--stagingLocation=%s ' \
-              '--templateLocation=%s ' \
-              '"' % (
-            self.google_cloud_project,
-            self.upload_subscription_fullname,
-            self.dataflow_bucket_url + 'tmp',
-            self.dataflow_bucket_url + 'staging',
-            self.dataflow_bucket_url + 'templates/nanostream-species'
-        )
-        print 'Compile and deploy Dataflow template: %s' % cmd
-        subprocess.call(cmd, shell=True)
+        subprocess.check_call(cmd, shell=True)
 
 
 class IllegalArgumentException(Exception):
