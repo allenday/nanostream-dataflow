@@ -20,35 +20,33 @@ import java.util.List;
 import static java.lang.String.format;
 import static java.net.HttpURLConnection.HTTP_OK;
 
-@WebServlet(name = "LaunchDataflow", value = "/launch")
-public class LaunchDataflow extends HttpServlet {
+@WebServlet(name = "StopDataflow", value = "/stop")
+public class StopDataflow extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        new PipelineStarter(req, resp).invoke();
-        // TODO: save metadata about created job
+        new PipelineStopper(req, resp).invoke();
     }
 
-    private class PipelineStarter {
-        private final String templateName;
+    private class PipelineStopper {
+        private static final String DATAFLOW_JOB_STATE_CANCELLED = "JOB_STATE_CANCELLED";
         private HttpServletResponse response;
         private String project;
-        private String bucket;
-        private LaunchParams params;
+        private String location;
+        private String jobId;
 
-        public PipelineStarter(HttpServletRequest request, HttpServletResponse response) {
+        public PipelineStopper(HttpServletRequest request, HttpServletResponse response) {
             this.response = response;
-            params = new LaunchParams(request);
-
             project = System.getenv("GOOGLE_CLOUD_PROJECT");
-            bucket = format("gs://%s-dataflow", project);
-            templateName = format("nanostream-%s", params.processingMode);
+
+            location = request.getParameter("location");
+            jobId = request.getParameter("jobId");
         }
 
         public void invoke() throws IOException {
             JSONObject jsonObj = makeParams();
 
-            HttpURLConnection connection = sendLaunchDataflowJobFromTemplateRequest(jsonObj);
+            HttpURLConnection connection = sendStopDataflowJobRequest(jsonObj);
 
             printOutput(connection);
         }
@@ -56,28 +54,19 @@ public class LaunchDataflow extends HttpServlet {
         private JSONObject makeParams() {
             JSONObject jsonObj = null;
             try {
-                JSONObject parameters = new JSONObject();
-                parameters.put("outputCollectionNamePrefix", params.outputCollectionNamePrefix);
-                parameters.put("outputDocumentNamePrefix", params.outputDocumentNamePrefix);
-
-                JSONObject environment = new JSONObject()
-                        .put("tempLocation", bucket + "/tmp/")
-                        .put("bypassTempDirValidation", false);
                 jsonObj = new JSONObject()
-                        .put("jobName", params.pipelineName)
-                        .put("parameters", parameters)
-                        .put("environment", environment);
+                        .put("requestedState", DATAFLOW_JOB_STATE_CANCELLED);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
             return jsonObj;
         }
 
-        private HttpURLConnection sendLaunchDataflowJobFromTemplateRequest(JSONObject jsonObj) throws IOException {
+        private HttpURLConnection sendStopDataflowJobRequest(JSONObject jsonObj) throws IOException {
             URL url = getUrl();
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setDoOutput(true);
-            conn.setRequestMethod("POST");
+            conn.setRequestMethod("PUT");
             conn.setRequestProperty("Authorization", "Bearer " + getAccessToken());
             conn.setRequestProperty("Content-Type", "application/json");
 
@@ -88,8 +77,8 @@ public class LaunchDataflow extends HttpServlet {
         }
 
         private URL getUrl() throws MalformedURLException {
-            return new URL(format("https://dataflow.googleapis.com/v1b3/projects/%s/templates:launch?gcs_path=%s/templates/%s",
-                            project, bucket, templateName));
+            return new URL(format("https://dataflow.googleapis.com/v1b3/projects/%s/locations/%s/jobs/%s",
+                            project, location, jobId));
         }
 
         private void printOutput(HttpURLConnection conn) throws IOException {
