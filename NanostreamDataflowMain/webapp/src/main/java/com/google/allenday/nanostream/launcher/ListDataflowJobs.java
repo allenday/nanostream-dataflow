@@ -10,11 +10,6 @@ import java.io.IOException;
 public class ListDataflowJobs extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        // read jobs metadata from database/API?
-            // request API
-            // parse JSON
-            //
-        // render template
-        resp.getWriter().write("List of messages");
+        new Pipeline.ListFetcher(req, resp).invoke();
     }
 }

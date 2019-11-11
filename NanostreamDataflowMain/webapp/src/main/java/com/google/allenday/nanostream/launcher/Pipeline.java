@@ -139,6 +139,37 @@ public class Pipeline {
         }
     }
 
+    static class ListFetcher {
+        private HttpServletResponse response;
+        private String project;
+
+        public ListFetcher(HttpServletRequest request, HttpServletResponse response) {
+            this.response = response;
+            project = getProjectId();
+        }
+
+        public void invoke() throws IOException {
+            HttpURLConnection connection = sendListDataflowJobsRequest();
+
+            printOutput(connection, response);
+        }
+
+        private HttpURLConnection sendListDataflowJobsRequest() throws IOException {
+            URL url = getUrl();
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setDoOutput(true);
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Authorization", "Bearer " + getAccessToken());
+            conn.setRequestProperty("Content-Type", "application/json");
+
+            return conn;
+        }
+
+        private URL getUrl() throws MalformedURLException {
+            return new URL(format(DATAFLOW_API_BASE_URI + "projects/%s/jobs", project));
+        }
+    }
+
     private static String getProjectId() {
         return System.getenv("GOOGLE_CLOUD_PROJECT");
     }
