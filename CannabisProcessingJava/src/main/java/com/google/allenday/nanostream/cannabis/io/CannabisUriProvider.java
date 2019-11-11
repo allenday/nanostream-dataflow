@@ -14,10 +14,10 @@ public class CannabisUriProvider extends UriProvider {
 
     public static CannabisUriProvider withDefaultProviderRule(String srcBucket) {
         return new CannabisUriProvider(srcBucket, (ProviderRule) (geneExampleMetaData, bucket) -> {
-            boolean isKannapedia = geneExampleMetaData.getProjectName().toLowerCase().equals("Kannapedia".toLowerCase());
+            boolean isKannapedia = geneExampleMetaData.getCenterName().toLowerCase().equals("Kannapedia".toLowerCase());
             String uriPrefix = isKannapedia
                     ? String.format("gs://%s/kannapedia/", bucket)
-                    : String.format("gs://%s/sra/%s/%s/", bucket, geneExampleMetaData.getProjectId(),
+                    : String.format("gs://%s/sra/%s/%s/", bucket, geneExampleMetaData.getSraStudy(),
                     geneExampleMetaData.getSraSample());
             String fileNameForward = geneExampleMetaData.getRunId() + "_1.fastq";
             List<String> urisList =

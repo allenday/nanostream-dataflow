@@ -58,7 +58,6 @@ public class RecognizePairedReadsWithAnomalyFn extends DoFn<KV<GeneExampleMetaDa
                     if ((reduce / (1024 * 1024) > 10000)) {
                         hasAnomalyBlobs = true;
                         geneExampleMetaData.setComment(String.format("Read group to large (%d MB)", reduce / (1024 * 1024)));
-                        geneExampleMetaData.setComment(String.format("Read group to large (%d MB)", reduce / (1024 * 1024)));
                     }
                     if (blobs.stream().map(b -> {
                         String[] parts = b.getName().split("_");
@@ -118,7 +117,7 @@ public class RecognizePairedReadsWithAnomalyFn extends DoFn<KV<GeneExampleMetaDa
 
     private void logAnomaly(List<Blob> blobs, GeneExampleMetaData geneExampleMetaData) {
         LOG.info(String.format("Anomaly: %s, %s, %s, blobs %s",
-                geneExampleMetaData.getProjectName(),
+                geneExampleMetaData.getCenterName(),
                 geneExampleMetaData.getSraSample(),
                 geneExampleMetaData.getRunId(),
                 blobs.stream().map(BlobInfo::getName).collect(Collectors.joining(", "))));

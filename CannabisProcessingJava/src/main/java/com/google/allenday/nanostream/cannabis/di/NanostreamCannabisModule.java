@@ -10,7 +10,7 @@ import com.google.allenday.genomics.core.processing.AlignAndPostProcessTransform
 import com.google.allenday.genomics.core.processing.SamBamManipulationService;
 import com.google.allenday.genomics.core.processing.align.AlignFn;
 import com.google.allenday.genomics.core.processing.align.AlignService;
-import com.google.allenday.genomics.core.processing.align.AlignerOptions;
+import com.google.allenday.genomics.core.processing.align.GenomicsOptions;
 import com.google.allenday.genomics.core.processing.other.CreateBamIndexFn;
 import com.google.allenday.genomics.core.processing.other.MergeFn;
 import com.google.allenday.genomics.core.processing.other.SortFn;
@@ -19,6 +19,7 @@ import com.google.allenday.genomics.core.utils.NameProvider;
 import com.google.allenday.nanostream.cannabis.NanostreamCannabisPipelineOptions;
 import com.google.allenday.nanostream.cannabis.anomaly.DetectAnomalyTransform;
 import com.google.allenday.nanostream.cannabis.anomaly.RecognizePairedReadsWithAnomalyFn;
+import com.google.allenday.nanostream.cannabis.io.CannabisCsvParser;
 import com.google.allenday.nanostream.cannabis.io.CannabisUriProvider;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
@@ -38,13 +39,13 @@ public class NanostreamCannabisModule extends AbstractModule {
     private String anomalyOutputPath;
     private List<String> sraSamplesToFilter;
 
-    private AlignerOptions alignerOptions;
+    private GenomicsOptions genomicsOptions;
 
     public NanostreamCannabisModule(Builder builder) {
         this.inputCsvUri = builder.inputCsvUri;
         this.anomalyOutputPath = builder.anomalyOutputPath;
         this.sraSamplesToFilter = builder.sraSamplesToFilter;
-        this.alignerOptions = builder.alignerOptions;
+        this.genomicsOptions = builder.genomicsOptions;
         this.srcBucket = builder.srcBucket;
     }
 
@@ -52,7 +53,7 @@ public class NanostreamCannabisModule extends AbstractModule {
         private String srcBucket;
         private String inputCsvUri;
         private String anomalyOutputPath;
-        private AlignerOptions alignerOptions;
+        private GenomicsOptions genomicsOptions;
 
         private List<String> sraSamplesToFilter;
 
@@ -71,9 +72,8 @@ public class NanostreamCannabisModule extends AbstractModule {
             return this;
         }
 
-        public Builder setAlignerOptions(AlignerOptions alignerOptions) {
-            this.alignerOptions = alignerOptions;
-            return this;
+        public void setGenomicsOptions(GenomicsOptions genomicsOptions) {
+            this.genomicsOptions = genomicsOptions;
         }
 
         public Builder setSrcBucket(String srcBucket) {
@@ -85,7 +85,7 @@ public class NanostreamCannabisModule extends AbstractModule {
             setInputCsvUri(nanostreamPipelineOptions.getInputCsvUri());
             setAnomalyOutputPath(nanostreamPipelineOptions.getAnomalyOutputPath());
             setSraSamplesToFilter(nanostreamPipelineOptions.getSraSamplesToFilter());
-            setAlignerOptions(AlignerOptions.fromAlignerPipelineOptions(nanostreamPipelineOptions));
+            setGenomicsOptions(GenomicsOptions.fromAlignerPipelineOptions(nanostreamPipelineOptions));
             setSrcBucket(nanostreamPipelineOptions.getSrcBucket());
             return this;
         }
@@ -112,14 +112,14 @@ public class NanostreamCannabisModule extends AbstractModule {
     @Singleton
     public DetectAnomalyTransform provideGroupByPairedReadsAndFilter(RecognizePairedReadsWithAnomalyFn recognizePairedReadsWithAnomalyFn,
                                                                      NameProvider nameProvider) {
-        return new DetectAnomalyTransform("Filter anomaly and prepare for processing", alignerOptions.getResultBucket(),
-                String.format(alignerOptions.getAnomalyOutputDirPattern(), nameProvider.getCurrentTimeInDefaultFormat()), recognizePairedReadsWithAnomalyFn);
+        return new DetectAnomalyTransform("Filter anomaly and prepare for processing", genomicsOptions.getResultBucket(),
+                String.format(genomicsOptions.getAnomalyOutputDirPattern(), nameProvider.getCurrentTimeInDefaultFormat()), recognizePairedReadsWithAnomalyFn);
     }
 
     @Provides
     @Singleton
     public ReferencesProvider provideReferencesProvider(FileUtils fileUtils) {
-        return new ReferencesProvider(fileUtils, alignerOptions.getAllReferencesDirGcsUri());
+        return new ReferencesProvider(fileUtils, genomicsOptions.getAllReferencesDirGcsUri());
     }
 
     @Provides
@@ -155,9 +155,9 @@ public class NanostreamCannabisModule extends AbstractModule {
     @Provides
     @Singleton
     public MergeFn provideMergeFn(SamBamManipulationService samBamManipulationService, FileUtils fileUtils, NameProvider nameProvider) {
-        TransformIoHandler mergeIoHandler = new TransformIoHandler(alignerOptions.getResultBucket(),
-                String.format(alignerOptions.getMergedOutputDirPattern(), nameProvider.getCurrentTimeInDefaultFormat()),
-                alignerOptions.getMemoryOutputLimit(), fileUtils);
+        TransformIoHandler mergeIoHandler = new TransformIoHandler(genomicsOptions.getResultBucket(),
+                String.format(genomicsOptions.getMergedOutputDirPattern(), nameProvider.getCurrentTimeInDefaultFormat()),
+                genomicsOptions.getMemoryOutputLimit(), fileUtils);
 
         return new MergeFn(mergeIoHandler, samBamManipulationService, fileUtils);
     }
@@ -165,9 +165,9 @@ public class NanostreamCannabisModule extends AbstractModule {
     @Provides
     @Singleton
     public SortFn provideSortFn(SamBamManipulationService samBamManipulationService, FileUtils fileUtils, NameProvider nameProvider) {
-        TransformIoHandler sortIoHandler = new TransformIoHandler(alignerOptions.getResultBucket(),
-                String.format(alignerOptions.getSortedOutputDirPattern(), nameProvider.getCurrentTimeInDefaultFormat()),
-                alignerOptions.getMemoryOutputLimit(), fileUtils);
+        TransformIoHandler sortIoHandler = new TransformIoHandler(genomicsOptions.getResultBucket(),
+                String.format(genomicsOptions.getSortedOutputDirPattern(), nameProvider.getCurrentTimeInDefaultFormat()),
+                genomicsOptions.getMemoryOutputLimit(), fileUtils);
 
         return new SortFn(sortIoHandler, samBamManipulationService, fileUtils);
     }
@@ -175,19 +175,19 @@ public class NanostreamCannabisModule extends AbstractModule {
     @Provides
     @Singleton
     public AlignFn provideAlignFn(AlignService alignService, ReferencesProvider referencesProvider, FileUtils fileUtils, NameProvider nameProvider) {
-        TransformIoHandler alignIoHandler = new TransformIoHandler(alignerOptions.getResultBucket(),
-                String.format(alignerOptions.getAlignedOutputDirPattern(), nameProvider.getCurrentTimeInDefaultFormat()),
-                alignerOptions.getMemoryOutputLimit(), fileUtils);
+        TransformIoHandler alignIoHandler = new TransformIoHandler(genomicsOptions.getResultBucket(),
+                String.format(genomicsOptions.getAlignedOutputDirPattern(), nameProvider.getCurrentTimeInDefaultFormat()),
+                genomicsOptions.getMemoryOutputLimit(), fileUtils);
 
-        return new AlignFn(alignService, referencesProvider, alignerOptions.getGeneReferences(), alignIoHandler, fileUtils);
+        return new AlignFn(alignService, referencesProvider, genomicsOptions.getGeneReferences(), alignIoHandler, fileUtils);
     }
 
     @Provides
     @Singleton
     public CreateBamIndexFn provideCreateBamIndexFn(SamBamManipulationService samBamManipulationService, FileUtils fileUtils, NameProvider nameProvider) {
-        TransformIoHandler indexIoHandler = new TransformIoHandler(alignerOptions.getResultBucket(),
-                String.format(alignerOptions.getBamIndexOutputDirPattern(), nameProvider.getCurrentTimeInDefaultFormat()),
-                alignerOptions.getMemoryOutputLimit(), fileUtils);
+        TransformIoHandler indexIoHandler = new TransformIoHandler(genomicsOptions.getResultBucket(),
+                String.format(genomicsOptions.getBamIndexOutputDirPattern(), nameProvider.getCurrentTimeInDefaultFormat()),
+                genomicsOptions.getMemoryOutputLimit(), fileUtils);
 
         return new CreateBamIndexFn(indexIoHandler, samBamManipulationService, fileUtils);
     }
@@ -206,7 +206,7 @@ public class NanostreamCannabisModule extends AbstractModule {
     @Provides
     @Singleton
     public GeneExampleMetaData.Parser provideGeneExampleMetaDataParser() {
-        return GeneExampleMetaData.Parser.withDefaultSchema();
+        return new CannabisCsvParser();
     }
 
     @Provides
