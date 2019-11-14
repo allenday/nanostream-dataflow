@@ -7,3 +7,24 @@ svg {
     width: 100%;
     background-color: #fffafa;
 }
+
+.arc-container {
+    cursor: pointer;
+}
+
+.arc-container text {
+    font-size: 8pt;
+    font-family: roboto;
+}    
+
+.nvtooltip {
+    font-size:9pt;
+    font-family: roboto;
+    border-radius: 5px;
+    border: 1px solid #73AD21;
+    background: #FEFEFE;
+    padding: 4px;
+    padding-left: 7px;
+    padding-right: 7px;
+    filter: drop-shadow(6px 6px 10px gray);
+}
