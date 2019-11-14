@@ -18,10 +18,12 @@ requirejs(['db', 'transform'], function (db, transform) {
   let chart;
   let results = [];
 
+
   nv.addGraph(function () {
     chart = nv.models.sunburstChart();
-
     chart.groupColorByParent(false);
+    chart.sort((d1, d2) => { return d1.id > d2.id})
+    chart.key(d => d.id)
     chart.showLabels(true);
     chart.mode('value');
     chart.groupColorByParent(false);
@@ -44,6 +46,7 @@ requirejs(['db', 'transform'], function (db, transform) {
       .datum(results)
       .call(chart);
 
+
     nv.utils.windowResize(chart.update);
 
     return chart;
@@ -55,6 +58,8 @@ requirejs(['db', 'transform'], function (db, transform) {
       results = transform(doc.data());
       d3.select('#chart')
         .datum(results)
-        .call(chart);
+        .call(chart)
+        .selectAll('.arc-container text').attr('dy',4)
+
     });
 });
