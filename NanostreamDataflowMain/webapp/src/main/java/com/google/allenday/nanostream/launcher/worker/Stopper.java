@@ -4,7 +4,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
@@ -15,25 +14,23 @@ import static com.google.allenday.nanostream.launcher.worker.PipelineUtil.*;
 import static java.lang.String.format;
 
 public class Stopper {
-    private HttpServletResponse response;
     private String project;
     private String location;
     private String jobId;
 
-    public Stopper(HttpServletRequest request, HttpServletResponse response) {
-        this.response = response;
+    public Stopper(HttpServletRequest request) {
         project = getProjectId();
 
         location = request.getParameter("location");
         jobId = request.getParameter("jobId");
     }
 
-    public void invoke() throws IOException {
+    public String invoke() throws IOException {
         JSONObject jsonObj = makeParams();
 
         HttpURLConnection connection = sendStopDataflowJobRequest(jsonObj);
 
-        printOutput(connection, response);
+        return printOutput(connection);
     }
 
     private JSONObject makeParams() {

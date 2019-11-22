@@ -5,7 +5,6 @@ import com.google.appengine.api.appidentity.AppIdentityServiceFactory;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -46,22 +45,21 @@ class PipelineUtil {
         return conn;
     }
 
-    public static void printOutput(HttpURLConnection conn, HttpServletResponse response) throws IOException {
-        int respCode = conn.getResponseCode();
-        try (PrintWriter writer = response.getWriter()) {
-            if (respCode == HTTP_OK) {
-                response.setContentType("application/json");
-                String line;
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
-                    while ((line = reader.readLine()) != null) {
-                        writer.println(line);
-                    }
+    public static String printOutput(HttpURLConnection conn) throws IOException {
+        StringBuilder stringBuilder = new StringBuilder();
+        if (conn.getResponseCode() == HTTP_OK) {
+            String line;
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+                while ((line = reader.readLine()) != null) {
+                    stringBuilder.append(line);
+                    stringBuilder.append("\n");
                 }
-            } else {
-                StringWriter w = new StringWriter();
-                IOUtils.copy(conn.getErrorStream(), w, "UTF-8");
-                writer.println(w.toString());
             }
+        } else {
+            StringWriter w = new StringWriter();
+            IOUtils.copy(conn.getErrorStream(), w, "UTF-8");
+            stringBuilder.append(w.toString());
         }
+        return stringBuilder.toString();
     }
 }

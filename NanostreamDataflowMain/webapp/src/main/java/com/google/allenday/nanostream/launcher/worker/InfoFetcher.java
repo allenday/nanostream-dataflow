@@ -1,7 +1,6 @@
 package com.google.allenday.nanostream.launcher.worker;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -12,22 +11,20 @@ import static java.lang.String.format;
 
 public class InfoFetcher {
 
-    private final HttpServletResponse response;
     private final String project;
     private final String location;
     private final String jobId;
 
-    public InfoFetcher(HttpServletRequest request, HttpServletResponse response) {
-        this.response = response;
+    public InfoFetcher(HttpServletRequest request) {
         project = getProjectId();
         jobId = request.getParameter("jobId");
         location = request.getParameter("location");
     }
 
-    public void invoke() throws IOException {
+    public String invoke() throws IOException {
         HttpURLConnection connection = sendGetJobsInfoRequest();
 
-        printOutput(connection, response);
+        return printOutput(connection);
     }
 
     private HttpURLConnection sendGetJobsInfoRequest() throws IOException {

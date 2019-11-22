@@ -1,7 +1,6 @@
 package com.google.allenday.nanostream.launcher.worker;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -11,18 +10,16 @@ import static com.google.allenday.nanostream.launcher.worker.PipelineUtil.*;
 import static java.lang.String.format;
 
 public class ListFetcher {
-    private final HttpServletResponse response;
     private final String project;
 
-    public ListFetcher(HttpServletRequest request, HttpServletResponse response) {
-        this.response = response;
+    public ListFetcher(HttpServletRequest request) {
         project = getProjectId();
     }
 
-    public void invoke() throws IOException {
+    public String invoke() throws IOException {
         HttpURLConnection connection = sendListDataflowJobsRequest();
 
-        printOutput(connection, response);
+        return printOutput(connection);
     }
 
     private HttpURLConnection sendListDataflowJobsRequest() throws IOException {

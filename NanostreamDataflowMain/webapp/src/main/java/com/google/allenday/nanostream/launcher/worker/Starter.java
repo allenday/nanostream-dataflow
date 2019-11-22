@@ -4,7 +4,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -15,13 +14,11 @@ import static java.lang.String.format;
 
 public class Starter {
     private final String templateName;
-    private HttpServletResponse response;
     private String project;
     private String bucket;
     private LaunchParams params;
 
-    public Starter(HttpServletRequest request, HttpServletResponse response) {
-        this.response = response;
+    public Starter(HttpServletRequest request) {
         params = new LaunchParams(request);
 
         project = getProjectId();
@@ -29,12 +26,12 @@ public class Starter {
         templateName = format("nanostream-%s", params.processingMode);
     }
 
-    public void invoke() throws IOException {
+    public String invoke() throws IOException {
         JSONObject jsonObj = makeParams();
 
         HttpURLConnection connection = sendLaunchDataflowJobFromTemplateRequest(jsonObj);
         // TODO: save metadata about created job
-        printOutput(connection, response);
+        return printOutput(connection);
     }
 
     private JSONObject makeParams() {
