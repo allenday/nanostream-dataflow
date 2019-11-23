@@ -1,4 +1,4 @@
-package com.google.allenday.nanostream.launcher;
+package com.google.allenday.nanostream.launcher.worker;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.UUID;
