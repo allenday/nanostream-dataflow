@@ -46,6 +46,7 @@ define(function () {
           if (!taxonomyLevel) {
             taxonomyLevel = {
               name: taxonomyItem,
+              id: (1000 + i) + '-' + taxonomyItem,
 //              color: taxonomyColor,
               size: 0,
               children: []
