@@ -1,13 +1,12 @@
  <template>   
-
+<div>
     <div v-if="formActive">
         <PipelineForm 
             v-on:Start="startPipeline()"
             v-bind:pipeline="pipeline"
             v-bind:general="general"
         />
-             
-            
+                         
     </div>
 
     <div v-else class="container-fluid d-flex flex-column align-content-md-center ">
@@ -19,7 +18,8 @@
                             />
 
           
-        <div >
+            <div >
+
        
                         <div class="row ">
                             <div class="col">
@@ -66,9 +66,13 @@
                             </div>
                             </div>
                         </div>
-        </div>
+    
+    
+    
+            <VisTable v-bind:records="records"/>
+    </div>
 
-       
+         
 
     </div>
 </template>
@@ -82,6 +86,7 @@ import Chart from './Chart.vue';
 import PipelineStatus from './PipelineStatus.vue';
 import PipelineForm from './PipelineForm.vue';
 import Configurations from './Configurations.vue';
+import VisTable from './VisTable.vue';
 //import d3 from "d3";
 
 
@@ -152,7 +157,8 @@ export default {
         Chart,
         PipelineStatus,
         PipelineForm,
-        Configurations
+        Configurations,
+        VisTable
     },
 
 /*
