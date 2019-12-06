@@ -1,59 +1,87 @@
 <template>
-    <div class="d-flex">
-        <svg id="chart"        
-        :height='height'
-        :width='width'></svg>
+<div class="row">
+    <div class="col">
+      	<div class="row"><div class="col card-header"><h2>Table</h2></div></div>
+       	<div class="row card-body">  
+	        <div class="col-sm-8">
+              <b-table bordered hover :items="recordsProcessed"></b-table> 
+	        </div>
+    	  </div>
     </div>
+  </div>
 </template>
+
 
 <script>
 
 import d3 from "d3";
 
-
 export default {
+
   props: ["records"],
 
+
   computed: {
-    recordsSorted: function () {
-        return this.records.sort();
+    recordsProcessed: function () {
+
+      if(this.records.length) {
+        let recs = [], nodes = this.hier(this.records[0], d => d.children);
+        for(let i in nodes) {
+            let n = nodes[i], p = [n.name];
+            while(n.parent) {
+               p.push(n.parent.name);
+               n = n.parent; 
+            }
+           p.pop() 
+           nodes[i].path = p.join(' >> ') 
+        }
+   
+        nodes.forEach(i => recs.push( { id: i.id || 'TOTAL', path: i.path || 'root', value: i.value,  }))
+
+          return recs;
+      }
+      else{
+        return [];
+      } 
+    }
   },
+
+
 
 
   data() {
       return {
-          records : this.recordsSorted()
+        data : this.records,
+        hier: null
     }
   },
 
   watch: {
     records(val) {
-        this.chart ? this.updateChart(val) : this.initChart(val, this.mode);
+        this.updateTable(val);
     }
   },
 
- 
+   created: function () { 
+        this.hier = d3.layout.hierarchy();
+    },
 
 
   methods: {
 
-   updateChart(val) {
+  
 
-        d3.select('#chart')
-        .datum(this.records)
-        .call(this.chart)
-        .selectAll('.arc-container text').attr('dy',4)
+   updateTable(val) {
 
-       console.log('Updatechart called')
+     for(var i in this.records) {
+       console.log(this.records[i])
+     }
+
+       console.log('UpdateTable called ')
 
    },    
 
-    initChart(val, mode ) {
-
-      
-
-    }
-
+    
 
   }
 };
