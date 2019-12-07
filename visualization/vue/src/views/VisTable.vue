@@ -4,7 +4,7 @@
       	<div class="row"><div class="col card-header"><h2>Table</h2></div></div>
        	<div class="row card-body">  
 	        <div class="col-sm-8">
-              <b-table bordered hover :items="recordsProcessed"></b-table> 
+              <b-table striped bordered hover :items="recordsProcessed"></b-table> 
 	        </div>
     	  </div>
     </div>
@@ -20,23 +20,26 @@ export default {
 
   props: ["records"],
 
-
   computed: {
     recordsProcessed: function () {
+
+      console.log('computed called')
 
       if(this.records.length) {
         let recs = [], nodes = this.hier(this.records[0], d => d.children);
         for(let i in nodes) {
-            let n = nodes[i], p = [n.name];
+            let n = nodes[i], p = [];
             while(n.parent) {
                p.push(n.parent.name);
                n = n.parent; 
             }
            p.pop() 
-           nodes[i].path = p.join(' >> ') 
+          // p.shift();
+           for(let j=1;j<p.length-1;j++) p[j] = '...';
+           nodes[i].path = p.reverse().join(' > ') 
         }
    
-        nodes.forEach(i => recs.push( { id: i.id || 'TOTAL', path: i.path || 'root', value: i.value,  }))
+        nodes.forEach(i => recs.push( { name: i.name || 'TOTAL', hierarchy: i.path || 'root', value: i.value }))
 
           return recs;
       }
