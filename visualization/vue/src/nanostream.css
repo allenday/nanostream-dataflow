@@ -219,6 +219,9 @@ body {
  
 	}
 	
+	.chart-area {
+		padding:25px;
+	}
 	
     main .row{
       margin-bottom: 25px;

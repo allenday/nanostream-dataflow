@@ -57,7 +57,7 @@
                                               <h2>Diagram {{ diagram_name }}</h2>
                                               </div>
                                             </div>
-                            </div><div class="col d-flex">              
+                            </div><div class="col d-flex mx-auto">              
                                 <h2>
                                     <div class="alert alert-info" v-show="loading">Loading...</div>
                                 </h2>
@@ -103,7 +103,7 @@ export default {
         pipeline: {
                 alignment_window : 20,
                 subscription: 1,
-                started : false,
+                started : true,
                 name: 'id123456'
 
             },
