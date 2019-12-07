@@ -3,7 +3,7 @@
     <div class="col">
       	<div class="row"><div class="col card-header"><h2>Table</h2></div></div>
        	<div class="row card-body">  
-	        <div class="col-sm-8">
+	        <div class="col-sm-8 mx-auto">
               <b-table striped bordered hover :items="recordsProcessed"></b-table> 
 	        </div>
     	  </div>
@@ -34,12 +34,11 @@ export default {
                n = n.parent; 
             }
            p.pop() 
-          // p.shift();
            for(let j=1;j<p.length-1;j++) p[j] = '...';
            nodes[i].path = p.reverse().join(' > ') 
         }
    
-        nodes.forEach(i => recs.push( { name: i.name || 'TOTAL', hierarchy: i.path || 'root', value: i.value }))
+        nodes.forEach(i => recs.push( { name: i.name || 'TOTAL', hierarchy: i.path || 'total', value: i.value }))
 
           return recs;
       }

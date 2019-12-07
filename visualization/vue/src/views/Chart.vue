@@ -1,5 +1,5 @@
 <template>
-    <div class="d-flex">
+    <div class="d-flex chart-area mx-auto">
         <svg id="chart"        
         :height='height'
         :width='width'></svg>
@@ -75,14 +75,16 @@ export default {
                 return Math.round(100 * d) / 100;
             });
 
+         
             d3.select('#chart')
                 .datum(val)
-                .call(chart);
-
+                .call(chart)
+         
 
             nv.utils.windowResize(chart.update);
             return chart;
-    },(c) => {this.chart=c});
+
+    },(c) => {this.chart=c;  });
 
     }
 
