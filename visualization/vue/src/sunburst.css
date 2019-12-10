@@ -3,7 +3,8 @@ svg {
     margin: 0;
     padding: 0;
 
-    background-color: #fffafa;
+    background-color: #EFF2F7;
+    border-radius: 1.5%;
 }
 
 .arc-container {

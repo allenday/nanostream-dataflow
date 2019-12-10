@@ -21,12 +21,12 @@ export default {
   props: ["records"],
 
   computed: {
+
     recordsProcessed: function () {
-
-      console.log('computed called')
-
+    
+      let recs = [];
       if(this.records.length) {
-        let recs = [], nodes = this.hier(this.records[0], d => d.children);
+        let nodes = this.hier(this.records[0], d => d.children);
         for(let i in nodes) {
             let n = nodes[i], p = [];
             while(n.parent) {
@@ -39,12 +39,8 @@ export default {
         }
    
         nodes.forEach(i => recs.push( { name: i.name || 'TOTAL', hierarchy: i.path || 'total', value: i.value }))
-
-          return recs;
       }
-      else{
-        return [];
-      } 
+      return recs; 
     }
   },
 

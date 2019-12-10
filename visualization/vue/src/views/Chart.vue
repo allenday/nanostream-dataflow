@@ -13,7 +13,7 @@ import nv  from "nvd3";
 
 
 export default {
-  props: ["records","mode"],
+  props: ["records","mode","loaded"],
 
   data() {
       return {
@@ -25,6 +25,7 @@ export default {
 
   watch: {
     records(val) {
+        console.log('mode=' + this.mode)
         this.chart ? this.updateChart(val) : this.initChart(val, this.mode);
     }
   },
@@ -44,9 +45,35 @@ export default {
         .call(this.chart)
         .selectAll('.arc-container text').attr('dy',4)
 
+        this.addZoom(this.chart);
+
        console.log('Update chart called')
 
    },    
+
+   addZoom(chart) {
+
+        var scaleExtent = 10;
+        var d3zoom = d3.behavior.zoom();
+        
+        function unzoomed() {
+            d3zoom.scale(1);
+            d3zoom.translate([0,0]);
+        };
+
+
+        function zoomed() {  
+            d3.select('#chart').attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+        }
+
+        d3zoom
+          .scaleExtent([1, scaleExtent])
+          .on('zoom', zoomed);
+          
+        d3.select('#chart').select('.nvd3').call(d3zoom)//.on("mousedown.zoom", null)//.on('dblclick.zoom', unzoomed);
+    },
+    
+
 
     initChart(val, mode ) {
 
@@ -55,6 +82,7 @@ export default {
       nv.addGraph(function () {
             let chart = nv.models.sunburstChart();
             chart.groupColorByParent(false);
+            chart.noData("Please wait. Data is being processed.")
             chart.sort((d1, d2) => { return d1.id > d2.id})
             chart.key(d => d.id)
             chart.showLabels(true);
