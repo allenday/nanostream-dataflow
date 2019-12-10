@@ -7,13 +7,13 @@
 	          <h3>General</h3>
 	          <ul>
 	            <li><span class="conf_name">Google account</span>: {{ general.google_account }} </li>
-	            <li><span class="conf_name">Project</span>: {{ general.project }} </li>
-	            <li><span class="conf_name">Bucket</span>: {{ general.bucket }}</li>
+	            <li><span class="conf_name">Project</span>: 
+					<span v-bind:class="general.project || 'waitingForData'">{{ general.project || '...getting data...'}} </span></li>
+	            <li><span class="conf_name">Bucket</span>: 
+					<span v-bind:class="general.bucket || 'waitingForData'">{{ general.bucket ||  '...getting data...'}}</span></li>
 	            <li><span class="conf_name">Reference database</span>: {{general.ref_db }} </li>
 	          </ul>
-	          <!--<p><a><i class="fas fa-sign-in-alt"></i> Go to bucket</a></p> -->
-	          <p>
-	            <a><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span> Go to bucket</a></p> 
+	          <p v-if="general.bucket"><a :href="bucket_name_full"><i class="fa fa-sign-in"></i> Go to bucket</a></p> 
 	        </div>
 	        
 	        <div class="col-sm-5">
@@ -46,14 +46,14 @@ export default {
     name: "Configurations",
 
     props: ["notifications","pipeline","general"],
+   
+  	computed: {
 
-    data()  {
-        
-        return {
-
-        }
-    
-  }
+		  bucket_name_full : function() { 
+			  return  "https://console.cloud.google.com/storage/browser/"  
+				  + (this.general.bucket && this.general.bucket.split('/')[2] ) 
+			}	  	
+  	}
 
 }
 

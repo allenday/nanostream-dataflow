@@ -3,11 +3,10 @@
       	<div class="no-gutters card-body row">  -->
           <div id="pipelinestatus" class="row ">  
         <div class="col-sm">
-          <h2 class="d-flex">Pipeline: <span> {{ pipeline.name }}</span></h2>
+          <h2 class="d-flex">Pipeline: <span> &nbsp;{{ pipeline.name }}</span></h2>
         </div>
         <div class=" col-sm">
-          <h2 class="d-flex">Status : 
-            
+          <h2 class="d-flex">Status:             
             <span v-if="pipeline.started">
               <span>&nbsp;Launched </span> 
               <!-- <span v-on:click="pipeline.started=false;$emit('PipelineStatusUpdate')" class="pipeline-control fa fa-stop" ></span> -->

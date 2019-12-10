@@ -9,7 +9,7 @@
                          
     </div>
 
-    <div v-else class="container-fluid d-flex flex-column align-content-md-center ">
+    <div v-else class="main-area container-fluid d-flex flex-column align-content-md-center ">
             <PipelineStatus v-bind:pipeline="pipeline"  v-on:PipelineStatusUpdate="PipelineStatusUpdate()"/>
        
             <Configurations v-bind:pipeline="pipeline" 
@@ -18,29 +18,31 @@
                             />
 
           
-            <div >
-
-       
+            <div id="visualization-chart">
                         <div class="row ">
                             <div class="col">
                             <div class="row">
                              <div class="col card-header">
-      	                            <div class="row  row-default-bg">
+      	                            <div class="row row-default-bg">
                                           <div class="col-lg-6 ">
                                               <h2>Output</h2>
-                                              </div>
+                                            </div>
                                             <div class="col-lg-6 ">
                                                 <div id="document-selector-area" class="row row-default-bg">
                                                      <div class="col text-right align-middle">
                                               <h2>Document :</h2>
                                               </div><div class="col align-middle">
 
-                                            	<select v-model="general.document_name"  name="processing_mode" class="custom-select" id="processing_mode">
+                                            	<select 
+                                                    v-model="general.document_name"
+                                                    @change="launch(general.document_name)"  
+                                                    name="processing_mode" 
+                                                    class="custom-select" 
+                                                    id="processing_mode">
 	      	
-                                                    <option v-for="options in document_list" v-bind:value="options.value">
-                                                            
+                                                    <option v-for="options in document_list" v-bind:value="options.value">                                                         
                                                           {{ options.text }}
-                                                        </option>
+                                                    </option>
                                                         
 	      	                                    </select>
 
@@ -53,21 +55,24 @@
                             </div>
                             <div class="row">
                             <div class="col d-flex diagram-title">
-                                            <div class="col-lg-6">
-                                              <h2>Diagram {{ diagram_name }}</h2>
-                                              </div>
-                                            </div>
-                            </div><div class="col d-flex mx-auto">              
-                                <h2>
-                                    <div class="alert alert-info" v-show="loading">Loading...</div>
-                                </h2>
-                               <chart v-bind:records="records" ></chart>
+                                <div class="col-lg-6">
+                                    <h2>Diagram {{ diagram_name }}</h2>
+                                </div>
                             </div>
                             </div>
+                            <div class="col d-flex mx-auto">   
+                                <!--
+                                <div v-if="loading">   
+                                    <div class="spinner-border"></div>        
+                                    <h2>                                    
+                                        <div class="alert-info">Please wait. Data is being processed.</div>
+                                    </h2>
+                                </div> -->
+                                <chart v-bind:records="records" ></chart>
                             </div>
                         </div>
-    
-    
+                    </div>
+            </div>
     
             <VisTable v-bind:records="records"/>
     </div>
@@ -114,11 +119,11 @@ export default {
         },    
 
         general : {
-            google_account : 'aaa@bb.cc',
-            project : 'Project name',
-            bucket : 'bucket NAME',
+            google_account : 'account@google.com',
+            project : '',
+            bucket : '',
 
-            document_name : 'resultDocument--2019-02-13T22-36-47UTC',
+            document_name : '', //resultDocument--2019-02-13T22-36-47UTC',
             collection_name: 'cassava_species_sequences_statistic',
             ref_db : 'species'
 
@@ -161,19 +166,10 @@ export default {
         VisTable
     },
 
-/*
- watch: {
-        $route(to, from) {
-           this.getRecords();
-        }
-    },
-*/
 
  watch: {
      records() {
-
          console.log('New records set loaded')
-
      }
  },
 
@@ -227,12 +223,16 @@ export default {
 
     launch: function(url) {
 
+        this.general.bucket = '';
+
         let reqData = { 
                 pipeline_name : this.pipeline.name,
                 collection_name_prefix : this.general.collection_name,
                 document_name_prefix : this.general.document_name,
                 processing_mode : this.general.ref_db
             };
+
+        console.log('getting data for doc: ' + this.general.document_name)    
 
         fetch( new Request(this.LaunchReqURL, 
             { 
@@ -292,15 +292,26 @@ export default {
                 this.general.bucket = pipDataExtra.find(k => k.key == 'resultBucket').strValue;
             })
             .then(this.getRecords)
-           // .then(this.getRecords)
+            .then(this.getDocs)
+     
+    },
 
 
+    getDocs: function() {
+        
+        console.log('getting docs list')
+        this.document_list = []; 
+        this.db.collection(this.general.collection_name).get().then( doc => {              
+             if(doc.docs) {
+                doc.docs.forEach(d => this.document_list.push ({ value: d.id, text: d.id} ))
+             }             
+        })
     },
 
     getRecords: function() {
 
         this.general.collection_name = 'edta_species_sequences_statistic';
-        this.general.document_name = 'resultDocument--2019-02-13T22-36-47UTC';
+        this.general.document_name = this.general.document_name || 'resultDocument--2019-02-13T22-36-47UTC';
       
         let collection = this.$route.params.c || this.general.collection_name,
             docname = this.$route.params.d || this.general.document_name;
@@ -308,13 +319,11 @@ export default {
 
         console.log(`Reading firebase: docname = ${docname}, collection = ${collection}`);    
   
+
         this.db.collection(collection).doc(docname)
             .onSnapshot((doc) => {
                 this.records = this.transform(doc.data());
                 console.log('got data:' + this.records.length + ' records')
-
-              //  var i = d3.layout.hierarchy({name:'root', children: this.records}, d => d.children)
-             // if(this.loading ) this.getRecords();
                 this.loading = false;
             });
     },
