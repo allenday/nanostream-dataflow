@@ -18,7 +18,6 @@ public class TestModule extends NanostreamModule {
     public TestModule(TestModule.Builder builder) {
         super(builder);
     }
-
     public static class Builder extends NanostreamModule.Builder {
 
         @Override

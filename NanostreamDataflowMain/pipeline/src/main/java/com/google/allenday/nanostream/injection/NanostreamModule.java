@@ -1,6 +1,6 @@
 package com.google.allenday.nanostream.injection;
 
-import com.google.allenday.genomics.core.processing.align.AlignerOptions;
+import com.google.allenday.genomics.core.pipeline.GenomicsOptions;
 import com.google.allenday.nanostream.NanostreamPipelineOptions;
 import com.google.allenday.nanostream.ProcessingMode;
 import com.google.allenday.nanostream.util.EntityNamer;
@@ -19,7 +19,7 @@ public class NanostreamModule extends AbstractModule {
     protected ValueProvider<String> outputCollectionNamePrefix;
     protected ValueProvider<String> outputDocumentNamePrefix;
     protected ProcessingMode processingMode;
-    protected AlignerOptions alignerOptions;
+    protected GenomicsOptions genomicsOptions;
 
     public NanostreamModule(Builder builder) {
         this.projectId = builder.projectId;
@@ -27,7 +27,7 @@ public class NanostreamModule extends AbstractModule {
         this.outputCollectionNamePrefix = builder.outputCollectionNamePrefix;
         this.processingMode = builder.processingMode;
         this.outputDocumentNamePrefix = builder.outputDocumentNamePrefix;
-        this.alignerOptions = builder.alignerOptions;
+        this.genomicsOptions = builder.alignerOptions;
     }
 
     public static class Builder {
@@ -37,7 +37,7 @@ public class NanostreamModule extends AbstractModule {
         protected ValueProvider<String> outputCollectionNamePrefix;
         protected ValueProvider<String> outputDocumentNamePrefix;
         protected ProcessingMode processingMode;
-        protected AlignerOptions alignerOptions;
+        protected GenomicsOptions alignerOptions;
 
 
         public Builder setProjectId(String projectId) {
@@ -65,7 +65,7 @@ public class NanostreamModule extends AbstractModule {
             return this;
         }
 
-        public Builder setAlignerOptions(AlignerOptions alignerOptions) {
+        public Builder setAlignerOptions(GenomicsOptions alignerOptions) {
             this.alignerOptions = alignerOptions;
             return this;
         }
@@ -81,7 +81,7 @@ public class NanostreamModule extends AbstractModule {
             setOutputCollectionNamePrefix(nanostreamPipelineOptions.getOutputCollectionNamePrefix());
             setProcessingMode(ProcessingMode.findByLabel(nanostreamPipelineOptions.getProcessingMode()));
             setOutputDocumentNamePrefix(nanostreamPipelineOptions.getOutputDocumentNamePrefix());
-            setAlignerOptions(AlignerOptions.fromAlignerPipelineOptions(nanostreamPipelineOptions));
+            setAlignerOptions(GenomicsOptions.fromAlignerPipelineOptions(nanostreamPipelineOptions));
             return this;
         }
 

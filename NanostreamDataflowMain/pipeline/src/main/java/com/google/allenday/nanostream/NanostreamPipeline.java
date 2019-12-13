@@ -1,6 +1,6 @@
 package com.google.allenday.nanostream;
 
-import com.google.allenday.genomics.core.processing.align.AlignFn;
+import com.google.allenday.genomics.core.processing.align.AlignTransform;
 import com.google.allenday.nanostream.aligner.GetSequencesFromSamDataFn;
 import com.google.allenday.nanostream.errorcorrection.ErrorCorrectionFn;
 import com.google.allenday.nanostream.gcs.ParseGCloudNotification;
@@ -61,7 +61,7 @@ public class NanostreamPipeline {
                 .apply("Parse GCloud notification", ParDo.of(injector.getInstance(ParseGCloudNotification.class)))
                 .apply(options.getAlignmentWindow() + "s FastQ collect window",
                         Window.into(FixedWindows.of(Duration.standardSeconds(options.getAlignmentWindow()))))
-                .apply("Alignment", ParDo.of(injector.getInstance(AlignFn.class)))
+                .apply("Alignment", injector.getInstance(AlignTransform.class))
                 .apply("Extract Sequences",
                         ParDo.of(injector.getInstance(GetSequencesFromSamDataFn.class)))
                 .apply("Group by SAM reference", GroupByKey.create())

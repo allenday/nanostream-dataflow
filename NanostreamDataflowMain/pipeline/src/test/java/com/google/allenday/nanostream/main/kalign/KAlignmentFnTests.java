@@ -1,7 +1,6 @@
 package com.google.allenday.nanostream.main.kalign;
 
-import com.google.allenday.genomics.core.align.KAlignService;
-import com.google.allenday.genomics.core.io.FileUtils;
+import com.google.allenday.genomics.core.processing.align.KAlignService;
 import com.google.allenday.nanostream.kalign.ProceedKAlignmentFn;
 import com.google.allenday.nanostream.kalign.SequenceOnlyDNACoder;
 import com.google.allenday.nanostream.main.injection.TestModule;
@@ -17,16 +16,12 @@ import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.SerializableFunction;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
-import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.Serializable;
-import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -34,8 +29,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static com.google.common.base.Charsets.UTF_8;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
 /**

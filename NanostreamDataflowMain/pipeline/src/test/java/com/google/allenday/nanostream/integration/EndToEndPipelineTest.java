@@ -2,8 +2,8 @@ package com.google.allenday.nanostream.integration;
 
 import com.google.allenday.genomics.core.model.FileWrapper;
 import com.google.allenday.genomics.core.model.GeneExampleMetaData;
-import com.google.allenday.genomics.core.processing.align.AlignFn;
-import com.google.allenday.genomics.core.processing.align.AlignerOptions;
+import com.google.allenday.genomics.core.pipeline.GenomicsOptions;
+import com.google.allenday.genomics.core.processing.align.AlignTransform;
 import com.google.allenday.nanostream.ProcessingMode;
 import com.google.allenday.nanostream.aligner.GetSequencesFromSamDataFn;
 import com.google.allenday.nanostream.errorcorrection.ErrorCorrectionFn;
@@ -87,7 +87,7 @@ public class EndToEndPipelineTest {
         Injector injector = Guice.createInjector(new MainModule.Builder()
                 .setProjectId(Param.getValueFromMap(testParams, Param.PROJECT_ID))
                 .setProcessingMode(processingMode)
-                .setAlignerOptions(new AlignerOptions(Param.getValueFromMap(testParams, Param.RESULT_BUCKET),
+                .setAlignerOptions(new GenomicsOptions(Param.getValueFromMap(testParams, Param.RESULT_BUCKET),
                         Collections.singletonList(Param.getValueFromMap(testParams, Param.REFERENCE_NAME_LIST)),
                         Param.getValueFromMap(testParams, Param.ALL_REFERENCES_GCS_URI),
                         Param.getValueFromMap(testParams, Param.ALIGNED_OUTPUT_DIR),
@@ -109,14 +109,18 @@ public class EndToEndPipelineTest {
                         KV<GCSSourceData, String> element = c.element();
                         FileWrapper fileWrapper =
                                 FileWrapper.fromByteArrayContent(element.getValue().getBytes(), "fileName");
-                        GeneExampleMetaData geneExampleMetaData = new GeneExampleMetaData("TestProject", "TestProjectId", "TestBioSample",
-                                "testExampleSra", "TestRun", false, c.element().getKey().toJsonString());
+                        GeneExampleMetaData geneExampleMetaData = new GeneExampleMetaData();
+                        geneExampleMetaData.setSraStudy("TestProject");
+                        geneExampleMetaData.setSraSample("testExampleSra");
+                        geneExampleMetaData.setRunId("TestRun");
+                        geneExampleMetaData.setLibraryLayout("SINGLE");
+                        geneExampleMetaData.setSrcRawMetaData(c.element().getKey().toJsonString());
                         c.output(KV.of(geneExampleMetaData, Collections.singletonList(fileWrapper)));
                     }
                 }))
                 .apply(FASTQ_GROUPING_WINDOW_TIME_SEC + " Window",
                         Window.into(FixedWindows.of(Duration.standardSeconds(FASTQ_GROUPING_WINDOW_TIME_SEC))))
-                .apply("Alignment", ParDo.of(injector.getInstance(AlignFn.class)))
+                .apply("Alignment", injector.getInstance(AlignTransform.class))
                 .apply("Extract Sequences",
                         ParDo.of(injector.getInstance(GetSequencesFromSamDataFn.class)))
                 .apply("Group by SAM reference", GroupByKey.create())
