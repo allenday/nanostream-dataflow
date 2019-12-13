@@ -101,8 +101,8 @@ export default {
 
   data() {
       return {          
-          LaunchReqURL : 'https://upwork-nano-stream.appspot.com/launch',
-          InfoReqURL : 'https://upwork-nano-stream.appspot.com/info?',
+          LaunchReqURL : '/launch',
+          InfoReqURL : '/info?',
           formActive: true,
 
         pipeline: {
