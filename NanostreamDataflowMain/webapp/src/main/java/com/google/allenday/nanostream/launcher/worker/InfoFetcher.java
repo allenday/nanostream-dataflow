@@ -24,7 +24,7 @@ public class InfoFetcher {
     public String invoke() throws IOException {
         HttpURLConnection connection = sendGetJobsInfoRequest();
 
-        return printOutput(connection);
+        return getRequestOutput(connection);
     }
 
     private HttpURLConnection sendGetJobsInfoRequest() throws IOException {

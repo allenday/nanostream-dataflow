@@ -30,7 +30,7 @@ public class Stopper {
 
         HttpURLConnection connection = sendStopDataflowJobRequest(jsonObj);
 
-        return printOutput(connection);
+        return getRequestOutput(connection);
     }
 
     private JSONObject makeParams() {

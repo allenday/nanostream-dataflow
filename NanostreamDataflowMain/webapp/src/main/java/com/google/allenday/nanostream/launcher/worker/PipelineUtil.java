@@ -2,6 +2,7 @@ package com.google.allenday.nanostream.launcher.worker;
 
 import com.google.appengine.api.appidentity.AppIdentityService;
 import com.google.appengine.api.appidentity.AppIdentityServiceFactory;
+import com.google.apphosting.api.ApiProxy;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 
@@ -11,6 +12,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.apphosting.api.ApiProxy.getCurrentEnvironment;
 import static java.net.HttpURLConnection.HTTP_OK;
 
 class PipelineUtil {
@@ -18,9 +20,9 @@ class PipelineUtil {
     public static final String DATAFLOW_JOB_STATE_CANCELLED = "JOB_STATE_CANCELLED";
 
     public static String getProjectId() {
-//        ApiProxy.Environment env = getCurrentEnvironment();
-//        return env.getAppId();
-        return System.getenv("GOOGLE_CLOUD_PROJECT");
+        ApiProxy.Environment env = getCurrentEnvironment();
+        return env.getAppId();
+//        return System.getenv("GOOGLE_CLOUD_PROJECT");
     }
 
     public static String getAccessToken() {
@@ -45,7 +47,7 @@ class PipelineUtil {
         return conn;
     }
 
-    public static String printOutput(HttpURLConnection conn) throws IOException {
+    public static String getRequestOutput(HttpURLConnection conn) throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
         if (conn.getResponseCode() == HTTP_OK) {
             String line;
