@@ -5,6 +5,8 @@ import com.google.appengine.api.appidentity.AppIdentityServiceFactory;
 import com.google.apphosting.api.ApiProxy;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -19,10 +21,24 @@ class PipelineUtil {
     public static final String DATAFLOW_API_BASE_URI = "https://dataflow.googleapis.com/v1b3/";
     public static final String DATAFLOW_JOB_STATE_CANCELLED = "JOB_STATE_CANCELLED";
 
+    private static final Logger logger = LoggerFactory.getLogger(PipelineUtil.class);
+
     public static String getProjectId() {
-        ApiProxy.Environment env = getCurrentEnvironment();
-        return env.getAppId();
-//        return System.getenv("GOOGLE_CLOUD_PROJECT");
+        String projectId;
+        projectId = System.getenv("GOOGLE_CLOUD_PROJECT");
+        if (projectId != null && !projectId.isEmpty()) {
+            logger.info("ProjectId from env var: " + projectId);
+            return projectId;
+        } else { // useful for local environment where GOOGLE_CLOUD_PROJECT not set
+            ApiProxy.Environment env = getCurrentEnvironment();
+            String appId = env.getAppId();
+            // According to docs (https://cloud.google.com/appengine/docs/standard/java/appidentity/)
+            // appId should be the same as projectId.
+            // In reality appId is prefixed by "s~" chars
+            projectId = appId.replaceAll("^s~", "");
+            logger.info("ProjectId from api proxy: " + projectId);
+            return projectId;
+        }
     }
 
     public static String getAccessToken() {
