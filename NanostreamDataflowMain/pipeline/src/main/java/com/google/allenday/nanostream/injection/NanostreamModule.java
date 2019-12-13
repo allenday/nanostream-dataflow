@@ -7,6 +7,7 @@ import com.google.allenday.nanostream.util.EntityNamer;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import org.apache.beam.sdk.options.ValueProvider;
 
 /**
  * App dependency injection module, that provide graph of main dependencies in app
@@ -15,8 +16,8 @@ public class NanostreamModule extends AbstractModule {
 
     protected String projectId;
     protected String resistanceGenesList;
-    protected String outputCollectionNamePrefix;
-    protected String outputDocumentNamePrefix;
+    protected ValueProvider<String> outputCollectionNamePrefix;
+    protected ValueProvider<String> outputDocumentNamePrefix;
     protected ProcessingMode processingMode;
     protected AlignerOptions alignerOptions;
 
@@ -33,9 +34,9 @@ public class NanostreamModule extends AbstractModule {
 
         protected String projectId;
         protected String resistanceGenesList;
-        protected String outputCollectionNamePrefix;
+        protected ValueProvider<String> outputCollectionNamePrefix;
+        protected ValueProvider<String> outputDocumentNamePrefix;
         protected ProcessingMode processingMode;
-        protected String outputDocumentNamePrefix;
         protected AlignerOptions alignerOptions;
 
 
@@ -49,7 +50,7 @@ public class NanostreamModule extends AbstractModule {
             return this;
         }
 
-        public Builder setOutputCollectionNamePrefix(String outputCollectionNamePrefix) {
+        public Builder setOutputCollectionNamePrefix(ValueProvider<String> outputCollectionNamePrefix) {
             this.outputCollectionNamePrefix = outputCollectionNamePrefix;
             return this;
         }
@@ -59,7 +60,7 @@ public class NanostreamModule extends AbstractModule {
             return this;
         }
 
-        public Builder setOutputDocumentNamePrefix(String outputDocumentNamePrefix) {
+        public Builder setOutputDocumentNamePrefix(ValueProvider<String> outputDocumentNamePrefix) {
             this.outputDocumentNamePrefix = outputDocumentNamePrefix;
             return this;
         }
