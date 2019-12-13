@@ -13,7 +13,7 @@ import nv  from "nvd3";
 
 
 export default {
-  props: ["records","mode","loaded"],
+  props: ["records","mode","loading"],
 
   data() {
       return {
@@ -27,7 +27,10 @@ export default {
     records(val) {
         console.log('mode=' + this.mode)
         this.chart ? this.updateChart(val) : this.initChart(val, this.mode);
-    }
+    },
+    loading() {
+        console.log('Loading=' + this.loading)
+     }
   },
 
 

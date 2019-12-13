@@ -13,14 +13,14 @@
 	    </div>
 		
 		<div class="form-group">
-	      <label for="document-name">Collection name prefix:</label>
-	       <a class="tooltip-icon" data-toggle="tooltip" data-placement="top" title="Collection name tooltip"><i class="fa fa-question-circle"></i></a>
+	      <label for="document-name">Collection name prefix: </label>&nbsp;
+	       <a class="tooltip-icon" data-toggle="tooltip" data-placement="top" title="Firestore database сollection name prefix that will be used for writing results."><i class="fa fa-question-circle"></i></a>
 	      <input v-model="general.collection_name" type="text" class="form-control" id="collection-name" placeholder="collectionname" >
 	    </div>
 
 		<div class="form-group">
-	      <label for="document-name">Document name prefix:</label>
-	       <a class="tooltip-icon" data-toggle="tooltip" data-placement="top" title="Document name tooltip"><i class="fa fa-question-circle"></i></a>
+	      <label for="document-name">Document name prefix: </label>&nbsp;
+	       <a class="tooltip-icon" data-toggle="tooltip" data-placement="top" title="Firestore database document name prefix that will be used for writing statistic results."><i class="fa fa-question-circle"></i></a>
 	      <input v-model="general.document_name" type="text" class="form-control" id="document-name" placeholder="directoryname" name="document-name">
 	    </div>
 
@@ -30,7 +30,9 @@
 			
 			<div class="custom-control custom-radio">
 		  		<input v-model="custom_selected" value="false" type="radio" id="predefined-radio"  class="custom-control-input" >
-		  		<label class="custom-control-label" for="predefined-radio">Use predefined</label>
+		  		<label class="custom-control-label" for="predefined-radio">Use predefined:</label>
+				  &nbsp;<a class="tooltip-icon" data-toggle="tooltip" data-placement="top" 
+				  	title="choose one of the predefined processing mode. Each mode uses corresponding reference database"><i class="fa fa-question-circle"></i></a>
 		  	</div>
 			<select v-model="general.ref_db" name="processing_mode" class="custom-select" id="processing_mode">
 	      		<option selected value="species">species</option>

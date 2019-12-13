@@ -9,12 +9,12 @@
           <h2 class="d-flex">Status:             
             <span v-if="pipeline.started">
               <span>&nbsp;Launched </span> 
-              <!-- <span v-on:click="pipeline.started=false;$emit('PipelineStatusUpdate')" class="pipeline-control fa fa-stop" ></span> -->
+               <span data-toggle="tooltip" data-placement="top" :title="statusText" v-on:click="$emit('PipelineStatusUpdate')" class="pipeline-control fa fa-stop" ></span> 
             </span> 
             
             <span v-else>
               <span>&nbsp;Stopped </span> 
-             <!-- <span v-on:click="pipeline.started=true;$emit('PipelineStatusUpdate')" class="pipeline-control fa fa-play" aria-hidden="true"></span> -->
+              <span data-toggle="tooltip" data-placement="top" :title="statusText" v-on:click="$emit('PipelineStatusUpdate')"  class="pipeline-control fa fa-play" aria-hidden="true"></span> 
             </span> 
                         
             </h2>
@@ -30,8 +30,21 @@
 export default {
 
   name: 'pipelinestatus',
+  props: ["pipeline"],
 
-  props: ["pipeline"]
+   data() {
+      return {
+        status : this.pipeline.status,
+    }
+  },
+
+
+  computed : {
+    statusText : function() {
+      return "Current state = " + this.status + ",Click to Start/Stop pipeline";
+    }
+
+  }
 
 }
 

@@ -33,18 +33,29 @@
                                               <h2>Document :</h2>
                                               </div><div class="col align-middle">
 
-                                            	<select 
+                                            	<select    
+                                                    
+                                                    v-if="document_list.length"                                               
                                                     v-model="general.document_name"
                                                     @change="launch(general.document_name)"  
                                                     name="processing_mode" 
+                                             
                                                     class="custom-select" 
                                                     id="processing_mode">
 	      	
-                                                    <option v-for="options in document_list" v-bind:value="options.value">                                                         
+                                                    <option  v-for="options in document_list" 
+                                                        v-bind:value="options.text">                                                         
                                                           {{ options.text }}
                                                     </option>
                                                         
-	      	                                    </select>
+	      	                                    </select >
+
+                                                 <select 
+                                                    class="waitingForData custom-select" 
+                                                    id="processing_mode" 
+                                                    v-else >
+                                                        <option>&nbsp;&nbsp;&nbsp;&nbsp;...loading...&nbsp;&nbsp;&nbsp;</option>
+                                                </select> 
 
                                                                                     
                                                 </div>
@@ -68,7 +79,7 @@
                                         <div class="alert-info">Please wait. Data is being processed.</div>
                                     </h2>
                                 </div> -->
-                                <chart v-bind:records="records" ></chart>
+                                <chart v-bind:records="records" v-bind:loading="loading"></chart>
                             </div>
                         </div>
                     </div>
@@ -103,12 +114,15 @@ export default {
       return {          
           LaunchReqURL : 'https://upwork-nano-stream.appspot.com/launch',
           InfoReqURL : 'https://upwork-nano-stream.appspot.com/info?',
+          StopPipelineURL : 'https://upwork-nano-stream.appspot.com/stop?',
+          JobsURL : 'https://upwork-nano-stream.appspot.com/jobs',
           formActive: true,
 
         pipeline: {
                 alignment_window : 20,
-                subscription: 1,
+                update_frequency: 30,
                 started : true,
+                status: '',
                 name: 'id123456'
 
             },
@@ -130,6 +144,7 @@ export default {
         },
 
         launch_response : '',
+        
         job_id : '',
         location : '',
 
@@ -142,18 +157,13 @@ export default {
             "location": "us-central1", 
             "startTime": "2019-12-03T10:53:09.177929Z" } },
                     
-          loading: false,
-          records: [], // source data to build diagram
-          db: null,
-          mode : '',
+        loading: false,
+        records: [], // source data to build diagram
+        db: null,
+        mode : '',
 
-          diagram_name: 'Diagram-Name',
-
-          document_list: [ 
-              {value:1, text: '3_Klebsiella.txt'},
-              {value:2, text: '4_Klebsiella.txt'}
-              
-              ]
+        diagram_name: 'Diagram-Name',
+        document_list: [ ]
       }
   },
 
@@ -170,6 +180,10 @@ export default {
  watch: {
      records() {
          console.log('New records set loaded')
+     },
+
+     loading() {
+        console.log('======= Loading= ' + this.loading)
      }
  },
 
@@ -178,17 +192,40 @@ export default {
     console.log('== db init ==')
   },
 
-/*
+
  mounted() {
-    this.getRecords();
+    this.getJobs();
  }, 
-*/
+
 
  methods: {
+
+
+
+     setPipelineStatus : function(response_status) {
+
+         this.pipeline.status = response_status;
+         switch(response_status) {
+
+            case 'JOB_STATE_QUEUED':
+            case 'JOB_STATE_PENDING':
+            case 'JOB_STATE_RUNNING':
+                this.pipeline.started = true;
+                break;
+
+            default:
+                this.pipeline.started = false;
+                break;                    
+         }
+                 
+     },
 
      PipelineStatusUpdate: function() {
 
          console.log('Pipeline status updated, started : ' + this.pipeline.started)
+         if(this.pipeline.started) {
+             this.stopPipeline();
+         }
 
      },
 
@@ -223,7 +260,12 @@ export default {
 
     launch: function(url) {
 
+
+        this.loading = true;
+
         this.general.bucket = '';
+
+        console.log('NEW doc name:' + this.document_name)
 
         let reqData = { 
                 pipeline_name : this.pipeline.name,
@@ -263,8 +305,61 @@ export default {
                 this.location = data.job.location;                
             })
             .then(this.getPipelineInfo)
+            .then(() => this.loading = false)
     },
 
+
+    getJobs: function() {
+
+      //console.log('STOP Pipeline called: ' + this.StopPipelineURL + 'jobId=' + this.job_id + '&location=' + this.location)
+
+        fetch( this.JobsURL )
+            .then(                
+                successResponse => {
+                    if (successResponse.status != 200) {
+                        return null;
+                    } else {
+                        return successResponse.json();
+                    }
+                },
+                failResponse => {
+                    return null;
+                }
+                               
+                )
+            .then( (data) => {
+                console.log('JOBS response data:', data)
+            })
+
+    },
+
+    stopPipeline:  function() {
+
+        console.log('STOP Pipeline called: ' + this.StopPipelineURL + 'jobId=' + this.job_id + '&location=' + this.location)
+
+        fetch( this.StopPipelineURL + 'jobId=' + this.job_id + '&location=' + this.location)
+            .then(                
+                successResponse => {
+                    if (successResponse.status != 200) {
+                        return null;
+                    } else {
+                        return successResponse.json();
+                    }
+                },
+                failResponse => {
+                    return null;
+                }
+                               
+                )
+            .then( (data) => {
+                console.log('Stop Pipeline response data:', data)
+//                let pipDataExtra = data.pipelineDescription.displayData;
+ //               this.general.bucket = pipDataExtra.find(k => k.key == 'resultBucket').strValue;
+            })
+   //         .then(this.getRecords)
+     
+
+    },    
 
     getPipelineInfo:  function() {
 
@@ -289,6 +384,8 @@ export default {
             .then( (data) => {
                 console.log('Response from Info:',data)
                 let pipDataExtra = data.pipelineDescription.displayData;
+                console.log('Current Pipeline State: ' + data.currentState)
+                this.setPipelineStatus(data.currentState);
                 this.general.bucket = pipDataExtra.find(k => k.key == 'resultBucket').strValue;
             })
             .then(this.getRecords)
@@ -323,7 +420,7 @@ export default {
         this.db.collection(collection).doc(docname)
             .onSnapshot((doc) => {
                 this.records = this.transform(doc.data());
-                console.log('got data:' + this.records.length + ' records')
+  //              console.log('got data:' + this.records.length + ' records')
                 this.loading = false;
             });
     },
