@@ -14,7 +14,8 @@
             
             <span v-else>
               <span>&nbsp;Stopped </span> 
-              <span data-toggle="tooltip" data-placement="top" :title="statusText" v-on:click="$emit('PipelineStatusUpdate')"  class="pipeline-control fa fa-play" aria-hidden="true"></span> 
+              <span data-toggle="tooltip" data-placement="top" 
+              :title="statusText" v-on:click="$emit('PipelineStatusUpdate')"  class="pipeline-control fa fa-play" aria-hidden="true"></span> 
             </span> 
                         
             </h2>
@@ -32,16 +33,12 @@ export default {
   name: 'pipelinestatus',
   props: ["pipeline"],
 
-   data() {
-      return {
-        status : this.pipeline.status,
-    }
-  },
+
 
 
   computed : {
     statusText : function() {
-      return "Current state = " + this.status + ",Click to Start/Stop pipeline";
+      return "Current state = " + this.pipeline.status + ",Click to Start/Stop pipeline";
     }
 
   }

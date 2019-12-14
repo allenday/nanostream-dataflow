@@ -44,7 +44,8 @@
                                                     id="processing_mode">
 	      	
                                                     <option  v-for="options in document_list" 
-                                                        v-bind:value="options.text">                                                         
+                                                        v-bind:value="options.text" 
+                                                        v-bind:selected="options.selected">                                                         
                                                           {{ options.text }}
                                                     </option>
                                                         
@@ -138,13 +139,15 @@ export default {
             bucket : '',
 
             document_name : '', //resultDocument--2019-02-13T22-36-47UTC',
-            collection_name: 'cassava_species_sequences_statistic',
+            collection_name_prefix: 'cassava_species_sequences',
+            collection_name_base: 'statistic',
+            collection_name : '',
             ref_db : 'species'
 
         },
 
         launch_response : '',
-        
+
         job_id : '',
         location : '',
 
@@ -187,19 +190,30 @@ export default {
      }
  },
 
+
+ computed: {
+     collection_name() {
+
+        this.general.collection_name = this.collection_name_base + '__' + this.general.bucket;
+        if(this.collection_name_prefix) this.general.collection_name =  this.collection_name_prefix + '_' + this.collection_name;
+        return this.general.collection_name;
+
+     }
+
+ },
+
  created() {
     this.db = this.FirebaseInit();
     console.log('== db init ==')
   },
 
 
- mounted() {
+ mounted() { // start processing here
     this.getJobs();
  }, 
 
 
  methods: {
-
 
 
      setPipelineStatus : function(response_status) {
@@ -225,11 +239,14 @@ export default {
          console.log('Pipeline status updated, started : ' + this.pipeline.started)
          if(this.pipeline.started) {
              this.stopPipeline();
+         }else{
+             this.getJobs();
          }
 
      },
 
     startPipeline: function() {
+
           console.log('Form Submitted');
           this.formActive = false;
           this.launch();
@@ -311,8 +328,6 @@ export default {
 
     getJobs: function() {
 
-      //console.log('STOP Pipeline called: ' + this.StopPipelineURL + 'jobId=' + this.job_id + '&location=' + this.location)
-
         fetch( this.JobsURL )
             .then(                
                 successResponse => {
@@ -329,6 +344,20 @@ export default {
                 )
             .then( (data) => {
                 console.log('JOBS response data:', data)
+                if(!data.jobs.length) { 
+                    this.formActive = true;
+                    console.log('Job list is empty');
+                }else{    
+                    const lastJobCreationTime = d3.max( data.jobs, d => d.createTime),
+                        lastJob = data.jobs.find(d => d.createTime == lastJobCreationTime);
+                    this.job_id = lastJob.id;
+                    this.location = lastJob.location;
+                    this.general.project = lastJob.projectId;
+                    console.log('last job status=' + lastJob.currentState + ',id:' + lastJob.id)
+                    this.getPipelineInfo();
+                    this.loading = false;
+                    this.formActive = false;
+                }
             })
 
     },
@@ -336,6 +365,7 @@ export default {
     stopPipeline:  function() {
 
         console.log('STOP Pipeline called: ' + this.StopPipelineURL + 'jobId=' + this.job_id + '&location=' + this.location)
+
 
         fetch( this.StopPipelineURL + 'jobId=' + this.job_id + '&location=' + this.location)
             .then(                
@@ -353,6 +383,7 @@ export default {
                 )
             .then( (data) => {
                 console.log('Stop Pipeline response data:', data)
+                this.pipeline.started = false;
 //                let pipDataExtra = data.pipelineDescription.displayData;
  //               this.general.bucket = pipDataExtra.find(k => k.key == 'resultBucket').strValue;
             })
@@ -362,10 +393,6 @@ export default {
     },    
 
     getPipelineInfo:  function() {
-
-        this.job_id = '2019-12-03_02_53_07-7220802469192670302'; // !!!
-                //https://upwork-nano-stream.appspot.com/info?jobId=2019-12-03_02_53_07-7220802469192670302&location=us-central1
-
 
         fetch( this.InfoReqURL + 'jobId=' + this.job_id + '&location=' + this.location)
             .then(                
@@ -383,10 +410,10 @@ export default {
                 )
             .then( (data) => {
                 console.log('Response from Info:',data)
+                console.log('Current Pipeline State: ' + data.currentState)  
+                this.setPipelineStatus(data.currentState);                              
                 let pipDataExtra = data.pipelineDescription.displayData;
-                console.log('Current Pipeline State: ' + data.currentState)
-                this.setPipelineStatus(data.currentState);
-                this.general.bucket = pipDataExtra.find(k => k.key == 'resultBucket').strValue;
+                this.general.bucket = pipDataExtra ? pipDataExtra.find(k => k.key == 'resultBucket').strValue : 'undefined'; // if PENDING, bucket is not defined ?
             })
             .then(this.getRecords)
             .then(this.getDocs)
@@ -400,9 +427,10 @@ export default {
         this.document_list = []; 
         this.db.collection(this.general.collection_name).get().then( doc => {              
              if(doc.docs) {
-                doc.docs.forEach(d => this.document_list.push ({ value: d.id, text: d.id} ))
+                doc.docs.forEach(d => this.document_list.push ({ selected: this.general.document_name == d.id, value: d.id, text: d.id} ))
              }             
         })
+        console.log(this.document_list)
     },
 
     getRecords: function() {

@@ -13,7 +13,7 @@
 					<span v-bind:class="general.bucket || 'waitingForData'">{{ general.bucket ||  '...getting data...'}}</span></li>
 	            <li><span class="conf_name">Reference database</span>: {{general.ref_db }} </li>
 	          </ul>
-	          <p v-bind:class="general.bucket || 'hidden'"><a :href="bucket_name_full"><i class="fa fa-sign-in"></i> Go to bucket</a></p> 
+	          <p v-bind:class="general.bucket && general.bucket != 'undefined' || 'hidden'"><a :href="bucket_name_full"><i class="fa fa-sign-in"></i> Go to bucket</a></p> 
 	        </div>
 	        
 	        <div class="col-sm-5">
