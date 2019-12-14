@@ -3,14 +3,14 @@ package com.google.allenday.nanostream.launcher.worker;
 import javax.servlet.http.HttpServletRequest;
 import java.util.UUID;
 
-class LaunchParams {
+public class LaunchParams {
 
     String outputCollectionNamePrefix;
     String outputDocumentNamePrefix;
     String pipelineName;
     String processingMode;
 
-    LaunchParams(HttpServletRequest request) {
+    public LaunchParams(HttpServletRequest request) {
         outputCollectionNamePrefix = getParameter(request, "collection_name_prefix", "");
         outputDocumentNamePrefix = getParameter(request, "document_name_prefix", "");
         pipelineName  = getParameter(request, "pipeline_name", "template-" + UUID.randomUUID().toString());
