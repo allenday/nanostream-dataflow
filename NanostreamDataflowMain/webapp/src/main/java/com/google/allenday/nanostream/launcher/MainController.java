@@ -2,10 +2,8 @@ package com.google.allenday.nanostream.launcher;
 
 import com.google.allenday.nanostream.launcher.worker.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -17,11 +15,13 @@ public class MainController {
 
     private final ListFetcher listFetcher;
     private final Starter starter;
+    private final SettingsFetcher settingsFetcher;
 
     @Autowired
-    public MainController(ListFetcher listFetcher, Starter starter) {
+    public MainController(ListFetcher listFetcher, Starter starter, SettingsFetcher settingsFetcher) {
         this.listFetcher = listFetcher;
         this.starter = starter;
+        this.settingsFetcher = settingsFetcher;
     }
 
     @CrossOrigin
@@ -46,5 +46,12 @@ public class MainController {
     @GetMapping(value = "/info", produces = APPLICATION_JSON_VALUE)
     public String info(HttpServletRequest request) throws IOException {
         return new InfoFetcher(request).invoke();
+    }
+
+    @CrossOrigin
+    @GetMapping(value = "/settings", produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity<SettingsResponse> settings() throws IOException {
+        SettingsResponse response = settingsFetcher.invoke();
+        return ResponseEntity.ok(response);
     }
 }
