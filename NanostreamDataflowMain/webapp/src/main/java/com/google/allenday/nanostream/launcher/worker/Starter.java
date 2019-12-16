@@ -43,6 +43,7 @@ public class Starter {
         JSONObject jsonObj = makeParams(launchParams);
 
         if (!isRunningJob()) {
+            logger.info("Starting pipeline: {}", launchParams.pipelineName);
             HttpURLConnection connection = sendLaunchDataflowJobFromTemplateRequest(jsonObj, templateName);
             return getRequestOutput(connection);
         } else {

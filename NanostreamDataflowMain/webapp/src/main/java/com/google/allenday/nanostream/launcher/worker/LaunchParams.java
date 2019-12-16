@@ -1,9 +1,14 @@
 package com.google.allenday.nanostream.launcher.worker;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.servlet.http.HttpServletRequest;
 import java.util.UUID;
 
 public class LaunchParams {
+
+    private static final Logger logger = LoggerFactory.getLogger(LaunchParams.class);
 
     String outputCollectionNamePrefix;
     String outputDocumentNamePrefix;
@@ -19,6 +24,11 @@ public class LaunchParams {
 
     private String getParameter(HttpServletRequest request, String paramName, String defaultValue) {
         String parameter = request.getParameter(paramName);
+
+        logger.info(paramName);
+        logger.info(parameter);
+        logger.info(defaultValue);
+
         if (parameter == null || parameter.isEmpty()) {
             parameter = defaultValue;
         }
