@@ -33,18 +33,30 @@
                                               <h2>Document :</h2>
                                               </div><div class="col align-middle">
 
-                                            	<select 
+                                            	<select    
+                                                    
+                                                    v-if="document_list.length"                                               
                                                     v-model="general.document_name"
                                                     @change="launch(general.document_name)"  
                                                     name="processing_mode" 
+                                             
                                                     class="custom-select" 
                                                     id="processing_mode">
 	      	
-                                                    <option v-for="options in document_list" v-bind:value="options.value">                                                         
+                                                    <option  v-for="options in document_list" 
+                                                        v-bind:value="options.text" 
+                                                        v-bind:selected="options.selected">                                                         
                                                           {{ options.text }}
                                                     </option>
                                                         
-	      	                                    </select>
+	      	                                    </select >
+
+                                                 <select 
+                                                    class="waitingForData custom-select" 
+                                                    id="processing_mode" 
+                                                    v-else >
+                                                        <option>&nbsp;&nbsp;&nbsp;&nbsp;...loading...&nbsp;&nbsp;&nbsp;</option>
+                                                </select> 
 
                                                                                     
                                                 </div>
@@ -68,7 +80,7 @@
                                         <div class="alert-info">Please wait. Data is being processed.</div>
                                     </h2>
                                 </div> -->
-                                <chart v-bind:records="records" ></chart>
+                                <chart v-bind:records="records" v-bind:loading="loading"></chart>
                             </div>
                         </div>
                     </div>
@@ -101,14 +113,19 @@ export default {
 
   data() {
       return {          
-          LaunchReqURL : '/launch',
-          InfoReqURL : '/info?',
+
+          LaunchReqURL : 'https://upwork-nano-stream.appspot.com/launch',
+          InfoReqURL : 'https://upwork-nano-stream.appspot.com/info?',
+          StopPipelineURL : 'https://upwork-nano-stream.appspot.com/stop?',
+          JobsURL : 'https://upwork-nano-stream.appspot.com/jobs',
+
           formActive: true,
 
         pipeline: {
                 alignment_window : 20,
-                subscription: 1,
+                update_frequency: 30,
                 started : true,
+                status: '',
                 name: 'id123456'
 
             },
@@ -124,12 +141,15 @@ export default {
             bucket : '',
 
             document_name : '', //resultDocument--2019-02-13T22-36-47UTC',
-            collection_name: 'cassava_species_sequences_statistic',
+            collection_name_prefix: 'cassava_species_sequences',
+            collection_name_base: 'statistic',
+            collection_name : '',
             ref_db : 'species'
 
         },
 
         launch_response : '',
+
         job_id : '',
         location : '',
 
@@ -142,18 +162,13 @@ export default {
             "location": "us-central1", 
             "startTime": "2019-12-03T10:53:09.177929Z" } },
                     
-          loading: false,
-          records: [], // source data to build diagram
-          db: null,
-          mode : '',
+        loading: false,
+        records: [], // source data to build diagram
+        db: null,
+        mode : '',
 
-          diagram_name: 'Diagram-Name',
-
-          document_list: [ 
-              {value:1, text: '3_Klebsiella.txt'},
-              {value:2, text: '4_Klebsiella.txt'}
-              
-              ]
+        diagram_name: 'Diagram-Name',
+        document_list: [ ]
       }
   },
 
@@ -170,7 +185,23 @@ export default {
  watch: {
      records() {
          console.log('New records set loaded')
+     },
+
+     loading() {
+        console.log('======= Loading= ' + this.loading)
      }
+ },
+
+
+ computed: {
+     collection_name() {
+
+        this.general.collection_name = this.collection_name_base + '__' + this.general.bucket;
+        if(this.collection_name_prefix) this.general.collection_name =  this.collection_name_prefix + '_' + this.collection_name;
+        return this.general.collection_name;
+
+     }
+
  },
 
  created() {
@@ -178,21 +209,46 @@ export default {
     console.log('== db init ==')
   },
 
-/*
- mounted() {
-    this.getRecords();
+
+ mounted() { // start processing here
+    this.getJobs();
  }, 
-*/
+
 
  methods: {
+
+
+     setPipelineStatus : function(response_status) {
+
+         this.pipeline.status = response_status;
+         switch(response_status) {
+
+            case 'JOB_STATE_QUEUED':
+            case 'JOB_STATE_PENDING':
+            case 'JOB_STATE_RUNNING':
+                this.pipeline.started = true;
+                break;
+
+            default:
+                this.pipeline.started = false;
+                break;                    
+         }
+                 
+     },
 
      PipelineStatusUpdate: function() {
 
          console.log('Pipeline status updated, started : ' + this.pipeline.started)
+         if(this.pipeline.started) {
+             this.stopPipeline();
+         }else{
+             this.getJobs();
+         }
 
      },
 
     startPipeline: function() {
+
           console.log('Form Submitted');
           this.formActive = false;
           this.launch();
@@ -223,7 +279,12 @@ export default {
 
     launch: function(url) {
 
+
+        this.loading = true;
+
         this.general.bucket = '';
+
+        console.log('NEW doc name:' + this.document_name)
 
         let reqData = { 
                 pipeline_name : this.pipeline.name,
@@ -263,14 +324,77 @@ export default {
                 this.location = data.job.location;                
             })
             .then(this.getPipelineInfo)
+            .then(() => this.loading = false)
     },
 
 
+    getJobs: function() {
+
+        fetch( this.JobsURL )
+            .then(                
+                successResponse => {
+                    if (successResponse.status != 200) {
+                        return null;
+                    } else {
+                        return successResponse.json();
+                    }
+                },
+                failResponse => {
+                    return null;
+                }
+                               
+                )
+            .then( (data) => {
+                console.log('JOBS response data:', data)
+                if(!data.jobs.length) { 
+                    this.formActive = true;
+                    console.log('Job list is empty');
+                }else{    
+                    const lastJobCreationTime = d3.max( data.jobs, d => d.createTime),
+                        lastJob = data.jobs.find(d => d.createTime == lastJobCreationTime);
+                    this.job_id = lastJob.id;
+                    this.location = lastJob.location;
+                    this.general.project = lastJob.projectId;
+                    console.log('last job status=' + lastJob.currentState + ',id:' + lastJob.id)
+                    this.getPipelineInfo();
+                    this.loading = false;
+                    this.formActive = false;
+                }
+            })
+
+    },
+
+    stopPipeline:  function() {
+
+        console.log('STOP Pipeline called: ' + this.StopPipelineURL + 'jobId=' + this.job_id + '&location=' + this.location)
+
+
+        fetch( this.StopPipelineURL + 'jobId=' + this.job_id + '&location=' + this.location)
+            .then(                
+                successResponse => {
+                    if (successResponse.status != 200) {
+                        return null;
+                    } else {
+                        return successResponse.json();
+                    }
+                },
+                failResponse => {
+                    return null;
+                }
+                               
+                )
+            .then( (data) => {
+                console.log('Stop Pipeline response data:', data)
+                this.pipeline.started = false;
+//                let pipDataExtra = data.pipelineDescription.displayData;
+ //               this.general.bucket = pipDataExtra.find(k => k.key == 'resultBucket').strValue;
+            })
+   //         .then(this.getRecords)
+     
+
+    },    
+
     getPipelineInfo:  function() {
-
-        this.job_id = '2019-12-03_02_53_07-7220802469192670302'; // !!!
-                //https://upwork-nano-stream.appspot.com/info?jobId=2019-12-03_02_53_07-7220802469192670302&location=us-central1
-
 
         fetch( this.InfoReqURL + 'jobId=' + this.job_id + '&location=' + this.location)
             .then(                
@@ -288,8 +412,10 @@ export default {
                 )
             .then( (data) => {
                 console.log('Response from Info:',data)
+                console.log('Current Pipeline State: ' + data.currentState)  
+                this.setPipelineStatus(data.currentState);                              
                 let pipDataExtra = data.pipelineDescription.displayData;
-                this.general.bucket = pipDataExtra.find(k => k.key == 'resultBucket').strValue;
+                this.general.bucket = pipDataExtra ? pipDataExtra.find(k => k.key == 'resultBucket').strValue : 'undefined'; // if PENDING, bucket is not defined ?
             })
             .then(this.getRecords)
             .then(this.getDocs)
@@ -303,9 +429,10 @@ export default {
         this.document_list = []; 
         this.db.collection(this.general.collection_name).get().then( doc => {              
              if(doc.docs) {
-                doc.docs.forEach(d => this.document_list.push ({ value: d.id, text: d.id} ))
+                doc.docs.forEach(d => this.document_list.push ({ selected: this.general.document_name == d.id, value: d.id, text: d.id} ))
              }             
         })
+        console.log(this.document_list)
     },
 
     getRecords: function() {
@@ -323,7 +450,7 @@ export default {
         this.db.collection(collection).doc(docname)
             .onSnapshot((doc) => {
                 this.records = this.transform(doc.data());
-                console.log('got data:' + this.records.length + ' records')
+  //              console.log('got data:' + this.records.length + ' records')
                 this.loading = false;
             });
     },
