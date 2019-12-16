@@ -57,7 +57,11 @@ class Install:
         subprocess.check_call(cmd, shell=True)
 
     def enable_apis(self):
-        cmd = 'gcloud services enable dataflow.googleapis.com'
+        self.enable_api("dataflow.googleapis.com")
+        self.enable_api("firebase.googleapis.com")
+
+    def enable_api(self, api_name):
+        cmd = 'gcloud services enable %s' % api_name
         print 'Enable apis: %s' % cmd
         subprocess.check_call(cmd, shell=True)
 
