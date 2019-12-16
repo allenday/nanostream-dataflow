@@ -242,7 +242,7 @@ export default {
          if(this.pipeline.started) {
              this.stopPipeline();
          }else{
-             this.getJobs();
+             this.runJob();
          }
 
      },
@@ -294,6 +294,7 @@ export default {
             };
 
         console.log('getting data for doc: ' + this.general.document_name)    
+        console.log('launch params: ', reqData)
 
         fetch( new Request(this.LaunchReqURL, 
             { 
@@ -364,12 +365,17 @@ export default {
 
     },
 
+    runJob: function() {
+        this.formActive = true;
+        console.log('run new job');
+    },
+
     stopPipeline:  function() {
 
         console.log('STOP Pipeline called: ' + this.StopPipelineURL + 'jobId=' + this.job_id + '&location=' + this.location)
 
 
-        fetch( this.StopPipelineURL + 'jobId=' + this.job_id + '&location=' + this.location)
+        fetch( this.StopPipelineURL + 'jobId=' + this.job_id + '&location=' + this.location, { method: 'POST'})
             .then(                
                 successResponse => {
                     if (successResponse.status != 200) {
