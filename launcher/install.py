@@ -57,7 +57,11 @@ class Install:
         subprocess.check_call(cmd, shell=True)
 
     def enable_apis(self):
-        cmd = 'gcloud services enable dataflow.googleapis.com'
+        self.enable_api("dataflow.googleapis.com")
+        self.enable_api("firebase.googleapis.com")
+
+    def enable_api(self, api_name):
+        cmd = 'gcloud services enable %s' % api_name
         print 'Enable apis: %s' % cmd
         subprocess.check_call(cmd, shell=True)
 
@@ -120,7 +124,7 @@ class Install:
         memory_output_limit = 0
 
         resistance_genes_list = self.upload_bucket_url + 'gene-info/resistance_genes_list.txt'
-        aligned_output_dir = 'clinic_processing_output/%s/result_aligned_bam/'
+        output_dir = 'clinic_processing_output/'
 
         reference_database = 'genomeDB'
         all_references_dir_gcs_uri = self.upload_bucket_url + 'references/'
@@ -155,7 +159,7 @@ class Install:
                   stats_update_frequency,
                   resistance_genes_list,
                   self.upload_bucket_url,
-                  aligned_output_dir,
+                  output_dir,
                   reference_database,
                   all_references_dir_gcs_uri,
                   self.dataflow_bucket_url + 'tmp',
