@@ -86,9 +86,9 @@
             <version>1.5.1.1</version>
         </dependency>
         <dependency>
-            <groupId>com.google.allenday.genomics.core</groupId>
+            <groupId>com.google.allenday</groupId>
             <artifactId>genomics-dataflow-core</artifactId>
-            <version>0.0.1</version>
+            <version>0.0.3-SNAPSHOT</version>
         </dependency>
         <!-- http services -->
         <dependency>
@@ -188,4 +188,16 @@
             <!--</plugin>-->
         </plugins>
     </build>
+    <repositories>
+        <repository>
+            <id>oss.sonatype.org-snapshot</id>
+            <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 </project>

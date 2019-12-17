@@ -108,10 +108,6 @@ class Install:
         print 'Add pal dependency: %s' % cmd
         subprocess.check_call(cmd, shell=True)
 
-        cmd = 'mvn install:install-file -Dfile=NanostreamDataflowMain/libs/genomics-dataflow-core.jar -DgroupId=com.google.allenday.genomics.core -DartifactId=genomics-dataflow-core -Dversion=0.0.1 -Dpackaging=jar'
-        print 'Add genomics.core dependency: %s' % cmd
-        subprocess.check_call(cmd, shell=True)
-
     def deploy_dataflow_templates(self):
         self.deploy_dataflow_template('species')
         self.deploy_dataflow_template('resistance_genes')
@@ -120,6 +116,8 @@ class Install:
         template_name = 'nanostream-' + processing_mode
         alignment_window = 20
         stats_update_frequency = 30
+
+        memory_output_limit = 0
 
         resistance_genes_list = self.upload_bucket_url + 'gene-info/resistance_genes_list.txt'
         aligned_output_dir = 'clinic_processing_output/%s/result_aligned_bam/'
@@ -140,12 +138,13 @@ class Install:
               '--statisticUpdatingDelay=%s ' \
               '--resistanceGenesList=%s ' \
               '--resultBucket=%s ' \
-              '--alignedOutputDir=%s ' \
+              '--outputDir=%s ' \
               '--referenceNamesList=%s ' \
               '--allReferencesDirGcsUri=%s ' \
               '--gcpTempLocation=%s ' \
               '--stagingLocation=%s ' \
               '--templateLocation=%s ' \
+              '--memoryOutputLimit=%s ' \
               '" ' \
               '-Dexec.cleanupDaemonThreads=false' \
               % (
@@ -161,7 +160,8 @@ class Install:
                   all_references_dir_gcs_uri,
                   self.dataflow_bucket_url + 'tmp',
                   self.dataflow_bucket_url + 'staging',
-                  self.dataflow_bucket_url + 'templates/' + template_name
+                  self.dataflow_bucket_url + 'templates/' + template_name,
+                  memory_output_limit
               )
         print 'Compile and deploy Dataflow template for processing mode %s: %s' % (processing_mode, cmd)
         subprocess.check_call(cmd, shell=True)

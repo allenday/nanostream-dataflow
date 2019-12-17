@@ -1,14 +1,16 @@
 package com.google.allenday.nanostream.injection;
 
-import com.google.allenday.genomics.core.align.AlignService;
-import com.google.allenday.genomics.core.align.KAlignService;
-import com.google.allenday.genomics.core.align.SamBamManipulationService;
-import com.google.allenday.genomics.core.align.transform.AlignFn;
 import com.google.allenday.genomics.core.cmd.CmdExecutor;
 import com.google.allenday.genomics.core.cmd.WorkerSetupService;
 import com.google.allenday.genomics.core.io.FileUtils;
 import com.google.allenday.genomics.core.io.TransformIoHandler;
+import com.google.allenday.genomics.core.processing.SamBamManipulationService;
+import com.google.allenday.genomics.core.processing.align.AlignFn;
+import com.google.allenday.genomics.core.processing.align.AlignService;
+import com.google.allenday.genomics.core.processing.align.AlignTransform;
+import com.google.allenday.genomics.core.processing.align.KAlignService;
 import com.google.allenday.genomics.core.reference.ReferencesProvider;
+import com.google.allenday.genomics.core.utils.NameProvider;
 import com.google.allenday.nanostream.aligner.GetSequencesFromSamDataFn;
 import com.google.allenday.nanostream.gcs.ParseGCloudNotification;
 import com.google.allenday.nanostream.geneinfo.LoadGeneInfoTransform;
@@ -43,6 +45,12 @@ public class MainModule extends NanostreamModule {
         public MainModule build() {
             return new MainModule(this);
         }
+    }
+
+    @Provides
+    @Singleton
+    public NameProvider provideNameProvider() {
+        return NameProvider.initialize();
     }
 
     @Provides
@@ -96,7 +104,7 @@ public class MainModule extends NanostreamModule {
     @Provides
     @Singleton
     public ReferencesProvider provideReferencesProvider(FileUtils fileUtils) {
-        return new ReferencesProvider(fileUtils, alignerOptions.getAllReferencesDirGcsUri(), ".fsa_nt");
+        return new ReferencesProvider(fileUtils, genomicsOptions.getAllReferencesDirGcsUri(), ".fsa_nt");
     }
 
     @Provides
@@ -125,24 +133,37 @@ public class MainModule extends NanostreamModule {
 
     @Provides
     @Singleton
-    public AlignFn provideAlignFn(AlignService alignService, ReferencesProvider referencesProvider, FileUtils fileUtils) {
-        TransformIoHandler alignIoHandler = new TransformIoHandler(alignerOptions.getResultBucket(), String.format(alignerOptions.getAlignedOutputDir(), jobTime),
-                alignerOptions.getMemoryOutputLimit(), fileUtils);
+    public AlignFn provideAlignFn(AlignService alignService, ReferencesProvider referencesProvider,
+                                  FileUtils fileUtils, NameProvider nameProvider) {
+        TransformIoHandler alignIoHandler = new TransformIoHandler(genomicsOptions.getResultBucket(),
+                String.format(genomicsOptions.getAlignedOutputDirPattern(), nameProvider.getCurrentTimeInDefaultFormat()),
+                genomicsOptions.getMemoryOutputLimit(), fileUtils);
 
-        return new AlignFn(alignService, referencesProvider, alignerOptions.getGeneReferences(), alignIoHandler, fileUtils);
+        return new AlignFn(alignService, referencesProvider, alignIoHandler, fileUtils);
     }
 
     @Provides
     @Singleton
-    public SamBamManipulationService provideSamBamManipulationService(FileUtils fileUtils){
+    public SamBamManipulationService provideSamBamManipulationService(FileUtils fileUtils) {
         return new SamBamManipulationService(fileUtils);
     }
 
     @Provides
     @Singleton
-    public GetSequencesFromSamDataFn provideGetSequencesFromSamDataFn(FileUtils fileUtils, SamBamManipulationService samBamManipulationService){
-        TransformIoHandler ioHandler = new TransformIoHandler(alignerOptions.getResultBucket(), String.format(alignerOptions.getAlignedOutputDir(), jobTime),
-                alignerOptions.getMemoryOutputLimit(), fileUtils);
+    public GetSequencesFromSamDataFn provideGetSequencesFromSamDataFn(FileUtils fileUtils,
+                                                                      SamBamManipulationService samBamManipulationService,
+                                                                      NameProvider nameProvider) {
+        TransformIoHandler ioHandler = new TransformIoHandler(genomicsOptions.getResultBucket(),
+                String.format(genomicsOptions.getAlignedOutputDirPattern(), nameProvider.getCurrentTimeInDefaultFormat()),
+                genomicsOptions.getMemoryOutputLimit(), fileUtils);
         return new GetSequencesFromSamDataFn(fileUtils, ioHandler, samBamManipulationService);
     }
+
+
+    @Provides
+    @Singleton
+    public AlignTransform provideAlignTransform(AlignFn alignFn) {
+        return new AlignTransform("Align reads transform", alignFn, genomicsOptions.getGeneReferences());
+    }
+
 }

@@ -1,12 +1,12 @@
 package com.google.allenday.nanostream.cannabis;
 
-import com.google.allenday.genomics.core.pipeline.AlignerPipelineOptions;
+import com.google.allenday.genomics.core.pipeline.GenomicsPipelineOptions;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.Validation;
 
 import java.util.List;
 
-public interface NanostreamCannabisPipelineOptions extends AlignerPipelineOptions {
+public interface NanostreamCannabisPipelineOptions extends GenomicsPipelineOptions {
 
     @Description("Name of GCS bucket with all source data")
     @Validation.Required
