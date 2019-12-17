@@ -1,17 +1,16 @@
 package com.google.allenday.nanostream.cannabis;
 
-import com.google.allenday.genomics.core.align.transform.AlignSortMergeTransform;
 import com.google.allenday.genomics.core.csv.ParseSourceCsvTransform;
+import com.google.allenday.genomics.core.pipeline.PipelineSetupUtils;
+import com.google.allenday.genomics.core.processing.AlignAndPostProcessTransform;
+import com.google.allenday.genomics.core.utils.NameProvider;
 import com.google.allenday.nanostream.cannabis.di.NanostreamCannabisModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
-import java.util.TimeZone;
 
 public class NanostreamCannabisApp {
 
@@ -26,30 +25,20 @@ public class NanostreamCannabisApp {
         NanostreamCannabisPipelineOptions pipelineOptions = PipelineOptionsFactory.fromArgs(args)
                 .withValidation()
                 .as(NanostreamCannabisPipelineOptions.class);
-        pipelineOptions.setNumberOfWorkerHarnessThreads(1);
+        PipelineSetupUtils.prepareForInlineAlignment(pipelineOptions);
 
-        StringBuilder jobNameBuilder = new StringBuilder(JOB_NAME_PREFIX);
-
-        List<String> sraSamplesToFilter = pipelineOptions.getSraSamplesToFilter();
-        if (hasFilter(sraSamplesToFilter)) {
-            jobNameBuilder.append(String.join("-", sraSamplesToFilter));
-            jobNameBuilder.append("--");
-        }
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd--HH-mm-ss-z");
-        simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-        String jobTime = simpleDateFormat.format(new Date());
-        jobNameBuilder.append(jobTime);
-        pipelineOptions.setJobName(jobNameBuilder.toString());
-
-        Pipeline pipeline = Pipeline.create(pipelineOptions);
         Injector injector = Guice.createInjector(new NanostreamCannabisModule.Builder()
                 .setFromOptions(pipelineOptions)
-                .setJobTime(jobTime).build());
+                .build());
 
+        NameProvider nameProvider = injector.getInstance(NameProvider.class);
+        pipelineOptions.setJobName(nameProvider.buildJobName(JOB_NAME_PREFIX, pipelineOptions.getSraSamplesToFilter()));
+
+        Pipeline pipeline = Pipeline.create(pipelineOptions);
 
         pipeline
                 .apply("Parse data", injector.getInstance(ParseSourceCsvTransform.class))
-                .apply("Align data", injector.getInstance(AlignSortMergeTransform.class))
+                .apply("Align reads and prepare for DV", injector.getInstance(AlignAndPostProcessTransform.class))
         ;
 
         pipeline.run();

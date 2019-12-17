@@ -1,6 +1,6 @@
 package com.google.allenday.nanostream;
 
-import com.google.allenday.genomics.core.pipeline.AlignerPipelineOptions;
+import com.google.allenday.genomics.core.pipeline.GenomicsPipelineOptions;
 import org.apache.beam.sdk.options.Default;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.Validation;
@@ -12,7 +12,7 @@ import static com.google.allenday.nanostream.other.Configuration.*;
  * Provides list of {@link org.apache.beam.sdk.Pipeline} options
  * for implementation {@link NanostreamPipeline} Dataflow transformation
  */
-public interface NanostreamPipelineOptions extends AlignerPipelineOptions {
+public interface NanostreamPipelineOptions extends GenomicsPipelineOptions {
 
     @Description("GCP PubSub subscription name to read messages from")
     @Validation.Required

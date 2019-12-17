@@ -1,9 +1,8 @@
 package com.google.allenday.nanostream.kalign;
 
-import com.google.allenday.genomics.core.align.KAlignService;
-import com.google.allenday.genomics.core.cmd.CmdExecutor;
 import com.google.allenday.genomics.core.io.FileUtils;
 import com.google.allenday.genomics.core.io.GCSService;
+import com.google.allenday.genomics.core.processing.align.KAlignService;
 import com.google.allenday.nanostream.pubsub.GCSSourceData;
 import japsa.seq.Alphabet;
 import japsa.seq.FastaReader;
@@ -14,7 +13,6 @@ import org.apache.beam.sdk.values.KV;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -54,8 +52,8 @@ public class ProceedKAlignmentFn extends DoFn<KV<KV<GCSSourceData, String>, Iter
             c.output(c.element());
             return;
         }
-        String refName = c.element().getKey().getValue().replace(".","_");
-        String workingDir = fileUtils.makeUniqueDirWithTimestampAndSuffix(refName);
+        String refName = c.element().getKey().getValue().replace(".", "_");
+        String workingDir = fileUtils.makeDirByCurrentTimestampAndSuffix(refName);
 
         String currentTimestamp = String.valueOf(System.currentTimeMillis());
         try {
@@ -64,7 +62,7 @@ public class ProceedKAlignmentFn extends DoFn<KV<KV<GCSSourceData, String>, Iter
                 String fastaFilePath = prepareFastaFile(sequenceIterable,
                         workingDir + refName + "_" + currentTimestamp + KAlignService.FASTA_FILE_EXTENSION);
                 GCSService gcsService = GCSService.initialize(new FileUtils());
-                gcsService.writeToGcs("nanostream-clinic",fastaFilePath, fastaFilePath);
+                gcsService.writeToGcs("nanostream-clinic", fastaFilePath, fastaFilePath);
 
                 String kalignedFilePath = kAlignService.kAlignFasta(fastaFilePath, workingDir,
                         refName + "_" + "kalined", currentTimestamp);

@@ -6,7 +6,7 @@
 
     <groupId>com.google.allenday.nanostream.cannabis</groupId>
     <artifactId>NanostreamCannabis</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 
     <name>NanostreamCannabis</name>
 
@@ -75,20 +75,9 @@
             <version>2.20.3</version>
         </dependency>
         <dependency>
-            <groupId>com.google.allenday.genomics.core</groupId>
+            <groupId>com.google.allenday</groupId>
             <artifactId>genomics-dataflow-core</artifactId>
-            <version>0.0.1</version>
-        </dependency>
-        <!-- http services -->
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.5.3</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpmime</artifactId>
-            <version>4.5.3</version>
+            <version>0.0.3-SNAPSHOT</version>
         </dependency>
         <!--output-->
         <dependency>
@@ -183,4 +172,17 @@
             </plugin>
         </plugins>
     </build>
+
+    <repositories>
+        <repository>
+            <id>oss.sonatype.org-snapshot</id>
+            <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 </project>
