@@ -23,7 +23,7 @@ class PipelineUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(PipelineUtil.class);
 
-    public static String getProjectId() {
+    public static String getProjectId() { // TODO: convert to a bean to run the code once on startup
         String projectId;
         projectId = System.getenv("GOOGLE_CLOUD_PROJECT");
         if (projectId != null && !projectId.isEmpty()) {
