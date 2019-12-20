@@ -6,6 +6,16 @@
             v-bind:pipeline="pipeline"
             v-bind:general="general"
         />
+       
+        <div class="row message">
+             <div class="col-lg-4">&nbsp;</div>
+            <div class="col-lg-4" v-if="this.errorMessage">
+                <h2 class="alert alert-danger" role="alert">{{this.errorMessage}} 
+                </h2>
+            </div>
+            <div class="col-lg-4">&nbsp;</div>
+        </div>
+      
                          
     </div>
 
@@ -89,8 +99,7 @@
             <VisTable v-bind:records="records"/>
     </div>
 
-         
-
+        
     </div>
 </template>
 
@@ -99,11 +108,15 @@
 
 
 import * as firebase from 'firebase';
+import config from '../firebase.config.js';
+
 import Chart from './Chart.vue';
 import PipelineStatus from './PipelineStatus.vue';
 import PipelineForm from './PipelineForm.vue';
 import Configurations from './Configurations.vue';
 import VisTable from './VisTable.vue';
+
+
 //import d3 from "d3";
 
 
@@ -115,11 +128,17 @@ export default {
       return {          
 
           LaunchReqURL : '/launch',
-          InfoReqURL : '/info?',
-          StopPipelineURL : '/stop?',
+          InfoReqURL : '/info',
+          StopPipelineURL : '/stop',
           JobsURL : '/jobs',
+          ConfigURL : '/settings',
+
+          urlPrefix : "https://upwork-nano-stream.appspot.com",  // Dev
+        //  urlPrefix : "",  //  Live
 
           formActive: true,
+
+          errorMessage :  '',
 
         pipeline: {
                 alignment_window : 20,
@@ -135,12 +154,14 @@ export default {
             subscriptions : 'notif subscr'
         },    
 
+        config : {},
+
         general : {
             google_account : 'account@google.com',
             project : '',
             bucket : '',
 
-            document_name : '', //resultDocument--2019-02-13T22-36-47UTC',
+            document_name : 'resultDocument--2019-02-13T22-36-47UTC', //resultDocument--2019-02-13T22-36-47UTC',
             collection_name_prefix: 'cassava_species_sequences',
             collection_name_base: 'statistic',
             collection_name : '',
@@ -184,38 +205,65 @@ export default {
 
  watch: {
      records() {
-         console.log('New records set loaded')
+         console.log('New records set loaded, ' + this.records.lengfth + ' records')                 
      },
 
      loading() {
         console.log('======= Loading= ' + this.loading)
+     },
+
+     errorMessage() {
+         setTimeout(() => { this.errorMessage = '' }, 5000);         
      }
  },
 
-
+/*
  computed: {
      collection_name() {
 
-        this.general.collection_name = this.collection_name_base + '__' + this.general.bucket;
-        if(this.collection_name_prefix) this.general.collection_name =  this.collection_name_prefix + '_' + this.collection_name;
+         console.log('Construct Collection name, bucket=' + this.general.bucket);
+
+        this.general.collection_name = this.general.collection_name_base + '__' + this.general.bucket;
+        if(this.general.collection_name_prefix) this.general.collection_name =  this.general.collection_name_prefix + '_' + this.general.collection_name;
+        console.log('Collection name is: ' + this.general.collection_name)
         return this.general.collection_name;
 
      }
-
  },
+*/
 
  created() {
-    this.db = this.FirebaseInit();
-    console.log('== db init ==')
+
+
+    console.log('External CONFIG', config.config )
+    // this.config = config.config;  // read it later in getFirebaseConfig
+   
   },
 
 
  mounted() { // start processing here
-    this.getJobs();
+    this.getFirebaseConfig().then( 
+        this.db = this.FirebaseInit());
+
+    //this.getJobs();
+ 
  }, 
 
 
  methods: {
+
+
+     generateCollectionName : function(bucket) {
+
+        console.log('Collection name bucket = ' + this.general.bucket);
+
+        this.general.collection_name = this.general.collection_name_base + '__' + bucket;
+        if(this.general.collection_name_prefix) this.general.collection_name =  this.general.collection_name_prefix + '_' + this.general.collection_name;
+        console.log('Collection name is: ' + this.general.collection_name)
+        return this.general.collection_name;
+
+
+     },
 
 
      setPipelineStatus : function(response_status) {
@@ -250,58 +298,47 @@ export default {
     startPipeline: function() {
 
           console.log('Form Submitted');
-          this.formActive = false;
           this.launch();
       },
 
     FirebaseInit : function() {
 
-        const config = {
+
+   /*     this.config = {
             apiKey: "AIzaSyA5_c4nxV9sEew5Uvxc-zvoZi2ofg9sXfk",
             authDomain: "nanostream-dataflow.firebaseapp.com",
             databaseURL: "https://nanostream-dataflow.firebaseio.com",
-            projectId: "nanostream-dataflow",
-            storageBucket: "nanostream-dataflow.appspot.com",
+            projectId: this.general.project, //"nanostream-dataflow",
+            storageBucket: this.general.bucket, //"nanostream-dataflow.appspot.com",
             messagingSenderId: "500629989505"
-        };
+
+        }
+*/
+
+      //  this.config.projectId = 'upwork-nano-stream'; /// !!! ???
   
         if (!firebase.apps.length) {
-            firebase.initializeApp(config);
+            console.log('Connect to DB with config:', this.config)
+            firebase.initializeApp(this.config);
         }
 
         const db = firebase.firestore();
         db.settings({
             timestampsInSnapshots: true
         });
-
+        console.log('== db init finished ==')
         return db;
     },
 
-    launch: function(url) {
 
+    getFirebaseConfig : async function() {
 
-        this.loading = true;
+        console.log('GET Firebase Config')
 
-        this.general.bucket = '';
+        return this.config = config.config; // !!! read from external config file , temp fix !!!
+        
 
-        console.log('NEW doc name:' + this.document_name)
-
-        let reqData = { 
-                pipeline_name : this.pipeline.name,
-                collection_name_prefix : this.general.collection_name,
-                document_name_prefix : this.general.document_name,
-                processing_mode : this.general.ref_db
-            };
-
-        console.log('getting data for doc: ' + this.general.document_name)    
-        console.log('launch params: ', reqData)
-
-        fetch( new Request(this.LaunchReqURL, 
-            { 
-                method: 'POST', 
-                body: JSON.stringify(reqData)                
-                
-                }) )
+        fetch( this.urlPrefix + this.ConfigURL )
             .then(                
                 successResponse => {
                     if (successResponse.status != 200) {
@@ -316,22 +353,88 @@ export default {
                                
                 )
             .then( (data) => {
-    //            if(!data) data = vm.sample_response; /// !!!
-                this.launch_response = data;
-                console.log('data from api call', data)
 
-                this.general.project = data.job.projectId;
-                this.job_id = data.job.id;
-                this.location = data.job.location;                
+                this.config.apiKey = data.apiKey;
+                this.config.messagingSenderId = data.messagingSenderId.replace(/^(\d+).+/,'$1' ); // "500629989505"
+                this.config.authDomain = data.authDomain;
+                
+                this.config.projectId = data.projectId;
+                this.general.project = data.projectId;
+
+                this.general.bucket = data.storageBucket;
+                this.config.storageBucket = data.storageBucket;
+
+                this.generateCollectionName(this.general.bucket);
+                
+                console.log('Bucket from Config : ' + this.general.bucket)
+
+                console.log('Config response data:', data)
+                return data;
             })
-            .then(this.getPipelineInfo)
+            
+                   
+    },
+
+    launch: function() {
+
+
+        this.loading = true;
+
+        this.general.bucket = '';
+
+        let reqData = { 
+                pipeline_name : this.pipeline.name,
+                collection_name_prefix : this.general.collection_name_prefix,
+                document_name_prefix : this.general.document_name,
+                processing_mode : this.general.ref_db
+            };
+
+        console.log('getting data for doc: ' + this.general.document_name)    
+        console.log('launch params: ', reqData)
+
+        fetch( new Request(this.urlPrefix + this.LaunchReqURL, 
+            { 
+                method: 'POST', 
+                body: this.encodeURLData(reqData)                
+                
+                }) )
+            .then(                
+                successResponse => {
+                    if (successResponse.status != 200) {
+                        this.errorMessage = "launch:ERROR, Response Status = " + successResponse.status;
+                        return null;
+                    } else {
+                        return successResponse.json();
+                    }
+                },
+                failResponse => {
+                    this.errorMessage = "launch:ERROR";
+                    return null;
+                }
+                               
+                )
+            .then( (data) => {
+                if(data) {
+                    this.launch_response = data;
+                    console.log('data from LAUNCH call', data)
+
+                    this.general.project = data.job.projectId;
+                    this.job_id = data.job.id;
+                    this.location = data.job.location;        
+                    this.formActive = false;     
+                    this.getPipelineInfo();   
+                }else{
+                    return null;
+                }
+            })
+                .then(this.getRecords())
             .then(() => this.loading = false)
     },
 
 
     getJobs: function() {
 
-        fetch( this.JobsURL )
+        fetch( this.urlPrefix + this.JobsURL )
             .then(                
                 successResponse => {
                     if (successResponse.status != 200) {
@@ -341,6 +444,7 @@ export default {
                     }
                 },
                 failResponse => {
+                    this.errorMessage = "getJobs:ERROR";
                     return null;
                 }
                                
@@ -350,6 +454,7 @@ export default {
                 if(!data.jobs.length) { 
                     this.formActive = true;
                     console.log('Job list is empty');
+                    this.errorMessage = "getJobs:ERROR, data:" + JSON.stringify(data);
                 }else{    
                     const lastJobCreationTime = d3.max( data.jobs, d => d.createTime),
                         lastJob = data.jobs.find(d => d.createTime == lastJobCreationTime);
@@ -370,12 +475,11 @@ export default {
         console.log('run new job');
     },
 
+
     stopPipeline:  function() {
 
-        console.log('STOP Pipeline called: ' + this.StopPipelineURL + 'jobId=' + this.job_id + '&location=' + this.location)
-
-
-        fetch( this.StopPipelineURL + 'jobId=' + this.job_id + '&location=' + this.location, { method: 'POST'})
+        console.log('STOP Pipeline called: ' + this.StopPipelineURL + '?jobId=' + this.job_id + '&location=' + this.location)
+        fetch( this.urlPrefix + this.StopPipelineURL + '?jobId=' + this.job_id + '&location=' + this.location, { method: 'POST'})
             .then(                
                 successResponse => {
                     if (successResponse.status != 200) {
@@ -392,17 +496,33 @@ export default {
             .then( (data) => {
                 console.log('Stop Pipeline response data:', data)
                 this.pipeline.started = false;
-//                let pipDataExtra = data.pipelineDescription.displayData;
- //               this.general.bucket = pipDataExtra.find(k => k.key == 'resultBucket').strValue;
             })
    //         .then(this.getRecords)
      
 
     },    
 
+
+    encodeURLData : function(params) {
+
+        const formData = new FormData();
+        Object.keys(params).map((key) => {
+            formData.append(key,params[key]) 
+         });
+        return formData; 
+
+        /*return  Object.keys(params).map((key) => {
+            return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
+        }).join('&');*/
+
+    },
+
     getPipelineInfo:  function() {
 
-        fetch( this.InfoReqURL + 'jobId=' + this.job_id + '&location=' + this.location)
+
+        console.log('GetPipelineInfo called, jobId=' + this.job_id + '&location=' + this.location)
+
+        fetch( this.urlPrefix + this.InfoReqURL + '?jobId=' + this.job_id + '&location=' + this.location)
             .then(                
                 successResponse => {
                     if (successResponse.status != 200) {
@@ -422,32 +542,45 @@ export default {
                 this.setPipelineStatus(data.currentState);                              
                 let pipDataExtra = data.pipelineDescription.displayData;
                 this.general.bucket = pipDataExtra ? pipDataExtra.find(k => k.key == 'resultBucket').strValue : 'undefined'; // if PENDING, bucket is not defined ?
+                if(this.general.bucket.match(/^gs:/)) {
+                    this.general.bucket = this.general.bucket.split('/')[2];
+                    console.log('NEW bucket = ' + this.general.bucket)
+                    this.generateCollectionName(this.general.bucket);
+                }
             })
+            .then(this.getDocs)   
             .then(this.getRecords)
-            .then(this.getDocs)
+         
+            
      
     },
 
 
     getDocs: function() {
+
+      //  if(!this.db)  this.db = await this.FirebaseInit();00340434420003766367 
         
-        console.log('getting docs list')
+        console.log('getting docs list using collection name=' + this.general.collection_name)
         this.document_list = []; 
         this.db.collection(this.general.collection_name).get().then( doc => {              
              if(doc.docs) {
                 doc.docs.forEach(d => this.document_list.push ({ selected: this.general.document_name == d.id, value: d.id, text: d.id} ))
              }             
         })
-        console.log(this.document_list)
+        console.log('DOCUMENT-LIST Length:', this.document_list.length)
     },
 
     getRecords: function() {
 
-        this.general.collection_name = 'edta_species_sequences_statistic';
-        this.general.document_name = this.general.document_name || 'resultDocument--2019-02-13T22-36-47UTC';
+
+        console.log('Get Records');
+       // if(!this.db)  this.db = this.FirebaseInit();
+
+      //  this.general.collection_name = 'edta_species_sequences_statistic';
+     //   this.general.document_name = this.general.document_name || 'resultDocument--2019-02-13T22-36-47UTC';
       
-        let collection = this.$route.params.c || this.general.collection_name,
-            docname = this.$route.params.d || this.general.document_name;
+        let collection = 'edta_species_sequences_statistic' || this.general.collection_name,
+            docname = this.general.document_name || this.document_list[0];
 
 
         console.log(`Reading firebase: docname = ${docname}, collection = ${collection}`);    
@@ -456,8 +589,9 @@ export default {
         this.db.collection(collection).doc(docname)
             .onSnapshot((doc) => {
                 this.records = this.transform(doc.data());
-  //              console.log('got data:' + this.records.length + ' records')
+                console.log('got data:' + this.records.length + ' records', this.records)
                 this.loading = false;
+           //     this.formActive = false;
             });
     },
 
