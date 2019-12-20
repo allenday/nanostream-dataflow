@@ -50,8 +50,8 @@ export default {
   	computed: {
 
 		  bucket_name_full : function() { 
-			  return  "https://console.cloud.google.com/storage/browser/"  
-				  + (this.general.bucket && this.general.bucket.split('/')[2] ) 
+			  return  "https://console.cloud.google.com/storage/browser/"  + this.general.bucket;
+				  //+ (this.general.bucket && this.general.bucket.split('/')[2] ) 
 			}	  	
   	}
 
