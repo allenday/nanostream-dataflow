@@ -133,8 +133,8 @@ export default {
           JobsURL : '/jobs',
           ConfigURL : '/settings',
 
-          urlPrefix : "https://upwork-nano-stream.appspot.com",  // Dev
-        //  urlPrefix : "",  //  Live
+          // urlPrefix : "https://upwork-nano-stream.appspot.com",  // Dev
+         urlPrefix : "",  //  Live
 
           formActive: true,
 
@@ -174,14 +174,14 @@ export default {
         job_id : '',
         location : '',
 
-          sample_response: { "job": 
-            { "id": "2019-12-03_02_53_07-7220802469192670302", 
-            "projectId": "upwork-nano-stream", 
-            "name": "pp_from_ui", 
-            "type": "JOB_TYPE_STREAMING", 
-            "currentStateTime": "1970-01-01T00:00:00Z", "createTime": "2019-12-03T10:53:09.177929Z", 
-            "location": "us-central1", 
-            "startTime": "2019-12-03T10:53:09.177929Z" } },
+          // sample_response: { "job":
+          //   { "id": "2019-12-03_02_53_07-7220802469192670302",
+          //   "projectId": "upwork-nano-stream",
+          //   "name": "pp_from_ui",
+          //   "type": "JOB_TYPE_STREAMING",
+          //   "currentStateTime": "1970-01-01T00:00:00Z", "createTime": "2019-12-03T10:53:09.177929Z",
+          //   "location": "us-central1",
+          //   "startTime": "2019-12-03T10:53:09.177929Z" } },
                     
         loading: false,
         records: [], // source data to build diagram
@@ -245,7 +245,7 @@ export default {
     this.getFirebaseConfig().then( 
         this.db = this.FirebaseInit());
 
-    //this.getJobs();
+    this.getJobs();
  
  }, 
 
