@@ -16,11 +16,13 @@ class Install:
         self.google_cloud_project = self.get_google_cloud_env_var()
         self.upload_bucket_name = self.google_cloud_project + '-upload-bucket'
         self.dataflow_bucket_name = self.google_cloud_project + '-dataflow'
+        self.reference_db_bucket_name = self.google_cloud_project + '-reference-db'
         self.upload_pub_sub_topic = self.google_cloud_project + '-pubsub-topic'
         self.upload_subscription = self.google_cloud_project + '-upload-subscription'
         self.app_engine_region = 'us-central'  # TODO: parametrize
 
         self.upload_bucket_url = 'gs://%s/' % self.upload_bucket_name
+        self.reference_db_bucket_url = 'gs://%s/' % self.reference_db_bucket_name
         self.dataflow_bucket_url = 'gs://%s/' % self.dataflow_bucket_name
 
         self.upload_subscription_fullname = 'projects/%s/subscriptions/%s' % (
@@ -29,11 +31,12 @@ class Install:
         )
         self.firebase_handler = FirebaseHandler(self.google_cloud_project)
 
-        print "Used names: \n  project: %s\n  uploads bucket: %s\n  dataflow bucket: %s\n" \
+        print "Used names: \n  project: %s\n  uploads bucket: %s\n  reference db bucket: %s\n  dataflow bucket: %s\n" \
               "  pubsub topic: %s\n  subscription: %s\n  app engine region: %s" % (
             self.google_cloud_project,
-            self.upload_bucket_name,
-            self.dataflow_bucket_name,
+            self.upload_bucket_url,
+            self.reference_db_bucket_url,
+            self.dataflow_bucket_url,
             self.upload_pub_sub_topic,
             self.upload_subscription,
             self.app_engine_region
@@ -86,6 +89,13 @@ class Install:
             print 'Create a Google Cloud Storage bucket for FastQ files: %s' % cmd
             subprocess.check_call(cmd, shell=True)
 
+        if self.reference_db_bucket_url in bucket_list:
+            print 'Bucket %s already exists' % self.upload_bucket_name
+        else:
+            cmd = 'gsutil mb %s' % self.reference_db_bucket_url
+            print 'Create a Google Cloud Storage bucket for reference database files: %s' % cmd
+            subprocess.check_call(cmd, shell=True)
+
         if self.dataflow_bucket_url in bucket_list:
             print 'Bucket %s already exists' % self.dataflow_bucket_name
         else:
@@ -123,21 +133,30 @@ class Install:
         subprocess.check_call(cmd, shell=True)
 
     def deploy_dataflow_templates(self):
-        self.deploy_dataflow_template('species')
-        self.deploy_dataflow_template('resistance_genes')
+        ref_species_dir = self.reference_db_bucket_url + 'reference-sequences/species/'
+        self.deploy_dataflow_template('species', ref_species_dir, 'genomeDB')
 
-    def deploy_dataflow_template(self, processing_mode):
+        ref_genes_dir = self.reference_db_bucket_url + 'reference-sequences/antibiotic-resistance-genes/'
+        self.deploy_dataflow_template('resistance_genes', ref_genes_dir, 'DB')
+
+    def deploy_dataflow_template(self, processing_mode, all_references_dir_gcs_uri, reference_database):
         template_name = 'nanostream-' + processing_mode
         alignment_window = 20
         stats_update_frequency = 30
 
         memory_output_limit = 0
 
-        resistance_genes_list = self.upload_bucket_url + 'gene-info/resistance_genes_list.txt'
         output_dir = 'clinic_processing_output/'
 
-        reference_database = 'genomeDB'
-        all_references_dir_gcs_uri = self.upload_bucket_url + 'references/'
+        if processing_mode == 'resistance_genes':
+            resistance_genes_list = self.reference_db_bucket_url + 'gene_info/resistance_genes_list.txt'
+            resistance_genes_list_param = '--resistanceGenesList=%s ' % resistance_genes_list
+            machine_config_params = ' '
+        else:
+            resistance_genes_list_param = ' '  # not required for other modes
+            machine_config_params = '--enableStreamingEngine ' \
+                                    '--workerMachineType=n1-highmem-8 ' \
+                                    '--diskSizeGb=100 '
 
         cmd = 'mvn compile exec:java ' \
               '-f NanostreamDataflowMain/pipeline/pom.xml ' \
@@ -150,7 +169,7 @@ class Install:
               '--inputDataSubscription=%s ' \
               '--alignmentWindow=%s ' \
               '--statisticUpdatingDelay=%s ' \
-              '--resistanceGenesList=%s ' \
+              '%s ' \
               '--resultBucket=%s ' \
               '--outputDir=%s ' \
               '--referenceNamesList=%s ' \
@@ -159,6 +178,7 @@ class Install:
               '--stagingLocation=%s ' \
               '--templateLocation=%s ' \
               '--memoryOutputLimit=%s ' \
+              '%s ' \
               '" ' \
               '-Dexec.cleanupDaemonThreads=false' \
               % (
@@ -167,7 +187,7 @@ class Install:
                   self.upload_subscription_fullname,
                   alignment_window,
                   stats_update_frequency,
-                  resistance_genes_list,
+                  resistance_genes_list_param,
                   self.upload_bucket_url,
                   output_dir,
                   reference_database,
@@ -175,7 +195,8 @@ class Install:
                   self.dataflow_bucket_url + 'tmp',
                   self.dataflow_bucket_url + 'staging',
                   self.dataflow_bucket_url + 'templates/' + template_name,
-                  memory_output_limit
+                  memory_output_limit,
+                  machine_config_params
               )
         print 'Compile and deploy Dataflow template for processing mode %s: %s' % (processing_mode, cmd)
         subprocess.check_call(cmd, shell=True)
