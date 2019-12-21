@@ -104,7 +104,7 @@ public class MainModule extends NanostreamModule {
     @Provides
     @Singleton
     public ReferencesProvider provideReferencesProvider(FileUtils fileUtils) {
-        return new ReferencesProvider(fileUtils, genomicsOptions.getAllReferencesDirGcsUri(), ".fsa_nt");
+        return new ReferencesProvider(fileUtils, genomicsOptions.getAllReferencesDirGcsUri(), ".fasta");
     }
 
     @Provides
