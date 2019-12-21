@@ -32,9 +32,9 @@ public class Initializer {
     @PostConstruct
     public void init() throws IOException {
         logger.info("PostConstruct called");
-        addProjectToFirebase();
-        getFirebaseProjects();
-//        getFirebaseProjectInfo();
+//        addProjectToFirebase();
+//        getFirebaseProjects();
+        getFirebaseProjectInfo();
     }
 
     private void addProjectToFirebase() throws IOException {

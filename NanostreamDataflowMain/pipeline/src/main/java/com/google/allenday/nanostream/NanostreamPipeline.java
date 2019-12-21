@@ -21,6 +21,7 @@ import com.google.allenday.nanostream.taxonomy.GetTaxonomyFromTree;
 import com.google.allenday.nanostream.util.CoderUtils;
 import com.google.allenday.nanostream.util.trasform.FlattenMapToKV;
 import com.google.allenday.nanostream.util.trasform.RemoveValueDoFn;
+import com.google.allenday.genomics.core.pipeline.PipelineSetupUtils;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.apache.beam.sdk.Pipeline;
@@ -52,6 +53,7 @@ public class NanostreamPipeline {
     }
 
     public void run() {
+        PipelineSetupUtils.prepareForInlineAlignment(options);
         Pipeline pipeline = Pipeline.create(options);
         CoderUtils.setupCoders(pipeline, new SequenceOnlyDNACoder());
 
