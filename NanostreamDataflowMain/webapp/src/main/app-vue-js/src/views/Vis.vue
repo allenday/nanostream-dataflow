@@ -134,9 +134,6 @@
                 JobsURL: '/jobs',
                 ConfigURL: '/settings',
 
-                urlPrefix : "https://upwork-nano-stream.appspot.com",  // Dev
-                // urlPrefix: "",  //  Live
-
                 formActive: true,
 
                 errorMessage: '',
@@ -211,7 +208,8 @@
         },
 
         created() {
-            console.log('External CONFIG', config.config)
+            console.log('External CONFIG', config.config);
+            this.urlPrefix = "https://" + config.config.projectId + ".appspot.com";
             // this.config = config.config;  // read it later in getFirebaseConfig
         },
 
@@ -458,9 +456,9 @@
                         console.log('Current Pipeline State: ' + data.currentState)
                         this.setPipelineStatus(data.currentState);
                         let options = data.environment.sdkPipelineOptions.options;
-                        // let pipDataExtra = data.pipelineDescription.displayData;
+                        let pipDataExtra = data.pipelineDescription.displayData;
                         // this.general.bucket = pipDataExtra ? pipDataExtra.find(k => k.key == 'resultBucket').strValue : 'undefined'; // if PENDING, bucket is not defined ?
-                        this.general.collection_name_prefix = options.outputCollectionNamePrefix;
+                        this.general.collection_name_prefix = pipDataExtra.find(k => k.key == 'outputCollectionNamePrefix').strValue;
                         this.general.ref_db = options.processingMode;
                         this.notifications.subscriptions = options.inputDataSubscription;
                         this.pipeline.alignment_window = options.alignmentWindow;
