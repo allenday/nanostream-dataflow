@@ -61,8 +61,6 @@ public class ProceedKAlignmentFn extends DoFn<KV<KV<GCSSourceData, String>, Iter
             try {
                 String fastaFilePath = prepareFastaFile(sequenceIterable,
                         workingDir + refName + "_" + currentTimestamp + KAlignService.FASTA_FILE_EXTENSION);
-                GCSService gcsService = GCSService.initialize(new FileUtils());
-                gcsService.writeToGcs("nanostream-clinic", fastaFilePath, fastaFilePath);
 
                 String kalignedFilePath = kAlignService.kAlignFasta(fastaFilePath, workingDir,
                         refName + "_" + "kalined", currentTimestamp);
