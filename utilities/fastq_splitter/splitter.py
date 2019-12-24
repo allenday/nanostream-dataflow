@@ -60,6 +60,8 @@ def download_gcs_file(bucket_name, source_file_name, destination_file_name):
 
 DATE_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 START_TIME_TAG = 'start_time='
+READ_N_TAG = 'read='
+CH_TAG = 'ch='
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
@@ -105,10 +107,9 @@ if __name__ == '__main__':
             plus_line = file.readline()
             quality_line = file.readline()
 
-            header_parts = header_line.split(' ')
-            read_n = header_parts[2].split('=')[1]
-            ch = header_parts[3].split('=')[1]
-            start_time = header_parts[4].split('=')[1].strip()
+            read_n = header_line[header_line.index(READ_N_TAG) + len(READ_N_TAG):].split(" ")[0]
+            ch = header_line[header_line.index(CH_TAG) + len(CH_TAG):].split(" ")[0]
+            start_time = header_line[header_line.index(START_TIME_TAG) + len(START_TIME_TAG):].replace("\n", "")
             start_time_object = datetime.strptime(start_time, DATE_FORMAT)
 
             delta_seconds = (start_time_object - min_start_time).seconds
