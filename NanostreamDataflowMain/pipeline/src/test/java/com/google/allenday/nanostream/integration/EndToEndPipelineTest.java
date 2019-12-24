@@ -1,7 +1,7 @@
 package com.google.allenday.nanostream.integration;
 
 import com.google.allenday.genomics.core.model.FileWrapper;
-import com.google.allenday.genomics.core.model.GeneExampleMetaData;
+import com.google.allenday.genomics.core.model.SampleMetaData;
 import com.google.allenday.genomics.core.pipeline.GenomicsOptions;
 import com.google.allenday.genomics.core.processing.align.AlignTransform;
 import com.google.allenday.nanostream.ProcessingMode;
@@ -102,14 +102,14 @@ public class EndToEndPipelineTest {
         PCollection<KV<KV<String, String>, SequenceStatisticResult>> sequnceStatisticResultPCollection = testPipeline
                 .apply(Create.of(KV.of(gcsSourceData, new ResourcesHelper().getFileContent("testFastQFile.fastq"))))
                 .apply("Parse FasQ data", ParDo.of(new DoFn<KV<GCSSourceData, String>,
-                        KV<GeneExampleMetaData, List<FileWrapper>>>() {
+                        KV<SampleMetaData, List<FileWrapper>>>() {
 
                     @ProcessElement
                     public void processElement(ProcessContext c) {
                         KV<GCSSourceData, String> element = c.element();
                         FileWrapper fileWrapper =
                                 FileWrapper.fromByteArrayContent(element.getValue().getBytes(), "fileName");
-                        GeneExampleMetaData geneExampleMetaData = new GeneExampleMetaData();
+                        SampleMetaData geneExampleMetaData = new SampleMetaData();
                         geneExampleMetaData.setSraStudy("TestProject");
                         geneExampleMetaData.setSraSample("testExampleSra");
                         geneExampleMetaData.setRunId("TestRun");

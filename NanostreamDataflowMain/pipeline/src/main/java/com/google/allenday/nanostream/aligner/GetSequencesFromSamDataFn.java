@@ -4,7 +4,7 @@ import com.google.allenday.genomics.core.io.FileUtils;
 import com.google.allenday.genomics.core.io.GCSService;
 import com.google.allenday.genomics.core.io.TransformIoHandler;
 import com.google.allenday.genomics.core.model.FileWrapper;
-import com.google.allenday.genomics.core.model.GeneExampleMetaData;
+import com.google.allenday.genomics.core.model.SampleMetaData;
 import com.google.allenday.genomics.core.model.ReferenceDatabase;
 import com.google.allenday.genomics.core.processing.SamBamManipulationService;
 import com.google.allenday.nanostream.pubsub.GCSSourceData;
@@ -19,13 +19,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Parses aligned data that comes HTTP aligner into {@link SAMRecord}. Generates {@link KV<String, Sequence>>} object that contains
  * name reference-Sequence pair
  */
-public class GetSequencesFromSamDataFn extends DoFn<KV<KV<GeneExampleMetaData, ReferenceDatabase>, FileWrapper>, KV<KV<GCSSourceData, String>, Sequence>> {
+public class GetSequencesFromSamDataFn extends DoFn<KV<KV<SampleMetaData, ReferenceDatabase>, FileWrapper>, KV<KV<GCSSourceData, String>, Sequence>> {
     private Logger LOG = LoggerFactory.getLogger(GetSequencesFromSamDataFn.class);
 
     private FileUtils fileUtils;
@@ -46,10 +45,10 @@ public class GetSequencesFromSamDataFn extends DoFn<KV<KV<GeneExampleMetaData, R
 
     @ProcessElement
     public void processElement(ProcessContext c) {
-        KV<KV<GeneExampleMetaData, ReferenceDatabase>, FileWrapper> element = c.element();
+        KV<KV<SampleMetaData, ReferenceDatabase>, FileWrapper> element = c.element();
 
-        GeneExampleMetaData geneExampleMetaData = element.getKey().getKey();
-        String workingDir = fileUtils.makeDirByCurrentTimestampAndSuffix(geneExampleMetaData.getRunId());
+        SampleMetaData geneSampleMetaData = element.getKey().getKey();
+        String workingDir = fileUtils.makeDirByCurrentTimestampAndSuffix(geneSampleMetaData.getRunId());
 
         try {
             String filePath = ioHandler.handleInputAsLocalFile(gcsService, element.getValue(), workingDir);
@@ -57,7 +56,7 @@ public class GetSequencesFromSamDataFn extends DoFn<KV<KV<GeneExampleMetaData, R
             SamReader reader = samBamManipulationService.samReaderFromBamFile(filePath, ValidationStringency.SILENT);
             for (SAMRecord sam: reader){
                 if (!sam.getReferenceName().equals("*")) {
-                    GCSSourceData gcsSourceData = GCSSourceData.fromJsonString(geneExampleMetaData.getSrcRawMetaData());
+                    GCSSourceData gcsSourceData = GCSSourceData.fromJsonString(geneSampleMetaData.getSrcRawMetaData());
                     c.output(KV.of(KV.of(gcsSourceData, sam.getReferenceName()), generateSequenceFromSam(sam)));
                 }
             }
