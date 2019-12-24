@@ -8,8 +8,9 @@ import com.google.allenday.genomics.core.model.GeneExampleMetaData;
 import com.google.allenday.genomics.core.model.ReferenceDatabase;
 import com.google.allenday.genomics.core.processing.SamBamManipulationService;
 import com.google.allenday.nanostream.pubsub.GCSSourceData;
-import com.google.allenday.nanostream.util.ObjectSizeFetcher;
 import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.ValidationStringency;
 import japsa.seq.Alphabet;
 import japsa.seq.Sequence;
 import org.apache.beam.sdk.transforms.DoFn;
@@ -53,15 +54,14 @@ public class GetSequencesFromSamDataFn extends DoFn<KV<KV<GeneExampleMetaData, R
         try {
             String filePath = ioHandler.handleInputAsLocalFile(gcsService, element.getValue(), workingDir);
 
-            List<SAMRecord> results = samBamManipulationService.samRecordsFromBamFile(filePath);
-            LOG.info(String.format("List SAMRecords size: %d", ObjectSizeFetcher.sizeOf(results)));
-            LOG.info(String.format("List SAMRecords item size: %d", results.size()));
-            results.forEach(sam -> {
+            SamReader reader = samBamManipulationService.samReaderFromBamFile(filePath, ValidationStringency.SILENT);
+            for (SAMRecord sam: reader){
                 if (!sam.getReferenceName().equals("*")) {
                     GCSSourceData gcsSourceData = GCSSourceData.fromJsonString(geneExampleMetaData.getSrcRawMetaData());
                     c.output(KV.of(KV.of(gcsSourceData, sam.getReferenceName()), generateSequenceFromSam(sam)));
                 }
-            });
+            }
+            reader.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
