@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appengine-web-app xmlns="http://appengine.google.com/ns/1.0">
+  <runtime>java8</runtime>
+  <threadsafe>true</threadsafe>
+  <system-properties>
+    <property name="appengine.api.urlfetch.defaultDeadline" value="120"/>
+    <property name="java.util.logging.config.file" value="WEB-INF/classes/logging.properties"/>
+  </system-properties>
+  <public-root>/static</public-root>
+</appengine-web-app>

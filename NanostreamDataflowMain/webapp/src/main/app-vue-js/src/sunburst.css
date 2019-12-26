@@ -1,0 +1,29 @@
+
+svg {
+    margin: 0;
+    padding: 0;
+
+    background-color: #EFF2F7;
+    border-radius: 1.5%;
+}
+
+.arc-container {
+    cursor: pointer;
+}
+
+.arc-container text {
+    font-size: 8pt;
+    font-family: roboto;
+}    
+
+.nvtooltip {
+    font-size:9pt;
+    font-family: roboto;
+    border-radius: 5px;
+    border: 1px solid #73AD21;
+    background: #FEFEFE;
+    padding: 4px;
+    padding-left: 7px;
+    padding-right: 7px;
+    filter: drop-shadow(6px 6px 10px gray);
+}

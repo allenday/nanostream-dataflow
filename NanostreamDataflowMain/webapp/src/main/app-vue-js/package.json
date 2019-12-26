@@ -1,0 +1,43 @@
+{
+  "name": "vue-argon-design-system",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint",
+    "postbuild": "rm -rf ../webapp/static/ && mv dist ../webapp/static/"
+  },
+  "dependencies": {
+    "@vue/babel-preset-app": "^4.0.5",
+    "autoprefixer": "^9.7.2",
+    "babel-eslint": "^10.0.3",
+    "bootstrap-vue": "^2.0.4",
+    "core-js": "^3.4.7",
+    "d3": "^3.5.17",
+    "d3-hierarchy": "^1.1.9",
+    "eslint-plugin-vue": "^5.0.0-beta.6",
+    "firebase": "^5.5.5",
+    "flatpickr": "^4.5.1",
+    "nouislider": "^11.1.0",
+    "nvd3": "^1.8.6",
+    "regenerator-runtime": "^0.13.3",
+    "register-service-worker": "^1.5.2",
+    "vue": "^2.6.6",
+    "vue-flatpickr-component": "^8.1.1",
+    "vue-lazyload": "^1.2.6",
+    "vue-router": "^3.0.2",
+    "vue2-transitions": "^0.2.3",
+    "webpack": "^4.41.2"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "^3.4.0",
+    "@vue/cli-plugin-eslint": "^3.4.0",
+    "@vue/cli-plugin-pwa": "^3.4.0",
+    "@vue/cli-service": "^3.4.0",
+    "eslint": "^4.19.1",
+    "node-sass": "^4.11.0",
+    "sass-loader": "^7.3.1",
+    "vue-template-compiler": "^2.6.6"
+  }
+}
