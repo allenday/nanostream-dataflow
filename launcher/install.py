@@ -79,7 +79,7 @@ class Install:
         else:
             try:
                 cmd = 'gcloud config get-value project'
-                return subprocess.check_output(cmd, shell=True).strip()
+                return subprocess.check_output(cmd, shell=True).strip().decode("utf-8")
             except subprocess.CalledProcessError:
                 raise IllegalArgumentException('Please define GOOGLE_CLOUD_PROJECT environment variable')
 
@@ -99,7 +99,7 @@ class Install:
 
     def create_storage_buckets(self):
         cmd = 'gsutil ls'
-        bucket_list = subprocess.check_output(cmd, shell=True)
+        bucket_list = subprocess.check_output(cmd, shell=True).decode("utf-8")
 
         if self.upload_bucket_url in bucket_list:
             log('Bucket %s already exists' % self.upload_bucket_name)
@@ -124,7 +124,7 @@ class Install:
 
     def configure_bucket_file_upload_notifications(self):
         cmd = 'gsutil notifications list %s' % self.upload_bucket_url
-        notifications = subprocess.check_output(cmd, shell=True)
+        notifications = subprocess.check_output(cmd, shell=True).decode("utf-8")
         if self.upload_pub_sub_topic in notifications:
             log('Bucket notification already exists: %s' % notifications)
         else:
@@ -134,7 +134,7 @@ class Install:
 
     def create_pub_sub_subscription(self):
         cmd = 'gcloud pubsub subscriptions list'
-        subsriptions = subprocess.check_output(cmd, shell=True)
+        subsriptions = subprocess.check_output(cmd, shell=True).decode("utf-8")
         if self.upload_subscription in subsriptions:
             log('PubSub subscription already exists: %s' % subsriptions)
         else:
@@ -219,12 +219,12 @@ class Install:
     def initialize_app_engine_in_project(self):
         cmd = 'gcloud app describe'
         try:
-            subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+            subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True).decode("utf-8")
             # Do nothing here. App Engine already initialized within current project
         except subprocess.CalledProcessError:
             cmd = 'gcloud app create --region=%s' % self.app_engine_region
             log('Initialize an App Engine application within the project: %s' % cmd)
-            subprocess.check_output(cmd, shell=True)
+            subprocess.check_output(cmd, shell=True).decode("utf-8")
 
     def initialize_firebase_project(self):
         self.firebase_handler.add_firebase_to_project()
@@ -245,7 +245,7 @@ class FirebaseHandler:
         cmd = 'firebase projects:addfirebase %s' % self.google_cloud_project
         log('Trying add firebase to the project: %s' % cmd)
         try:
-            subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True).strip()
+            subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True).strip().decode("utf-8")
         except subprocess.CalledProcessError:
             log("The project already added to firebase")
 
@@ -253,7 +253,7 @@ class FirebaseHandler:
         web_app_id = self._get_or_create_firebase_web_app()
         cmd = 'firebase apps:sdkconfig WEB %s' % web_app_id
         log('Getting config data from firebase webapp: %s' % cmd)
-        out = subprocess.check_output(cmd, shell=True).strip()
+        out = subprocess.check_output(cmd, shell=True).strip().decode("utf-8")
         log(out)
 
         parsed = self._parse_config_data(out)
@@ -271,7 +271,7 @@ class FirebaseHandler:
 
     def _try_get_id_from_app_list(self):
         cmd = 'firebase apps:list --project %s' % self.google_cloud_project
-        app_list = subprocess.check_output(cmd, shell=True).strip()
+        app_list = subprocess.check_output(cmd, shell=True).strip().decode("utf-8")
         log('Application list: %s' % app_list)
         expected_app_name = 'web_%s' % self.google_cloud_project
         # │ web_tas-nanostream-test1 │ 1:253229025431:web:e39391f630f6c68ba981d2     │ WEB      │
@@ -291,7 +291,7 @@ class FirebaseHandler:
         # Call firebase apps:sdkconfig command to get apikey and other parameters
         log('create firebase app for web or get info: %s' % cmd)
 
-        out = subprocess.check_output(cmd, shell=True).strip()
+        out = subprocess.check_output(cmd, shell=True).strip().decode("utf-8")
 
         # extract id from output: firebase apps:sdkconfig WEB 1:22222222222222222222222222222
         return re.sub(r'^.*firebase apps:sdkconfig WEB (.*)', r'\1', out, 0, re.S)
@@ -323,7 +323,7 @@ class IllegalArgumentException(Exception):
 
 def log(text):
     dt = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print "%s: %s" % (dt, text)
+    print ("%s: %s" % (dt, text))
 
 if __name__ == "__main__":
     try:

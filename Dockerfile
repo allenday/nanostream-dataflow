@@ -7,4 +7,4 @@ RUN mvn --version
 WORKDIR /application
 COPY ./ /application
 
-CMD ["python", "-u", "/application/launcher/install.py"]
+CMD ["python3", "-u", "/application/launcher/install.py"]
