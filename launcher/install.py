@@ -91,6 +91,7 @@ class Install:
     def enable_apis(self):
         self.enable_api("dataflow.googleapis.com")
         self.enable_api("firebase.googleapis.com")
+        self.enable_api("firestore.googleapis.com")
 
     def enable_api(self, api_name):
         cmd = 'gcloud services enable %s' % api_name
