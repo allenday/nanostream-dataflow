@@ -2,6 +2,7 @@ package com.google.allenday.nanostream.pubsub;
 
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.transforms.DoFn;
+import org.joda.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +21,7 @@ public class FilterObjectFinalizeMessage extends DoFn<PubsubMessage, PubsubMessa
         PubsubMessage pubsubMessage = c.element();
         LOG.info(pubsubMessage.getAttributeMap().toString());
         if (EVENT_TYPE_OBJECT_FINALIZE.equals(pubsubMessage.getAttribute(EVENT_TYPE_KEY))) {
-            c.output(pubsubMessage);
+            c.outputWithTimestamp(pubsubMessage, Instant.now());
         }
     }
 }

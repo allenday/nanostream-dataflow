@@ -1,5 +1,8 @@
 package com.google.allenday.nanostream;
 
+import com.google.allenday.genomics.core.model.FileWrapper;
+import com.google.allenday.genomics.core.model.SampleMetaData;
+import com.google.allenday.genomics.core.pipeline.PipelineSetupUtils;
 import com.google.allenday.genomics.core.processing.align.AlignTransform;
 import com.google.allenday.nanostream.aligner.GetSequencesFromSamDataFn;
 import com.google.allenday.nanostream.errorcorrection.ErrorCorrectionFn;
@@ -21,7 +24,6 @@ import com.google.allenday.nanostream.taxonomy.GetTaxonomyFromTree;
 import com.google.allenday.nanostream.util.CoderUtils;
 import com.google.allenday.nanostream.util.trasform.FlattenMapToKV;
 import com.google.allenday.nanostream.util.trasform.RemoveValueDoFn;
-import com.google.allenday.genomics.core.pipeline.PipelineSetupUtils;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.apache.beam.sdk.Pipeline;
@@ -36,11 +38,13 @@ import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionView;
 import org.joda.time.Duration;
 
+import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 
 import static com.google.allenday.nanostream.ProcessingMode.RESISTANT_GENES;
 
-public class NanostreamPipeline {
+public class NanostreamPipeline implements Serializable {
 
     private NanostreamPipelineOptions options;
     private Injector injector;
@@ -62,7 +66,10 @@ public class NanostreamPipeline {
                 .apply("Deserialize messages", ParDo.of(new DecodeNotificationJsonMessage()))
                 .apply("Parse GCloud notification", ParDo.of(injector.getInstance(ParseGCloudNotification.class)))
                 .apply(options.getAlignmentWindow() + "s FastQ collect window",
-                        Window.into(FixedWindows.of(Duration.standardSeconds(options.getAlignmentWindow()))))
+                        Window.<KV<SampleMetaData, List<FileWrapper>>>into(FixedWindows.of(Duration.standardSeconds(options.getAlignmentWindow())))
+                                .triggering(AfterPane.elementCountAtLeast(1))
+                                .discardingFiredPanes()
+                )
                 .apply("Alignment", injector.getInstance(AlignTransform.class))
                 .apply("Extract Sequences",
                         ParDo.of(injector.getInstance(GetSequencesFromSamDataFn.class)))
@@ -83,7 +90,8 @@ public class NanostreamPipeline {
                 .apply("Prepare sequences statistic to output",
                         ParDo.of(injector.getInstance(PrepareSequencesStatisticToOutputDbFn.class)))
                 .apply("Write sequences statistic to Firestore",
-                        ParDo.of(injector.getInstance(WriteDataToFirestoreDbFn.class)));
+                        ParDo.of(injector.getInstance(WriteDataToFirestoreDbFn.class)))
+        ;
 
         pipeline.run();
     }
