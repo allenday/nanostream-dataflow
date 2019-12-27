@@ -65,8 +65,9 @@ class Install:
         self.set_default_project_for_gcloud()
         self.enable_apis()
         self.create_storage_buckets()
-        self.configure_bucket_file_upload_notifications()
+        self.create_pub_sub_topic()
         self.create_pub_sub_subscription()
+        self.configure_bucket_file_upload_notifications()
         self.install_required_libs()
         self.deploy_dataflow_templates()
         self.initialize_app_engine_in_project()
@@ -123,14 +124,14 @@ class Install:
             log('Create a Google Cloud Storage bucket for Dataflow files: %s' % cmd)
             subprocess.check_call(cmd, shell=True)
 
-    def configure_bucket_file_upload_notifications(self):
-        cmd = 'gsutil notifications list %s' % self.upload_bucket_url
-        notifications = subprocess.check_output(cmd, shell=True).decode("utf-8")
-        if self.upload_pub_sub_topic in notifications:
-            log('Bucket notification already exists: %s' % notifications)
+    def create_pub_sub_topic(self):
+        cmd = 'gcloud pubsub topics list'
+        list = subprocess.check_output(cmd, shell=True).decode("utf-8")
+        if self.upload_pub_sub_topic in list:
+            log('PubSub topic already already exists: %s' % list)
         else:
-            cmd = 'gsutil notification create -t %s -f json -e OBJECT_FINALIZE %s' % (self.upload_pub_sub_topic, self.upload_bucket_url)
-            log('Create bucket notification: %s' % cmd)
+            cmd = 'gcloud pubsub topics create %s' % self.upload_pub_sub_topic
+            log('Create a PubSub topic: %s' % cmd)
             subprocess.check_call(cmd, shell=True)
 
     def create_pub_sub_subscription(self):
@@ -141,6 +142,16 @@ class Install:
         else:
             cmd = 'gcloud pubsub subscriptions create %s --topic %s' % (self.upload_subscription, self.upload_pub_sub_topic)
             log('Create a PubSub subscription: %s' % cmd)
+            subprocess.check_call(cmd, shell=True)
+
+    def configure_bucket_file_upload_notifications(self):
+        cmd = 'gsutil notifications list %s' % self.upload_bucket_url
+        notifications = subprocess.check_output(cmd, shell=True).decode("utf-8")
+        if self.upload_pub_sub_topic in notifications:
+            log('Bucket notification already exists: %s' % notifications)
+        else:
+            cmd = 'gsutil notification create -t %s -f json -e OBJECT_FINALIZE %s' % (self.upload_pub_sub_topic, self.upload_bucket_url)
+            log('Create bucket notification: %s' % cmd)
             subprocess.check_call(cmd, shell=True)
 
     def install_required_libs(self):
