@@ -8,7 +8,7 @@
         <div class=" col-sm">
           <h2 class="d-flex">Status:             
             <span v-if="pipeline.started">
-              <span>&nbsp; </span>
+              <span>&nbsp;Launched </span>
                <span data-toggle="tooltip" data-placement="top" :title="statusText" v-on:click="$emit('PipelineStatusUpdate')" class="pipeline-control fa fa-stop" ></span> 
             </span> 
             

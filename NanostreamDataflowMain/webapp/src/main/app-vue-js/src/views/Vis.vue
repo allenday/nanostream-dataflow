@@ -148,14 +148,14 @@
                 },
 
                 notifications: {
-                    topic: '',
+                    // topic: '',
                     subscriptions: ''
                 },
 
                 config: {},
 
                 general: {
-                    google_account: 'account@google.com',
+                    // google_account: 'account@google.com',
                     project: '',
                     bucket: '',
 
@@ -295,7 +295,7 @@
             },
 
             launch: function () {
-                console.log('Lanuch called')
+                console.log('Launch called')
                 this.loading = true;
 
                 this.general.bucket = '';
@@ -433,8 +433,14 @@
 
             },
 
-            getPipelineInfo: function () {
+            reloadPipelineInfo: function () {
+                setTimeout(() => {
+                    console.log('Call getPipelineInfo after timeout')
+                    this.getPipelineInfo();
+                }, 5000);
+            },
 
+            getPipelineInfo: function () {
 
                 console.log('GetPipelineInfo called, jobId=' + this.job_id + '&location=' + this.location)
 
@@ -455,24 +461,38 @@
                         console.log('Response from Info:', data)
                         console.log('Current Pipeline State: ' + data.currentState)
                         this.setPipelineStatus(data.currentState);
-                        let options = data.environment.sdkPipelineOptions.options;
-                        let pipDataExtra = data.pipelineDescription.displayData;
-                        // this.general.bucket = pipDataExtra ? pipDataExtra.find(k => k.key == 'resultBucket').strValue : 'undefined'; // if PENDING, bucket is not defined ?
-                        this.general.collection_name_prefix = pipDataExtra.find(k => k.key == 'outputCollectionNamePrefix').strValue;
-                        this.general.ref_db = options.processingMode;
-                        this.notifications.subscriptions = options.inputDataSubscription;
-                        this.pipeline.alignment_window = options.alignmentWindow;
-                        this.pipeline.update_frequency = options.statisticUpdatingDelay;
 
-                        this.general.bucket = options.resultBucket;
-                        if (this.general.bucket.match(/^gs:/)) {
-                            this.general.bucket = this.general.bucket.split('/')[2];
-                            console.log('NEW bucket = ' + this.general.bucket)
-                            this.generateCollectionName(this.general.bucket);
+                        function all_data_present() {
+                            return data && data.environment && data.environment.sdkPipelineOptions && data.environment.sdkPipelineOptions.options &&
+                                data.pipelineDescription && data.pipelineDescription.displayData;
+                        }
+
+                        if (all_data_present()) {
+                            let options = data.environment.sdkPipelineOptions.options;
+                            let pipDataExtra = data.pipelineDescription.displayData;
+                            // this.general.bucket = pipDataExtra ? pipDataExtra.find(k => k.key == 'resultBucket').strValue : 'undefined'; // if PENDING, bucket is not defined ?
+                            let outputCollectionNamePrefixElement = pipDataExtra.find(k => k.key == 'outputCollectionNamePrefix');
+                            if (outputCollectionNamePrefixElement) {
+                                this.general.collection_name_prefix = outputCollectionNamePrefixElement.strValue;
+                                this.general.ref_db = options.processingMode;
+                                this.notifications.subscriptions = options.inputDataSubscription;
+                                this.pipeline.alignment_window = options.alignmentWindow;
+                                this.pipeline.update_frequency = options.statisticUpdatingDelay;
+
+                                this.general.bucket = options.resultBucket;
+                                if (this.general.bucket.match(/^gs:/)) {
+                                    this.general.bucket = this.general.bucket.split('/')[2];
+                                    console.log('NEW bucket = ' + this.general.bucket)
+                                    this.generateCollectionName(this.general.bucket);
+                                }
+                                this.getDocs();
+                            } else {
+                                this.reloadPipelineInfo();
+                            }
+                        } else {
+                            this.reloadPipelineInfo();
                         }
                     })
-                    .then(this.getDocs)
-                    // .then(this.getRecords)
             },
 
 

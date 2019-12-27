@@ -6,7 +6,7 @@
 	        <div class="col-sm-4">
 	          <h3>General</h3>
 	          <ul>
-	            <li><span class="conf_name">Google account</span>: {{ general.google_account }} </li>
+<!--	            <li><span class="conf_name">Google account</span>: {{ general.google_account }} </li>-->
 	            <li><span class="conf_name">Project</span>: 
 					<span v-bind:class="general.project || 'waitingForData'">{{ general.project || '...getting data...'}} </span></li>
 	            <li><span class="conf_name">Bucket</span>: 
@@ -19,7 +19,7 @@
 	        <div class="col-sm-5">
 	          <h3>Notifications</h3>
 	          <ul>
-	            <li><span class="conf_name">Topic</span>: {{ notifications.topic }} </li>
+<!--	            <li><span class="conf_name">Topic</span>: {{ notifications.topic }} </li>-->
 	            <li><span class="conf_name">Subscription</span>: {{ notifications.subscriptions }}</li>
 	          </ul>
 	        </div>
