@@ -193,7 +193,7 @@
 
         watch: {
             records() {
-                console.log('New records set loaded, ' + this.records.lengfth + ' records')
+                console.log('New records set loaded, ' + this.records.length + ' records')
             },
 
             loading() {
@@ -303,7 +303,7 @@
                 let reqData = {
                     pipeline_name: this.pipeline.name,
                     collection_name_prefix: this.general.collection_name_prefix,
-                    document_name_prefix: this.general.document_name,
+                    document_name_prefix: this.general.document_name_prefix,
                     processing_mode: this.general.ref_db
                 };
 
@@ -507,8 +507,21 @@
                             value: d.id,
                             text: d.id
                         }));
-                        console.log('DOCUMENT-LIST Length:', this.document_list.length)
-                        this.getRecords();
+                        console.log('DOCUMENT-LIST Length:', this.document_list.length);
+                        if (this.document_list.length <= 0) {
+                            setTimeout(() => {
+                                console.log('Try get doc list again');
+                                this.getDocs();
+                            }, 10000);
+                        } else {
+                            if (!this.general.document_name) {
+                                // select the first document, get data for it
+                                this.general.document_name = this.document_list[0].value;
+                                this.document_list[0].selected = true;
+                                this.getRecords();
+                            }
+
+                        }
                     }
                 });
             },
