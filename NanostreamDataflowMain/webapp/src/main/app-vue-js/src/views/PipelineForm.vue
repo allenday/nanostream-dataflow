@@ -15,13 +15,13 @@
 		<div class="form-group">
 	      <label for="document-name">Collection name prefix: </label>&nbsp;
 	       <a class="tooltip-icon" data-toggle="tooltip" data-placement="top" title="Firestore database сollection name prefix that will be used for writing results."><i class="fa fa-question-circle"></i></a>
-	      <input v-model="general.collection_name_prefix" type="text" class="form-control" id="collection-name" placeholder="collectionname" >
+	      <input v-model="general.collection_name_prefix" type="text" class="form-control" id="collection-name" placeholder="" >
 	    </div>
 
 		<div class="form-group">
 	      <label for="document-name">Document name prefix: </label>&nbsp;
 	       <a class="tooltip-icon" data-toggle="tooltip" data-placement="top" title="Firestore database document name prefix that will be used for writing statistic results."><i class="fa fa-question-circle"></i></a>
-	      <input v-model="general.document_name" type="text" class="form-control" id="document-name" placeholder="directoryname" name="document-name">
+	      <input v-model="general.document_name_prefix" type="text" class="form-control" id="document-name-prefix" placeholder="" name="document-name-prefix">
 	    </div>
 
 		<div class="form-group">
