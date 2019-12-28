@@ -394,6 +394,9 @@
 
             runJob: function () {
                 this.formActive = true;
+                this.document_list = [];
+                this.collection_name = '';
+                this.document_name = '';
                 console.log('run new job');
             },
 
@@ -519,7 +522,7 @@
                             setTimeout(() => {
                                 console.log('Try get doc list again');
                                 this.getDocs();
-                            }, 10000);
+                            }, 15000);
                         } else {
                             if (!this.general.document_name) {
                                 // select the first document, get data for it
