@@ -110,7 +110,7 @@ class Install:
             subprocess.check_call(cmd, shell=True)
 
         if self.reference_db_bucket_url in bucket_list:
-            log('Bucket %s already exists' % self.upload_bucket_name)
+            log('Bucket %s already exists' % self.reference_db_bucket_url)
         else:
             cmd = 'gsutil mb %s' % self.reference_db_bucket_url
             log('Create a Google Cloud Storage bucket for reference database files: %s' % cmd)
