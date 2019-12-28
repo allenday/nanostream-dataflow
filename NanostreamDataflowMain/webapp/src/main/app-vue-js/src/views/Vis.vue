@@ -143,8 +143,9 @@
                     update_frequency: 0,
                     started: true,
                     status: '',
-                    name: ''
-
+                    name: '',
+                    start_time: '',
+                    job_id: '',
                 },
 
                 notifications: {
@@ -161,6 +162,7 @@
 
                     document_name: '',
                     collection_name_prefix: '',
+                    document_name_prefix: '',
                     collection_name: '',
                     ref_db: ''
 
@@ -168,7 +170,6 @@
 
                 launch_response: '',
 
-                job_id: '',
                 location: '',
 
                 loading: false,
@@ -177,7 +178,9 @@
                 mode: '',
 
                 diagram_name: 'Diagram-Name',
-                document_list: []
+                document_list: [],
+                collection_name: '',
+                document_name: '',
             }
         },
 
@@ -336,7 +339,9 @@
                             console.log('data from LAUNCH call', data)
 
                             this.general.project = data.job.projectId;
-                            this.job_id = data.job.id;
+                            this.pipeline.job_id = data.job.id;
+                            this.pipeline.name = data.job.name;
+                            this.pipeline.start_time = data.job.startTime;
                             this.location = data.job.location;
                             this.formActive = false;
                             this.getPipelineInfo();
@@ -374,10 +379,10 @@
                         } else {
                             const lastJobCreationTime = d3.max(data.jobs, d => d.createTime),
                                 lastJob = data.jobs.find(d => d.createTime == lastJobCreationTime);
-                            this.job_id = lastJob.id;
+                            this.pipeline.job_id = lastJob.id;
+                            this.pipeline.name = lastJob.name;
                             this.location = lastJob.location;
                             this.general.project = lastJob.projectId;
-                            this.pipeline.name = lastJob.name;
                             console.log('last job status=' + lastJob.currentState + ',id:' + lastJob.id)
                             this.getPipelineInfo();
                             this.loading = false;
@@ -395,8 +400,8 @@
 
             stopPipeline: function () {
 
-                console.log('STOP Pipeline called: ' + this.StopPipelineURL + '?jobId=' + this.job_id + '&location=' + this.location)
-                fetch(this.urlPrefix + this.StopPipelineURL + '?jobId=' + this.job_id + '&location=' + this.location, {method: 'POST'})
+                console.log('STOP Pipeline called: ' + this.StopPipelineURL + '?jobId=' + this.pipeline.job_id + '&location=' + this.location)
+                fetch(this.urlPrefix + this.StopPipelineURL + '?jobId=' + this.pipeline.job_id + '&location=' + this.location, {method: 'POST'})
                     .then(
                         successResponse => {
                             if (successResponse.status != 200) {
@@ -442,9 +447,9 @@
 
             getPipelineInfo: function () {
 
-                console.log('GetPipelineInfo called, jobId=' + this.job_id + '&location=' + this.location)
+                console.log('GetPipelineInfo called, jobId=' + this.pipeline.job_id + '&location=' + this.location)
 
-                fetch(this.urlPrefix + this.InfoReqURL + '?jobId=' + this.job_id + '&location=' + this.location)
+                fetch(this.urlPrefix + this.InfoReqURL + '?jobId=' + this.pipeline.job_id + '&location=' + this.location)
                     .then(
                         successResponse => {
                             if (successResponse.status != 200) {
@@ -474,10 +479,12 @@
                             let outputCollectionNamePrefixElement = pipDataExtra.find(k => k.key == 'outputCollectionNamePrefix');
                             if (outputCollectionNamePrefixElement) {
                                 this.general.collection_name_prefix = outputCollectionNamePrefixElement.strValue;
+                                console.log('collection_name_prefix', this.general.collection_name_prefix);
                                 this.general.ref_db = options.processingMode;
                                 this.notifications.subscriptions = options.inputDataSubscription;
                                 this.pipeline.alignment_window = options.alignmentWindow;
                                 this.pipeline.update_frequency = options.statisticUpdatingDelay;
+                                this.pipeline.start_time = data.startTime;
 
                                 this.general.bucket = options.resultBucket;
                                 if (this.general.bucket.match(/^gs:/)) {
