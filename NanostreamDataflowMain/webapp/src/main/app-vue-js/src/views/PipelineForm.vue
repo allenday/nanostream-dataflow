@@ -9,19 +9,19 @@
 	    <p class="text-center form-title">Define the following variables to run the pipeline:</p>
 	    <div class="form-group">
 	      <label for="pipeline-name">Pipeline name:</label>
-	      <input v-model="pipeline.name" type="text" class="form-control" id="pipeline-name" placeholder="id123456"  name="pipeline-name">
+	      <input v-model="pipeline.name" type="text" class="form-control" id="pipeline-name" placeholder="Enter Pipeline Name here"  name="pipeline-name">
 	    </div>
 		
 		<div class="form-group">
 	      <label for="document-name">Collection name prefix: </label>&nbsp;
 	       <a class="tooltip-icon" data-toggle="tooltip" data-placement="top" title="Firestore database сollection name prefix that will be used for writing results."><i class="fa fa-question-circle"></i></a>
-	      <input v-model="general.collection_name_prefix" type="text" class="form-control" id="collection-name" placeholder="" >
+	      <input v-model="general.collection_name_prefix" type="text" class="form-control" id="collection-name" placeholder="Enter collection name prefix" >
 	    </div>
 
 		<div class="form-group">
 	      <label for="document-name">Document name prefix: </label>&nbsp;
 	       <a class="tooltip-icon" data-toggle="tooltip" data-placement="top" title="Firestore database document name prefix that will be used for writing statistic results."><i class="fa fa-question-circle"></i></a>
-	      <input v-model="general.document_name_prefix" type="text" class="form-control" id="document-name-prefix" placeholder="" name="document-name-prefix">
+	      <input v-model="general.document_name_prefix" type="text" class="form-control" id="document-name-prefix" placeholder="Enter document name prefix" name="document-name-prefix">
 	    </div>
 
 		<div class="form-group">
