@@ -59,15 +59,14 @@ class Install:
         ))
 
         self.firebase_handler = FirebaseHandler(self.google_cloud_project)
+        self.bucket_notification_handler = BucketNotificationHandler(self.upload_pub_sub_topic, self.upload_subscription, self.upload_bucket_url)
 
 
     def main(self):
         self.set_default_project_for_gcloud()
         self.enable_apis()
         self.create_storage_buckets()
-        self.create_pub_sub_topic()
-        self.create_pub_sub_subscription()
-        self.configure_bucket_file_upload_notifications()
+        self.create_bucket_notifications()
         self.install_required_libs()
         self.deploy_dataflow_templates()
         self.initialize_app_engine_in_project()
@@ -111,7 +110,7 @@ class Install:
             subprocess.check_call(cmd, shell=True)
 
         if self.reference_db_bucket_url in bucket_list:
-            log('Bucket %s already exists' % self.upload_bucket_name)
+            log('Bucket %s already exists' % self.reference_db_bucket_url)
         else:
             cmd = 'gsutil mb %s' % self.reference_db_bucket_url
             log('Create a Google Cloud Storage bucket for reference database files: %s' % cmd)
@@ -124,35 +123,8 @@ class Install:
             log('Create a Google Cloud Storage bucket for Dataflow files: %s' % cmd)
             subprocess.check_call(cmd, shell=True)
 
-    def create_pub_sub_topic(self):
-        cmd = 'gcloud pubsub topics list'
-        list = subprocess.check_output(cmd, shell=True).decode("utf-8")
-        if self.upload_pub_sub_topic in list:
-            log('PubSub topic already already exists: %s' % list)
-        else:
-            cmd = 'gcloud pubsub topics create %s' % self.upload_pub_sub_topic
-            log('Create a PubSub topic: %s' % cmd)
-            subprocess.check_call(cmd, shell=True)
-
-    def create_pub_sub_subscription(self):
-        cmd = 'gcloud pubsub subscriptions list'
-        subsriptions = subprocess.check_output(cmd, shell=True).decode("utf-8")
-        if self.upload_subscription in subsriptions:
-            log('PubSub subscription already exists: %s' % subsriptions)
-        else:
-            cmd = 'gcloud pubsub subscriptions create %s --topic %s' % (self.upload_subscription, self.upload_pub_sub_topic)
-            log('Create a PubSub subscription: %s' % cmd)
-            subprocess.check_call(cmd, shell=True)
-
-    def configure_bucket_file_upload_notifications(self):
-        cmd = 'gsutil notifications list %s' % self.upload_bucket_url
-        notifications = subprocess.check_output(cmd, shell=True).decode("utf-8")
-        if self.upload_pub_sub_topic in notifications:
-            log('Bucket notification already exists: %s' % notifications)
-        else:
-            cmd = 'gsutil notification create -t %s -f json -e OBJECT_FINALIZE %s' % (self.upload_pub_sub_topic, self.upload_bucket_url)
-            log('Create bucket notification: %s' % cmd)
-            subprocess.check_call(cmd, shell=True)
+    def create_bucket_notifications(self):
+        self.bucket_notification_handler.create_bucket_notifications()
 
     def install_required_libs(self):
         cmd = 'mvn install:install-file -Dfile=NanostreamDataflowMain/libs/japsa.jar -DgroupId=coin -DartifactId=japsa -Dversion=1.9-3c -Dpackaging=jar'
@@ -248,7 +220,81 @@ class Install:
         subprocess.check_call(cmd, shell=True)
 
 
+class BucketNotificationHandler:
+
+    def __init__(self, upload_pub_sub_topic, upload_subscription, upload_bucket_url):
+        self.upload_pub_sub_topic = upload_pub_sub_topic
+        self.upload_subscription = upload_subscription
+        self.upload_bucket_url = upload_bucket_url
+
+    def create_bucket_notifications(self):
+        create_new = self._create_pub_sub_topic()
+        create_new = self._create_pub_sub_subscription(create_new)
+        self._configure_bucket_file_upload_notifications(create_new)
+
+    def _create_pub_sub_topic(self):
+        cmd = 'gcloud pubsub topics list'
+        list = subprocess.check_output(cmd, shell=True).decode("utf-8")
+        if self.upload_pub_sub_topic in list:
+            log('PubSub topic already already exists: %s' % list)
+            create_new = False
+        else:
+            cmd = 'gcloud pubsub topics create %s' % self.upload_pub_sub_topic
+            log('Create a PubSub topic: %s' % cmd)
+            subprocess.check_call(cmd, shell=True)
+            create_new = True
+        return create_new
+
+    def _create_pub_sub_subscription(self, create_new):
+        cmd = 'gcloud pubsub subscriptions list'
+        subsriptions = subprocess.check_output(cmd, shell=True).decode("utf-8")
+        if self.upload_subscription in subsriptions:
+            log('PubSub subscription already exists: %s' % subsriptions)
+            if create_new:
+                log('Recreate subscription: %s' % self.upload_subscription)
+                self._delete_pub_sub_subscription()
+                self._create_new_pub_sub_subscription()
+        else:
+            self._create_new_pub_sub_subscription()
+            create_new = True
+        return create_new
+
+    def _delete_pub_sub_subscription(self):
+        cmd = 'gcloud pubsub subscriptions delete %s' % self.upload_subscription
+        log('Delete a PubSub subscription: %s' % cmd)
+        subprocess.check_call(cmd, shell=True)
+
+    def _create_new_pub_sub_subscription(self):
+        cmd = 'gcloud pubsub subscriptions create %s --topic %s' % (self.upload_subscription, self.upload_pub_sub_topic)
+        log('Create a PubSub subscription: %s' % cmd)
+        subprocess.check_call(cmd, shell=True)
+
+    def _configure_bucket_file_upload_notifications(self, create_new):
+        cmd = 'gsutil notifications list %s' % self.upload_bucket_url
+        notifications = subprocess.check_output(cmd, shell=True).decode("utf-8")
+        if self.upload_pub_sub_topic in notifications:
+            log('Bucket notification already exists: %s' % notifications)
+            if create_new:
+                log('Recreate bucket notification for bucket: %s' % self.upload_bucket_url)
+                self._delete_bucket_upload_notifications()
+                self._create_bucket_upload_notifications()
+        else:
+            self._create_bucket_upload_notifications()
+
+    def _delete_bucket_upload_notifications(self):
+        cmd = 'gsutil notification delete %s' % self.upload_bucket_url
+        log('Delete bucket notification: %s' % cmd)
+        subprocess.check_call(cmd, shell=True)
+
+    def _create_bucket_upload_notifications(self):
+        cmd = 'gsutil notification create -t %s -f json -e OBJECT_FINALIZE %s' % (
+            self.upload_pub_sub_topic, self.upload_bucket_url)
+        log('Create bucket notification: %s' % cmd)
+        subprocess.check_call(cmd, shell=True)
+
+
 class FirebaseHandler:
+
     def __init__(self, google_cloud_project):
         self.dir_file = os.path.dirname(os.path.realpath(__file__))
         self.google_cloud_project = google_cloud_project
