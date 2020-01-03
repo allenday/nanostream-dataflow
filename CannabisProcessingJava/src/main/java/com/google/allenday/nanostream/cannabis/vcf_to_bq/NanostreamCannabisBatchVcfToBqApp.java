@@ -27,7 +27,7 @@ public class NanostreamCannabisBatchVcfToBqApp {
         PipelineSetupUtils.prepareForInlineAlignment(pipelineOptions);
 
         Injector injector = Guice.createInjector(new NanostreamCannabisVcfToBqModule.Builder()
-                .setGenomicsOptions(GenomicsOptions.fromAlignerPipelineOptions(pipelineOptions))
+                .setFromOptions(pipelineOptions)
                 .build());
 
         NameProvider nameProvider = injector.getInstance(NameProvider.class);

@@ -261,8 +261,8 @@ public class NanostreamCannabisModule extends AbstractModule {
     @Provides
     @Singleton
     public VcfToBqService provideVcfToBqService(LifeSciencesService lifeSciencesService, NameProvider nameProvider) {
-        VcfToBqService vcfToBqService = new VcfToBqService(lifeSciencesService, String.format("%s:%s", project, genomicsOptions.getVcfToBqOutputDirPattern()),
-                genomicsOptions.getResultBucket(), genomicsOptions.getMergedOutputDirPattern(), nameProvider.getCurrentTimeInDefaultFormat());
+        VcfToBqService vcfToBqService = new VcfToBqService(lifeSciencesService, String.format("%s:%s", project, genomicsOptions.getVcfBqDatasetAndTablePattern()),
+                genomicsOptions.getResultBucket(), genomicsOptions.getVcfToBqOutputDirPattern(), nameProvider.getCurrentTimeInDefaultFormat());
         vcfToBqService.setRegion(region);
         return vcfToBqService;
     }
