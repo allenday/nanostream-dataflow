@@ -14,7 +14,7 @@ public interface NanostreamCannabisPipelineOptions extends GenomicsPipelineOptio
 
     void setSrcBucket(String value);
 
-    @Description("GCS uri of CSV file with input data")
+    @Description("GCS uri pattern of CSV files with input data")
     @Validation.Required
     String getInputCsvUri();
 
@@ -25,9 +25,8 @@ public interface NanostreamCannabisPipelineOptions extends GenomicsPipelineOptio
 
     void setSraSamplesToFilter(List<String> value);
 
-    @Description("GCS path for logging anomaly examples")
-    String getAnomalyOutputPath();
+    Boolean getExportVcfToBq();
 
-    void setAnomalyOutputPath(String value);
-
+    void setExportVcfToBq(Boolean value);
 }
+

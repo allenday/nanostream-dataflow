@@ -1,25 +1,27 @@
-package com.google.allenday.nanostream.cannabis.di;
+package com.google.allenday.nanostream.cannabis;
 
 import com.google.allenday.genomics.core.cmd.CmdExecutor;
 import com.google.allenday.genomics.core.cmd.WorkerSetupService;
 import com.google.allenday.genomics.core.csv.ParseSourceCsvTransform;
 import com.google.allenday.genomics.core.io.FileUtils;
 import com.google.allenday.genomics.core.io.TransformIoHandler;
-import com.google.allenday.genomics.core.model.GeneExampleMetaData;
+import com.google.allenday.genomics.core.model.SampleMetaData;
+import com.google.allenday.genomics.core.model.SraParser;
+import com.google.allenday.genomics.core.pipeline.GenomicsOptions;
 import com.google.allenday.genomics.core.processing.AlignAndPostProcessTransform;
+import com.google.allenday.genomics.core.processing.DeepVariantService;
 import com.google.allenday.genomics.core.processing.SamBamManipulationService;
 import com.google.allenday.genomics.core.processing.align.AlignFn;
 import com.google.allenday.genomics.core.processing.align.AlignService;
-import com.google.allenday.genomics.core.processing.align.GenomicsOptions;
-import com.google.allenday.genomics.core.processing.other.CreateBamIndexFn;
-import com.google.allenday.genomics.core.processing.other.MergeFn;
-import com.google.allenday.genomics.core.processing.other.SortFn;
+import com.google.allenday.genomics.core.processing.align.AlignTransform;
+import com.google.allenday.genomics.core.processing.lifesciences.LifeSciencesService;
+import com.google.allenday.genomics.core.processing.other.*;
+import com.google.allenday.genomics.core.processing.vcf_to_bq.VcfToBqFn;
+import com.google.allenday.genomics.core.processing.vcf_to_bq.VcfToBqService;
 import com.google.allenday.genomics.core.reference.ReferencesProvider;
 import com.google.allenday.genomics.core.utils.NameProvider;
-import com.google.allenday.nanostream.cannabis.NanostreamCannabisPipelineOptions;
 import com.google.allenday.nanostream.cannabis.anomaly.DetectAnomalyTransform;
 import com.google.allenday.nanostream.cannabis.anomaly.RecognizePairedReadsWithAnomalyFn;
-import com.google.allenday.nanostream.cannabis.io.CannabisCsvParser;
 import com.google.allenday.nanostream.cannabis.io.CannabisUriProvider;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
@@ -36,31 +38,29 @@ public class NanostreamCannabisModule extends AbstractModule {
 
     private String srcBucket;
     private String inputCsvUri;
-    private String anomalyOutputPath;
     private List<String> sraSamplesToFilter;
+    private String project;
+    private String region;
 
     private GenomicsOptions genomicsOptions;
 
     public NanostreamCannabisModule(Builder builder) {
         this.inputCsvUri = builder.inputCsvUri;
-        this.anomalyOutputPath = builder.anomalyOutputPath;
         this.sraSamplesToFilter = builder.sraSamplesToFilter;
         this.genomicsOptions = builder.genomicsOptions;
         this.srcBucket = builder.srcBucket;
+        this.project = builder.project;
+        this.region = builder.region;
     }
 
     public static class Builder {
         private String srcBucket;
         private String inputCsvUri;
-        private String anomalyOutputPath;
         private GenomicsOptions genomicsOptions;
+        private String project;
+        private String region;
 
         private List<String> sraSamplesToFilter;
-
-        public Builder setAnomalyOutputPath(String anomalyOutputPath) {
-            this.anomalyOutputPath = anomalyOutputPath;
-            return this;
-        }
 
         public Builder setInputCsvUri(String inputCsvUri) {
             this.inputCsvUri = inputCsvUri;
@@ -72,8 +72,9 @@ public class NanostreamCannabisModule extends AbstractModule {
             return this;
         }
 
-        public void setGenomicsOptions(GenomicsOptions genomicsOptions) {
+        public Builder setGenomicsOptions(GenomicsOptions genomicsOptions) {
             this.genomicsOptions = genomicsOptions;
+            return this;
         }
 
         public Builder setSrcBucket(String srcBucket) {
@@ -83,10 +84,11 @@ public class NanostreamCannabisModule extends AbstractModule {
 
         public Builder setFromOptions(NanostreamCannabisPipelineOptions nanostreamPipelineOptions) {
             setInputCsvUri(nanostreamPipelineOptions.getInputCsvUri());
-            setAnomalyOutputPath(nanostreamPipelineOptions.getAnomalyOutputPath());
             setSraSamplesToFilter(nanostreamPipelineOptions.getSraSamplesToFilter());
             setGenomicsOptions(GenomicsOptions.fromAlignerPipelineOptions(nanostreamPipelineOptions));
             setSrcBucket(nanostreamPipelineOptions.getSrcBucket());
+            region = nanostreamPipelineOptions.getRegion();
+            project = nanostreamPipelineOptions.getProject();
             return this;
         }
 
@@ -179,7 +181,13 @@ public class NanostreamCannabisModule extends AbstractModule {
                 String.format(genomicsOptions.getAlignedOutputDirPattern(), nameProvider.getCurrentTimeInDefaultFormat()),
                 genomicsOptions.getMemoryOutputLimit(), fileUtils);
 
-        return new AlignFn(alignService, referencesProvider, genomicsOptions.getGeneReferences(), alignIoHandler, fileUtils);
+        return new AlignFn(alignService, referencesProvider, alignIoHandler, fileUtils);
+    }
+
+    @Provides
+    @Singleton
+    public AlignTransform provideAlignTransform(AlignFn alignFn) {
+        return new AlignTransform("Align reads transform", alignFn, genomicsOptions.getGeneReferences());
     }
 
     @Provides
@@ -194,10 +202,10 @@ public class NanostreamCannabisModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public AlignAndPostProcessTransform provideAlignAndPostProcessTransform(AlignFn alignFn, SortFn sortFn,
+    public AlignAndPostProcessTransform provideAlignAndPostProcessTransform(AlignTransform alignTransform, SortFn sortFn,
                                                                             MergeFn mergeFn, CreateBamIndexFn createBamIndexFn) {
         return new AlignAndPostProcessTransform("Align -> Sort -> Merge transform -> Create index",
-                alignFn,
+                alignTransform,
                 sortFn,
                 mergeFn,
                 createBamIndexFn);
@@ -205,8 +213,8 @@ public class NanostreamCannabisModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public GeneExampleMetaData.Parser provideGeneExampleMetaDataParser() {
-        return new CannabisCsvParser();
+    public SampleMetaData.Parser provideSampleMetaDataParser() {
+        return new SraParser();
     }
 
     @Provides
@@ -218,7 +226,7 @@ public class NanostreamCannabisModule extends AbstractModule {
     @Provides
     @Singleton
     public ParseSourceCsvTransform provideParseSourceCsvTransform(FileUtils fileUtils,
-                                                                  GeneExampleMetaData.Parser geneExampleMetaDataParser,
+                                                                  SampleMetaData.Parser geneExampleMetaDataParser,
                                                                   CannabisUriProvider cannabisUriProvider,
                                                                   DetectAnomalyTransform detectAnomalyTransform) {
 
@@ -229,5 +237,42 @@ public class NanostreamCannabisModule extends AbstractModule {
         return parseSourceCsvTransform;
     }
 
+    @Provides
+    @Singleton
+    public LifeSciencesService provideLifeSciencesService() {
+        return new LifeSciencesService();
+    }
+
+    @Provides
+    @Singleton
+    public DeepVariantService provideDeepVariantService(ReferencesProvider referencesProvider, LifeSciencesService lifeSciencesService) {
+        DeepVariantService deepVariantService = new DeepVariantService(referencesProvider, lifeSciencesService,
+                genomicsOptions.getDeepVariantOptions());
+        return deepVariantService;
+    }
+
+    @Provides
+    @Singleton
+    public DeepVariantFn provideDeepVariantFn(DeepVariantService deepVariantService, FileUtils fileUtils, NameProvider nameProvider) {
+
+        return new DeepVariantFn(deepVariantService, fileUtils, genomicsOptions.getResultBucket(), String.format(genomicsOptions.getDeepVariantOutputDirPattern(), nameProvider.getCurrentTimeInDefaultFormat()));
+    }
+
+    @Provides
+    @Singleton
+    public VcfToBqService provideVcfToBqService(LifeSciencesService lifeSciencesService, NameProvider nameProvider) {
+        VcfToBqService vcfToBqService = new VcfToBqService(lifeSciencesService, String.format("%s:%s", project, genomicsOptions.getVcfToBqOutputDirPattern()),
+                genomicsOptions.getResultBucket(), genomicsOptions.getMergedOutputDirPattern(), nameProvider.getCurrentTimeInDefaultFormat());
+        vcfToBqService.setRegion(region);
+        return vcfToBqService;
+    }
+
+
+    @Provides
+    @Singleton
+    public VcfToBqFn provideVcfToBqFn(VcfToBqService vcfToBqService, FileUtils fileUtils) {
+
+        return new VcfToBqFn(vcfToBqService, fileUtils);
+    }
 
 }
