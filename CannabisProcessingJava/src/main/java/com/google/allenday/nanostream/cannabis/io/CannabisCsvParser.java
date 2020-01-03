@@ -1,13 +1,17 @@
 package com.google.allenday.nanostream.cannabis.io;
 
-import com.google.allenday.genomics.core.model.GeneExampleMetaData;
+import com.google.allenday.genomics.core.model.SampleMetaData;
 
-public class CannabisCsvParser extends GeneExampleMetaData.Parser {
+public class CannabisCsvParser extends SampleMetaData.Parser {
+
+    public CannabisCsvParser() {
+        super(Separation.COMMA);
+    }
 
     @Override
-    public GeneExampleMetaData processParts(String[] csvLineParts, String csvLine) throws CsvParseException {
+    public SampleMetaData processParts(String[] csvLineParts, String csvLine) throws CsvParseException {
         try {
-            GeneExampleMetaData geneExampleMetaData = new GeneExampleMetaData(csvLineParts[3], csvLineParts[4], csvLineParts[6], csvLine);
+            SampleMetaData geneExampleMetaData = new SampleMetaData(csvLineParts[3], csvLineParts[4], csvLineParts[6], csvLine);
             geneExampleMetaData.setCenterName(csvLineParts[0]);
             geneExampleMetaData.setSraStudy(csvLineParts[1]);
             geneExampleMetaData.setBioProject(csvLineParts[2]);
