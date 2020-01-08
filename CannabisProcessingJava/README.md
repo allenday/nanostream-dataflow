@@ -14,7 +14,7 @@ Processing includes next steps:
 
 ### Example
 
-End-to-end processing:
+#### Per-sample (fastq => bigquery) processing job:
 ```bash
 mvn clean package
 java -cp target/NanostreamCannabis-0.0.2.jar \
@@ -48,6 +48,34 @@ java -cp target/NanostreamCannabis-0.0.2.jar \
         --exportVcfToBq=True \
         --vcfBqDatasetAndTablePattern="cannabis_3k_results_test.GENOMICS_VARIATIONS_%s"
 ```
+
+#### Per-sample (fastq => vcf) processing job:
+TODO
+
+#### Group-of-samples (vcf => bigquery) processing job:
+```bash
+mvn clean package
+java -cp target/NanostreamCannabis-0.0.2.jar \
+    com.google.allenday.nanostream.cannabis.vcf_to_bq.NanostreamCannabisBatchVcfToBqApp \
+        --project=cannabis-3k \
+        --region="us-central1" \
+        --workerMachineType=n1-standard-4 \
+        --maxNumWorkers=20 \
+        --runner=DataflowRunner \
+        --stagingLocation="gs://dataflow-temp-and-staging/staging/"\
+        --tempLocation="gs://dataflow-temp-and-staging/temp/"\
+        --resultBucket="cannabis-3k-results" \
+        --outputDir="cannabis_processing_output/" \
+        --referenceNamesList="AGQN03" \
+        --allReferencesDirGcsUri="gs://cannabis-3k/reference/" \
+        --vcfBqDatasetAndTablePattern="cannabis_3k_results_test.GENOMICS_VARIATIONS_%s" \
+        --srcBucket=cannabis-3k-results \
+        --vcfPathPattern="cannabis_processing_staged/vcf_to_bq/ready_to_export/%s/" \
+        --workingBucket="cannabis-3k-results" \
+        --workingDir="vcf-to-bq-working/"
+```
+
+
 
 ### SRA CSV file content example
 ```csv
@@ -140,25 +168,3 @@ java -cp target/NanostreamCannabis-(current_version).jar \
  
 
 
-Batch export to BigQuery:
-```bash
-mvn clean package
-java -cp target/NanostreamCannabis-0.0.2.jar \
-    com.google.allenday.nanostream.cannabis.vcf_to_bq.NanostreamCannabisBatchVcfToBqApp \
-        --project=cannabis-3k \
-        --region="us-central1" \
-        --workerMachineType=n1-standard-4 \
-        --maxNumWorkers=20 \
-        --runner=DataflowRunner \
-        --stagingLocation="gs://dataflow-temp-and-staging/staging/"\
-        --tempLocation="gs://dataflow-temp-and-staging/temp/"\
-        --resultBucket="cannabis-3k-results" \
-        --outputDir="cannabis_processing_output/" \
-        --referenceNamesList="AGQN03" \
-        --allReferencesDirGcsUri="gs://cannabis-3k/reference/" \
-        --vcfBqDatasetAndTablePattern="cannabis_3k_results_test.GENOMICS_VARIATIONS_%s" \
-        --srcBucket=cannabis-3k-results \
-        --vcfPathPattern="cannabis_processing_staged/vcf_to_bq/ready_to_export/%s/" \
-        --workingBucket="cannabis-3k-results" \
-        --workingDir="vcf-to-bq-working/"
-```
