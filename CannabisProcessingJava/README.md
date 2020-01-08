@@ -12,6 +12,43 @@ Processing includes next steps:
 8. Variant Calling with [Deep Variant](https://github.com/google/deepvariant)
 9. Exporting VCF files into big query with [gcp-variant-transforms](https://github.com/googlegenomics/gcp-variant-transforms)
 
+### Example
+
+End-to-end processing:
+```bash
+mvn clean package
+java -cp target/NanostreamCannabis-0.0.2.jar \
+    com.google.allenday.nanostream.cannabis.NanostreamCannabisApp \
+        --project=cannabis-3k \
+        --region="us-central1" \
+        --workerMachineType=n1-standard-4 \
+        --maxNumWorkers=20 \
+        --numWorkers=5 \
+        --runner=DataflowRunner \
+        --srcBucket=cannabis-3k \
+        --stagingLocation="gs://dataflow-temp-and-staging/staging/"\
+        --tempLocation="gs://dataflow-temp-and-staging/temp/"\
+        --inputCsvUri="gs://cannabis-3k/sra_csv_index/converted/*" \
+        --sraSamplesToFilter="SRS1098403" \
+        --resultBucket=cannabis-3k-results \
+        --referenceNamesList="AGQN03","MNPR01" \
+        --allReferencesDirGcsUri="gs://cannabis-3k/reference/" \
+        --outputDir="cannabis_processing_output/" \
+        --memoryOutputLimit=0 \
+        --controlPipelineWorkerRegion="us-west2" \
+        --stepsWorkerRegion="us-central1" \
+        --makeExamplesWorkers=4 \
+        --makeExamplesCoresPerWorker=16 \
+        --makeExamplesRamPerWorker=60 \
+        --makeExamplesDiskPerWorker=90 \
+        --callVariantsCoresPerWorker=16 \
+        --callVariantsRamPerWorker=60 \
+        --callVariantsDiskPerWorker=60 \
+        --deepVariantShards=4 \
+        --exportVcfToBq=True \
+        --vcfBqDatasetAndTablePattern="cannabis_3k_results_test.GENOMICS_VARIATIONS_%s"
+```
+
 ### SRA CSV file content example
 ```csv
 Assay_Type	AvgSpotLen	BioSample	Center_Name	DATASTORE_provider	DATASTORE_region	Experiment	InsertSize	Instrument	LibraryLayout	LibrarySelection	LibrarySource	Library_Name	LoadDate	MBases	MBytes	Organism	Platform	ReleaseDate	Run	SRA_Sample	Sample_Name	cultivar	dev_stage	geo_loc_name	tissue	BioProject	BioSampleModel	Consent	DATASTORE_filetype	SRA_Study	age
@@ -102,42 +139,7 @@ java -cp target/NanostreamCannabis-(current_version).jar \
 ```
  
 
-### Example
 
-End-to-end processing:
-```bash
-mvn clean package
-java -cp target/NanostreamCannabis-0.0.2.jar \
-    com.google.allenday.nanostream.cannabis.NanostreamCannabisApp \
-        --project=cannabis-3k \
-        --region="us-central1" \
-        --workerMachineType=n1-standard-4 \
-        --maxNumWorkers=20 \
-        --numWorkers=5 \
-        --runner=DataflowRunner \
-        --srcBucket=cannabis-3k \
-        --stagingLocation="gs://dataflow-temp-and-staging/staging/"\
-        --tempLocation="gs://dataflow-temp-and-staging/temp/"\
-        --inputCsvUri="gs://cannabis-3k/sra_csv_index/converted/*" \
-        --sraSamplesToFilter="SRS1098403" \
-        --resultBucket=cannabis-3k-results \
-        --referenceNamesList="AGQN03","MNPR01" \
-        --allReferencesDirGcsUri="gs://cannabis-3k/reference/" \
-        --outputDir="cannabis_processing_output/" \
-        --memoryOutputLimit=0 \
-        --controlPipelineWorkerRegion="us-west2" \
-        --stepsWorkerRegion="us-central1" \
-        --makeExamplesWorkers=4 \
-        --makeExamplesCoresPerWorker=16 \
-        --makeExamplesRamPerWorker=60 \
-        --makeExamplesDiskPerWorker=90 \
-        --callVariantsCoresPerWorker=16 \
-        --callVariantsRamPerWorker=60 \
-        --callVariantsDiskPerWorker=60 \
-        --deepVariantShards=4 \
-        --exportVcfToBq=True \
-        --vcfBqDatasetAndTablePattern="cannabis_3k_results_test.GENOMICS_VARIATIONS_%s"
-```
 Batch export to BigQuery:
 ```bash
 mvn clean package
