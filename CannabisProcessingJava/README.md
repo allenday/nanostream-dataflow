@@ -86,8 +86,11 @@ java -cp target/NanostreamCannabis-0.0.2.jar \
 Assay_Type	AvgSpotLen	BioSample	Center_Name	DATASTORE_provider	DATASTORE_region	Experiment	InsertSize	Instrument	LibraryLayout	LibrarySelection	LibrarySource	Library_Name	LoadDate	MBases	MBytes	Organism	Platform	ReleaseDate	Run	SRA_Sample	Sample_Name	cultivar	dev_stage	geo_loc_name	tissue	BioProject	BioSampleModel	Consent	DATASTORE_filetype	SRA_Study	age
 WGS	100	SAMN00738286	UNIVERSITY OF TORONTO	gs s3 sra-sos	gs.US s3.us-east-1 sra-sos.be-md sra-sos.st-va	SRX100361	0	Illumina HiSeq 2000	SINGLE	size fractionation	GENOMIC	CS-US_SIL-1	2012-01-21	5205	3505	Cannabis sativa	ILLUMINA	2011-10-12	SRR351492	SRS266493	CS-USO31-DNA	USO-31	missing	missing	young leaf	PRJNA73819	Plant	public	sra	SRP008673	missing
 WGS	100	SAMN00738286	UNIVERSITY OF TORONTO	gs s3 sra-sos	gs.US s3.us-east-1 sra-sos.be-md sra-sos.st-va	SRX100368	0	Illumina HiSeq 2000	SINGLE	size fractionation	GENOMIC	CS-US_SIL-2	2012-01-21	2306	1499	Cannabis sativa	ILLUMINA	2011-10-12	SRR351493	SRS266493	CS-USO31-DNA	USO-31	missing	missing	young leaf	PRJNA73819	Plant	public	sra	SRP008673	missing
-
 ```
+[You can get one of these from URL XXXXX](XXXXX)
+
+
+## Docs in general terms
 
 ### Running
 Use following commands to run processing:
