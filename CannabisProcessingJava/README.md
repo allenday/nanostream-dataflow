@@ -50,7 +50,6 @@ java -cp target/NanostreamCannabis-0.0.2.jar \
 ```
 
 #### Per-sample (fastq => vcf) processing job:
-TODO
 ```
 # Simply set  paramater `exportVcfToBq=False` of the fastq=>bigquery pipeline:
 --exportVcfToBq=False
