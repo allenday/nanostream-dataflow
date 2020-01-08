@@ -14,7 +14,7 @@ public class CannabisUriProvider extends UriProvider {
 
     public static CannabisUriProvider withDefaultProviderRule(String srcBucket) {
         return new CannabisUriProvider(srcBucket, (ProviderRule) (geneExampleMetaData, bucket) -> {
-            boolean isKannapedia = geneExampleMetaData.getCenterName().toLowerCase().equals("Kannapedia".toLowerCase());
+            boolean isKannapedia = geneExampleMetaData.getSraStudy().toLowerCase().equals("Kannapedia".toLowerCase());
             String uriPrefix = isKannapedia
                     ? String.format("gs://%s/kannapedia/", bucket)
                     : String.format("gs://%s/sra/%s/%s/", bucket, geneExampleMetaData.getSraStudy(),
