@@ -12,10 +12,13 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
+import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
+
+import java.util.ArrayList;
 
 public class NanostreamCannabisApp {
 
@@ -38,10 +41,11 @@ public class NanostreamCannabisApp {
         Pipeline pipeline = Pipeline.create(pipelineOptions);
 
         PCollection<KV<ReferenceDatabase, String>> vcfResults = pipeline
-                .apply("Parse data", injector.getInstance(ParseSourceCsvTransform.class))
-                .apply("Align reads and prepare for DV", injector.getInstance(AlignAndPostProcessTransform.class))
-                .apply("Variant Calling", ParDo.of(injector.getInstance(DeepVariantFn.class)))
-                .apply("Prepare to VcfToBq transform", MapElements.via(new DvAndVcfToBqConnector()));
+//                .apply("Parse data", injector.getInstance(ParseSourceCsvTransform.class))
+//                .apply("Align reads and prepare for DV", injector.getInstance(AlignAndPostProcessTransform.class))
+//                .apply("Variant Calling", ParDo.of(injector.getInstance(DeepVariantFn.class)))
+//                .apply("Prepare to VcfToBq transform", MapElements.via(new DvAndVcfToBqConnector()));
+        .apply(Create.of(KV.of(new ReferenceDatabase("AGQN03", new ArrayList<>()), "gs://cannabis-3k-results/cannabis_processing_output__test/2020-01-03--13-23-04-UTC/result_dv/SRS1107977_AGQN03/SRS1107977_AGQN03.vcf")));
         if (pipelineOptions.getExportVcfToBq()) {
             vcfResults
                     .apply("Export to BigQuery", ParDo.of(injector.getInstance(VcfToBqFn.class)));
