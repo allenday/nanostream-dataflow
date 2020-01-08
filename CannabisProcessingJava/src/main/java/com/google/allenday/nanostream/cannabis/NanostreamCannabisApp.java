@@ -41,11 +41,11 @@ public class NanostreamCannabisApp {
         Pipeline pipeline = Pipeline.create(pipelineOptions);
 
         PCollection<KV<ReferenceDatabase, String>> vcfResults = pipeline
-//                .apply("Parse data", injector.getInstance(ParseSourceCsvTransform.class))
-//                .apply("Align reads and prepare for DV", injector.getInstance(AlignAndPostProcessTransform.class))
-//                .apply("Variant Calling", ParDo.of(injector.getInstance(DeepVariantFn.class)))
-//                .apply("Prepare to VcfToBq transform", MapElements.via(new DvAndVcfToBqConnector()));
-        .apply(Create.of(KV.of(new ReferenceDatabase("AGQN03", new ArrayList<>()), "gs://cannabis-3k-results/cannabis_processing_output__test/2020-01-03--13-23-04-UTC/result_dv/SRS1107977_AGQN03/SRS1107977_AGQN03.vcf")));
+                .apply("Parse data", injector.getInstance(ParseSourceCsvTransform.class))
+                .apply("Align reads and prepare for DV", injector.getInstance(AlignAndPostProcessTransform.class))
+                .apply("Variant Calling", ParDo.of(injector.getInstance(DeepVariantFn.class)))
+                .apply("Prepare to VcfToBq transform", MapElements.via(new DvAndVcfToBqConnector()));
+
         if (pipelineOptions.getExportVcfToBq()) {
             vcfResults
                     .apply("Export to BigQuery", ParDo.of(injector.getInstance(VcfToBqFn.class)));

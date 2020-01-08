@@ -29,6 +29,16 @@ Before run automatic setup scripts or perform manual steps make sure you created
 
 #### Automatic Setup
 
+There is an installation script [install.py](launcher/install.py) that 
+- creates required resources: 
+    - A bucket for uploaded files
+    - A bucket for dataflow templates
+    - A bucket for reference database
+    - A pubsub topic and a subscription
+    - A Firebase project
+- deploys dataflow templates
+- deploys [Nanostream management application](NanostreamDataflowMain/webapp/README.md)    
+
 1. Open [Google Cloud Shell](https://ssh.cloud.google.com/)
 2. Clone the project from Github
 3. Build docker launcher
@@ -37,8 +47,16 @@ docker build -t launcher .
 ```
 4. Run docker launcher
 ```
-docker run -e GOOGLE_CLOUD_PROJECT=<project name> launcher
-``` 
+docker run -e GOOGLE_CLOUD_PROJECT=<your project id> launcher
+```
+5. Create a Cloud Firestore database: https://firebase.google.com/docs/firestore/quickstart#create
+
+6. Upload (reference database)[#user-content-available-databases]
+
+7. Run [Nanostream management application](NanostreamDataflowMain/webapp/README.md)   
+
+8. Start upload your data to upload bucket (`gs://<your project id>-upload-bucket/`)
+ 
 
 #### Manual Setup
 
