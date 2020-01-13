@@ -1,4 +1,4 @@
-class CannabisExampleMetaData:
+class CannabisSampleMetaData:
 
     def __init__(self, data_line):
         data_list = data_line.split(',')
@@ -12,18 +12,18 @@ class CannabisExampleMetaData:
         return self.library_layout == "PAIRED"
 
 
-class CannabisExample:
+class CannabisSample:
 
-    def __init__(self, cannabis_example_meta_data, index):
-        self.cannabis_example_meta_data = cannabis_example_meta_data
+    def __init__(self, cannabis_sample_meta_data, index):
+        self.cannabis_sample_meta_data = cannabis_sample_meta_data
         self.index = index
 
 
     def generate_file_name(self):
-        run_name = self.cannabis_example_meta_data.run + "_" + str(self.index) + '.fastq'
+        run_name = self.cannabis_sample_meta_data.run + "_" + str(self.index) + '.fastq'
 
-        if self.cannabis_example_meta_data.project.lower() == "Kannapedia".lower():
+        if self.cannabis_sample_meta_data.project.lower() == "Kannapedia".lower():
             return "kannapedia/" + run_name
         else:
-            return "sra/" + self.cannabis_example_meta_data.project_id + "/" \
-                   + self.cannabis_example_meta_data.sra_sample + "/" + run_name
+            return "sra/" + self.cannabis_sample_meta_data.project_id + "/" \
+                   + self.cannabis_sample_meta_data.sra_sample + "/" + run_name

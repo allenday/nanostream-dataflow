@@ -9,7 +9,7 @@ from apache_beam.options.pipeline_options import StandardOptions
 from apache_beam.options.pipeline_options import GoogleCloudOptions
 from apache_beam.options.pipeline_options import WorkerOptions
 import logging
-from utils.cannabis_source import CannabisExample, CannabisExampleMetaData
+from utils.cannabis_source import CannabisSample, CannabisSampleMetaData
 from utils import gcs_utils
 
 RESULT_SORTED_DIR_NAME = 'result_sorted_bam_python'
@@ -29,7 +29,7 @@ class UserOptions(PipelineOptions):
             type=int)
 
 
-class CannabisExampleTupleFromLine(beam.DoFn):
+class CannabisSampleTupleFromLine(beam.DoFn):
     # REFERENCES = ["AGQN03",
     #               "LKUA01",
     #               "LKUB01",
@@ -44,10 +44,10 @@ class CannabisExampleTupleFromLine(beam.DoFn):
         # logging.info(data)
 
         cannabis_example_tuple = []
-        cannabis_example_meta_data = CannabisExampleMetaData(data)
-        cannabis_example_tuple.append(CannabisExample(cannabis_example_meta_data, 1))
+        cannabis_example_meta_data = CannabisSampleMetaData(data)
+        cannabis_example_tuple.append(CannabisSample(cannabis_example_meta_data, 1))
         if cannabis_example_meta_data.is_paired():
-            cannabis_example_tuple.append(CannabisExample(cannabis_example_meta_data, 2))
+            cannabis_example_tuple.append(CannabisSample(cannabis_example_meta_data, 2))
 
         output = []
         for ref in self.REFERENCES:
@@ -224,7 +224,7 @@ def run():
         user_options = pipeline_options.view_as(UserOptions)
         (p | beam.io.ReadFromText("gs://cannabis-3k/Cannabis Genomics - 201703 - SRA.csv", skip_header_lines=1) |
          beam.Filter(lambda line: 'SRS1760342' in line) |
-         beam.ParDo(CannabisExampleTupleFromLine()) |
+         beam.ParDo(CannabisSampleTupleFromLine()) |
          beam.Filter(cannabis_tuple_exists) |
          beam.ParDo(AlignSort()) |
          beam.Map(lambda element: ((element[0][0].sra_sample, element[1]), element)) |
