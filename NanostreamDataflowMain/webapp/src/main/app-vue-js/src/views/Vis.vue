@@ -143,24 +143,26 @@
                     update_frequency: 0,
                     started: true,
                     status: '',
-                    name: ''
-
+                    name: '',
+                    start_time: '',
+                    job_id: '',
                 },
 
                 notifications: {
-                    topic: '',
+                    // topic: '',
                     subscriptions: ''
                 },
 
                 config: {},
 
                 general: {
-                    google_account: 'account@google.com',
+                    // google_account: 'account@google.com',
                     project: '',
                     bucket: '',
 
                     document_name: '',
                     collection_name_prefix: '',
+                    document_name_prefix: '',
                     collection_name: '',
                     ref_db: ''
 
@@ -168,7 +170,6 @@
 
                 launch_response: '',
 
-                job_id: '',
                 location: '',
 
                 loading: false,
@@ -177,7 +178,9 @@
                 mode: '',
 
                 diagram_name: 'Diagram-Name',
-                document_list: []
+                document_list: [],
+                collection_name: '',
+                document_name: '',
             }
         },
 
@@ -193,7 +196,7 @@
 
         watch: {
             records() {
-                console.log('New records set loaded, ' + this.records.lengfth + ' records')
+                console.log('New records set loaded, ' + this.records.length + ' records')
             },
 
             loading() {
@@ -295,7 +298,7 @@
             },
 
             launch: function () {
-                console.log('Lanuch called')
+                console.log('Launch called')
                 this.loading = true;
 
                 this.general.bucket = '';
@@ -303,7 +306,7 @@
                 let reqData = {
                     pipeline_name: this.pipeline.name,
                     collection_name_prefix: this.general.collection_name_prefix,
-                    document_name_prefix: this.general.document_name,
+                    document_name_prefix: this.general.document_name_prefix,
                     processing_mode: this.general.ref_db
                 };
 
@@ -336,7 +339,9 @@
                             console.log('data from LAUNCH call', data)
 
                             this.general.project = data.job.projectId;
-                            this.job_id = data.job.id;
+                            this.pipeline.job_id = data.job.id;
+                            this.pipeline.name = data.job.name;
+                            this.pipeline.start_time = data.job.startTime;
                             this.location = data.job.location;
                             this.formActive = false;
                             this.getPipelineInfo();
@@ -374,10 +379,10 @@
                         } else {
                             const lastJobCreationTime = d3.max(data.jobs, d => d.createTime),
                                 lastJob = data.jobs.find(d => d.createTime == lastJobCreationTime);
-                            this.job_id = lastJob.id;
+                            this.pipeline.job_id = lastJob.id;
+                            this.pipeline.name = lastJob.name;
                             this.location = lastJob.location;
                             this.general.project = lastJob.projectId;
-                            this.pipeline.name = lastJob.name;
                             console.log('last job status=' + lastJob.currentState + ',id:' + lastJob.id)
                             this.getPipelineInfo();
                             this.loading = false;
@@ -389,14 +394,17 @@
 
             runJob: function () {
                 this.formActive = true;
+                this.document_list = [];
+                this.collection_name = '';
+                this.document_name = '';
                 console.log('run new job');
             },
 
 
             stopPipeline: function () {
 
-                console.log('STOP Pipeline called: ' + this.StopPipelineURL + '?jobId=' + this.job_id + '&location=' + this.location)
-                fetch(this.urlPrefix + this.StopPipelineURL + '?jobId=' + this.job_id + '&location=' + this.location, {method: 'POST'})
+                console.log('STOP Pipeline called: ' + this.StopPipelineURL + '?jobId=' + this.pipeline.job_id + '&location=' + this.location)
+                fetch(this.urlPrefix + this.StopPipelineURL + '?jobId=' + this.pipeline.job_id + '&location=' + this.location, {method: 'POST'})
                     .then(
                         successResponse => {
                             if (successResponse.status != 200) {
@@ -433,12 +441,18 @@
 
             },
 
+            reloadPipelineInfo: function () {
+                setTimeout(() => {
+                    console.log('Call getPipelineInfo after timeout')
+                    this.getPipelineInfo();
+                }, 5000);
+            },
+
             getPipelineInfo: function () {
 
+                console.log('GetPipelineInfo called, jobId=' + this.pipeline.job_id + '&location=' + this.location)
 
-                console.log('GetPipelineInfo called, jobId=' + this.job_id + '&location=' + this.location)
-
-                fetch(this.urlPrefix + this.InfoReqURL + '?jobId=' + this.job_id + '&location=' + this.location)
+                fetch(this.urlPrefix + this.InfoReqURL + '?jobId=' + this.pipeline.job_id + '&location=' + this.location)
                     .then(
                         successResponse => {
                             if (successResponse.status != 200) {
@@ -455,24 +469,40 @@
                         console.log('Response from Info:', data)
                         console.log('Current Pipeline State: ' + data.currentState)
                         this.setPipelineStatus(data.currentState);
-                        let options = data.environment.sdkPipelineOptions.options;
-                        let pipDataExtra = data.pipelineDescription.displayData;
-                        // this.general.bucket = pipDataExtra ? pipDataExtra.find(k => k.key == 'resultBucket').strValue : 'undefined'; // if PENDING, bucket is not defined ?
-                        this.general.collection_name_prefix = pipDataExtra.find(k => k.key == 'outputCollectionNamePrefix').strValue;
-                        this.general.ref_db = options.processingMode;
-                        this.notifications.subscriptions = options.inputDataSubscription;
-                        this.pipeline.alignment_window = options.alignmentWindow;
-                        this.pipeline.update_frequency = options.statisticUpdatingDelay;
 
-                        this.general.bucket = options.resultBucket;
-                        if (this.general.bucket.match(/^gs:/)) {
-                            this.general.bucket = this.general.bucket.split('/')[2];
-                            console.log('NEW bucket = ' + this.general.bucket)
-                            this.generateCollectionName(this.general.bucket);
+                        function all_data_present() {
+                            return data && data.environment && data.environment.sdkPipelineOptions && data.environment.sdkPipelineOptions.options &&
+                                data.pipelineDescription && data.pipelineDescription.displayData;
+                        }
+
+                        if (all_data_present()) {
+                            let options = data.environment.sdkPipelineOptions.options;
+                            let pipDataExtra = data.pipelineDescription.displayData;
+                            // this.general.bucket = pipDataExtra ? pipDataExtra.find(k => k.key == 'resultBucket').strValue : 'undefined'; // if PENDING, bucket is not defined ?
+                            let outputCollectionNamePrefixElement = pipDataExtra.find(k => k.key == 'outputCollectionNamePrefix');
+                            if (outputCollectionNamePrefixElement) {
+                                this.general.collection_name_prefix = outputCollectionNamePrefixElement.strValue;
+                                console.log('collection_name_prefix', this.general.collection_name_prefix);
+                                this.general.ref_db = options.processingMode;
+                                this.notifications.subscriptions = options.inputDataSubscription;
+                                this.pipeline.alignment_window = options.alignmentWindow;
+                                this.pipeline.update_frequency = options.statisticUpdatingDelay;
+                                this.pipeline.start_time = data.startTime;
+
+                                this.general.bucket = options.resultBucket;
+                                if (this.general.bucket.match(/^gs:/)) {
+                                    this.general.bucket = this.general.bucket.split('/')[2];
+                                    console.log('NEW bucket = ' + this.general.bucket)
+                                    this.generateCollectionName(this.general.bucket);
+                                }
+                                this.getDocs();
+                            } else {
+                                this.reloadPipelineInfo();
+                            }
+                        } else {
+                            this.reloadPipelineInfo();
                         }
                     })
-                    .then(this.getDocs)
-                    // .then(this.getRecords)
             },
 
 
@@ -487,8 +517,21 @@
                             value: d.id,
                             text: d.id
                         }));
-                        console.log('DOCUMENT-LIST Length:', this.document_list.length)
-                        this.getRecords();
+                        console.log('DOCUMENT-LIST Length:', this.document_list.length);
+                        if (this.document_list.length <= 0) {
+                            setTimeout(() => {
+                                console.log('Try get doc list again');
+                                this.getDocs();
+                            }, 15000);
+                        } else {
+                            if (!this.general.document_name) {
+                                // select the first document, get data for it
+                                this.general.document_name = this.document_list[0].value;
+                                this.document_list[0].selected = true;
+                                this.getRecords();
+                            }
+
+                        }
                     }
                 });
             },
