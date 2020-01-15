@@ -213,6 +213,7 @@
         created() {
             console.log('External CONFIG', config.config);
             this.urlPrefix = "https://" + config.config.projectId + ".appspot.com";
+            // this.urlPrefix = "";
             // this.config = config.config;  // read it later in getFirebaseConfig
         },
 
@@ -488,13 +489,16 @@
                                 this.pipeline.alignment_window = options.alignmentWindow;
                                 this.pipeline.update_frequency = options.statisticUpdatingDelay;
                                 this.pipeline.start_time = data.startTime;
+// TODO: Fix bucket name when appropriate data is available
+//                                this.general.bucket = options.resultBucket;
+//                                if (this.general.bucket.match(/^gs:/)) {
+//                                    this.general.bucket = this.general.bucket.split('/')[2];
+//                                    console.log('NEW bucket = ' + this.general.bucket)
+//                                    this.generateCollectionName(this.general.bucket);
+//                                }
+                                this.general.bucket = "fix_bucket_name";
+                                this.generateCollectionName(this.general.bucket);
 
-                                this.general.bucket = options.resultBucket;
-                                if (this.general.bucket.match(/^gs:/)) {
-                                    this.general.bucket = this.general.bucket.split('/')[2];
-                                    console.log('NEW bucket = ' + this.general.bucket)
-                                    this.generateCollectionName(this.general.bucket);
-                                }
                                 this.getDocs();
                             } else {
                                 this.reloadPipelineInfo();
