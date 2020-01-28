@@ -2,6 +2,7 @@ package com.google.allenday.nanostream.integration;
 
 import com.google.allenday.genomics.core.model.FileWrapper;
 import com.google.allenday.genomics.core.model.SampleMetaData;
+import com.google.allenday.genomics.core.model.SraSampleId;
 import com.google.allenday.genomics.core.pipeline.GenomicsOptions;
 import com.google.allenday.genomics.core.processing.align.AlignTransform;
 import com.google.allenday.nanostream.ProcessingMode;
@@ -111,7 +112,7 @@ public class EndToEndPipelineTest {
                                 FileWrapper.fromByteArrayContent(element.getValue().getBytes(), "fileName");
                         SampleMetaData geneExampleMetaData = new SampleMetaData();
                         geneExampleMetaData.setSraStudy("TestProject");
-                        geneExampleMetaData.setSraSample("testExampleSra");
+                        geneExampleMetaData.setSraSample(SraSampleId.create("testExampleSra"));
                         geneExampleMetaData.setRunId("TestRun");
                         geneExampleMetaData.setLibraryLayout("SINGLE");
                         geneExampleMetaData.setSrcRawMetaData(c.element().getKey().toJsonString());
