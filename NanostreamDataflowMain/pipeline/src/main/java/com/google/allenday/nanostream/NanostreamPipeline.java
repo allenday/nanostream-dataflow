@@ -68,6 +68,7 @@ public class NanostreamPipeline implements Serializable {
                 .apply(options.getAlignmentWindow() + "s FastQ collect window",
                         Window.<KV<SampleMetaData, List<FileWrapper>>>into(FixedWindows.of(Duration.standardSeconds(options.getAlignmentWindow())))
                                 .triggering(AfterPane.elementCountAtLeast(1))
+                                .withAllowedLateness(Duration.ZERO)
                                 .discardingFiredPanes()
                 )
                 .apply("Alignment", injector.getInstance(AlignTransform.class))
