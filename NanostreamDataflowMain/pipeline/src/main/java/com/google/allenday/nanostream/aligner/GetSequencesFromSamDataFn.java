@@ -4,9 +4,9 @@ import com.google.allenday.genomics.core.io.FileUtils;
 import com.google.allenday.genomics.core.io.GCSService;
 import com.google.allenday.genomics.core.io.TransformIoHandler;
 import com.google.allenday.genomics.core.model.FileWrapper;
-import com.google.allenday.genomics.core.model.SampleMetaData;
 import com.google.allenday.genomics.core.model.ReferenceDatabase;
-import com.google.allenday.genomics.core.processing.SamBamManipulationService;
+import com.google.allenday.genomics.core.model.SampleMetaData;
+import com.google.allenday.genomics.core.processing.sam.SamBamManipulationService;
 import com.google.allenday.nanostream.pubsub.GCSSourceData;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
@@ -54,7 +54,7 @@ public class GetSequencesFromSamDataFn extends DoFn<KV<KV<SampleMetaData, Refere
             String filePath = ioHandler.handleInputAsLocalFile(gcsService, element.getValue(), workingDir);
 
             SamReader reader = samBamManipulationService.samReaderFromBamFile(filePath, ValidationStringency.SILENT);
-            for (SAMRecord sam: reader){
+            for (SAMRecord sam : reader) {
                 if (!sam.getReferenceName().equals("*")) {
                     GCSSourceData gcsSourceData = GCSSourceData.fromJsonString(geneSampleMetaData.getSrcRawMetaData());
                     c.output(KV.of(KV.of(gcsSourceData, sam.getReferenceName()), generateSequenceFromSam(sam)));
