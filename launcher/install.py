@@ -18,6 +18,7 @@ class Install:
         self.upload_bucket_name = self.google_cloud_project + '-upload-bucket'
         self.dataflow_bucket_name = self.google_cloud_project + '-dataflow'
         self.reference_db_bucket_name = self.google_cloud_project + '-reference-db'
+        self.results_bucket_name = self.google_cloud_project + '-results'
         self.upload_pub_sub_topic = self.google_cloud_project + '-pubsub-topic'
         self.upload_subscription = self.google_cloud_project + '-upload-subscription'
         self.app_engine_region = 'us-central'  # TODO: parametrize
@@ -38,11 +39,13 @@ class Install:
         self.upload_bucket_url = 'gs://%s/' % self.upload_bucket_name
         self.reference_db_bucket_url = 'gs://%s/' % self.reference_db_bucket_name
         self.dataflow_bucket_url = 'gs://%s/' % self.dataflow_bucket_name
+        self.results_bucket_url = 'gs://%s/' % self.results_bucket_name
 
-        log("Buckets: \n  uploads bucket: %s\n  reference db bucket: %s\n  dataflow bucket: %s\n" % (
+        log("Buckets: \n  uploads bucket: %s\n  reference db bucket: %s\n  dataflow bucket: %s\n  results bucket: %s\n" % (
                 self.upload_bucket_url,
                 self.reference_db_bucket_url,
                 self.dataflow_bucket_url,
+                self.results_bucket_url,
             ))
 
         # reference database config:
@@ -89,6 +92,7 @@ class Install:
         subprocess.check_call(cmd, shell=True)
 
     def enable_apis(self):
+        self.enable_api("monitoring.googleapis.com")
         self.enable_api("dataflow.googleapis.com")
         self.enable_api("firebase.googleapis.com")
         self.enable_api("firestore.googleapis.com")
@@ -101,26 +105,21 @@ class Install:
     def create_storage_buckets(self):
         cmd = 'gsutil ls'
         bucket_list = subprocess.check_output(cmd, shell=True).decode("utf-8")
+        self.create_storage_bucket(bucket_list, self.upload_bucket_name, self.upload_bucket_url,
+                                   'Create a Google Cloud Storage bucket for FastQ files')
+        self.create_storage_bucket(bucket_list, self.reference_db_bucket_name, self.reference_db_bucket_url,
+                                   'Create a Google Cloud Storage bucket for reference database files')
+        self.create_storage_bucket(bucket_list, self.dataflow_bucket_name, self.dataflow_bucket_url,
+                                   'Create a Google Cloud Storage bucket for Dataflow files')
+        self.create_storage_bucket(bucket_list, self.results_bucket_name, self.results_bucket_url,
+                                   'Create a Google Cloud Storage bucket for output files')
 
-        if self.upload_bucket_url in bucket_list:
-            log('Bucket %s already exists' % self.upload_bucket_name)
+    def create_storage_bucket(self, bucket_list, bucket_name, bucket_url, message):
+        if bucket_url in bucket_list:
+            log('Bucket %s already exists' % bucket_name)
         else:
-            cmd = 'gsutil mb %s' % self.upload_bucket_url
-            log('Create a Google Cloud Storage bucket for FastQ files: %s' % cmd)
-            subprocess.check_call(cmd, shell=True)
-
-        if self.reference_db_bucket_url in bucket_list:
-            log('Bucket %s already exists' % self.reference_db_bucket_url)
-        else:
-            cmd = 'gsutil mb %s' % self.reference_db_bucket_url
-            log('Create a Google Cloud Storage bucket for reference database files: %s' % cmd)
-            subprocess.check_call(cmd, shell=True)
-
-        if self.dataflow_bucket_url in bucket_list:
-            log('Bucket %s already exists' % self.dataflow_bucket_name)
-        else:
-            cmd = 'gsutil mb %s' % self.dataflow_bucket_url
-            log('Create a Google Cloud Storage bucket for Dataflow files: %s' % cmd)
+            cmd = 'gsutil mb %s' % bucket_url
+            log((message + ': %s') % cmd)
             subprocess.check_call(cmd, shell=True)
 
     def create_bucket_notifications(self):
@@ -146,8 +145,6 @@ class Install:
 
         memory_output_limit = 0
 
-        output_dir = 'clinic_processing_output/'
-
         if processing_mode == 'resistance_genes':
             resistance_genes_list_param = '--resistanceGenesList=%s ' % self.resistance_genes_list
             machine_config_params = ' '
@@ -156,6 +153,8 @@ class Install:
             machine_config_params = '--enableStreamingEngine ' \
                                     '--workerMachineType=n1-highmem-8 ' \
                                     '--diskSizeGb=100 '
+
+        output_gcs_uri = self.results_bucket_url + 'clinic_processing_output/'
 
         cmd = 'mvn compile exec:java ' \
               '-f NanostreamDataflowMain/pipeline/pom.xml ' \
@@ -169,8 +168,7 @@ class Install:
               '--alignmentWindow=%s ' \
               '--statisticUpdatingDelay=%s ' \
               '%s ' \
-              '--resultBucket=%s ' \
-              '--outputDir=%s ' \
+              '--outputGcsUri=%s ' \
               '--referenceNamesList=%s ' \
               '--allReferencesDirGcsUri=%s ' \
               '--gcpTempLocation=%s ' \
@@ -187,8 +185,7 @@ class Install:
                   alignment_window,
                   stats_update_frequency,
                   resistance_genes_list_param,
-                  self.upload_bucket_url,
-                  output_dir,
+                  output_gcs_uri,
                   self.reference_database_name,
                   all_references_dir_gcs_uri,
                   self.dataflow_bucket_url + 'tmp',
