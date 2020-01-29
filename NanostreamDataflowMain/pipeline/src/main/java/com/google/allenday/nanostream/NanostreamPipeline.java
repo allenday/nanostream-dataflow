@@ -1,7 +1,5 @@
 package com.google.allenday.nanostream;
 
-import com.google.allenday.genomics.core.model.FileWrapper;
-import com.google.allenday.genomics.core.model.SampleMetaData;
 import com.google.allenday.genomics.core.pipeline.PipelineSetupUtils;
 import com.google.allenday.genomics.core.processing.align.AlignTransform;
 import com.google.allenday.nanostream.aligner.GetSequencesFromSamDataFn;
@@ -39,7 +37,6 @@ import org.apache.beam.sdk.values.PCollectionView;
 import org.joda.time.Duration;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Map;
 
 import static com.google.allenday.nanostream.ProcessingMode.RESISTANT_GENES;
@@ -66,10 +63,7 @@ public class NanostreamPipeline implements Serializable {
                 .apply("Deserialize messages", ParDo.of(new DecodeNotificationJsonMessage()))
                 .apply("Parse GCloud notification", ParDo.of(injector.getInstance(ParseGCloudNotification.class)))
                 .apply(options.getAlignmentWindow() + "s FastQ collect window",
-                        Window.<KV<SampleMetaData, List<FileWrapper>>>into(FixedWindows.of(Duration.standardSeconds(options.getAlignmentWindow())))
-                                .triggering(AfterPane.elementCountAtLeast(1))
-                                .withAllowedLateness(Duration.ZERO)
-                                .discardingFiredPanes()
+                        Window.into(FixedWindows.of(Duration.standardSeconds(options.getAlignmentWindow())))
                 )
                 .apply("Alignment", injector.getInstance(AlignTransform.class))
                 .apply("Extract Sequences",
