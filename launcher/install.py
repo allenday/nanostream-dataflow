@@ -226,7 +226,7 @@ class BucketNotificationHandler:
 
     def create_bucket_notifications(self):
         create_new = self._create_pub_sub_topic()
-        create_new = self._create_pub_sub_subscription(create_new)
+        # create_new = self._create_pub_sub_subscription(create_new)
         self._configure_bucket_file_upload_notifications(create_new)
 
     def _create_pub_sub_topic(self):
@@ -242,29 +242,29 @@ class BucketNotificationHandler:
             create_new = True
         return create_new
 
-    def _create_pub_sub_subscription(self, create_new):
-        cmd = 'gcloud pubsub subscriptions list'
-        subsriptions = subprocess.check_output(cmd, shell=True).decode("utf-8")
-        if self.upload_subscription in subsriptions:
-            log('PubSub subscription already exists: %s' % subsriptions)
-            if create_new:
-                log('Recreate subscription: %s' % self.upload_subscription)
-                self._delete_pub_sub_subscription()
-                self._create_new_pub_sub_subscription()
-        else:
-            self._create_new_pub_sub_subscription()
-            create_new = True
-        return create_new
-
-    def _delete_pub_sub_subscription(self):
-        cmd = 'gcloud pubsub subscriptions delete %s' % self.upload_subscription
-        log('Delete a PubSub subscription: %s' % cmd)
-        subprocess.check_call(cmd, shell=True)
-
-    def _create_new_pub_sub_subscription(self):
-        cmd = 'gcloud pubsub subscriptions create %s --topic %s' % (self.upload_subscription, self.upload_pub_sub_topic)
-        log('Create a PubSub subscription: %s' % cmd)
-        subprocess.check_call(cmd, shell=True)
+    # def _create_pub_sub_subscription(self, create_new):
+    #     cmd = 'gcloud pubsub subscriptions list'
+    #     subsriptions = subprocess.check_output(cmd, shell=True).decode("utf-8")
+    #     if self.upload_subscription in subsriptions:
+    #         log('PubSub subscription already exists: %s' % subsriptions)
+    #         if create_new:
+    #             log('Recreate subscription: %s' % self.upload_subscription)
+    #             self._delete_pub_sub_subscription()
+    #             self._create_new_pub_sub_subscription()
+    #     else:
+    #         self._create_new_pub_sub_subscription()
+    #         create_new = True
+    #     return create_new
+    #
+    # def _delete_pub_sub_subscription(self):
+    #     cmd = 'gcloud pubsub subscriptions delete %s' % self.upload_subscription
+    #     log('Delete a PubSub subscription: %s' % cmd)
+    #     subprocess.check_call(cmd, shell=True)
+    #
+    # def _create_new_pub_sub_subscription(self):
+    #     cmd = 'gcloud pubsub subscriptions create %s --topic %s' % (self.upload_subscription, self.upload_pub_sub_topic)
+    #     log('Create a PubSub subscription: %s' % cmd)
+    #     subprocess.check_call(cmd, shell=True)
 
     def _configure_bucket_file_upload_notifications(self, create_new):
         cmd = 'gsutil notifications list %s' % self.upload_bucket_url
