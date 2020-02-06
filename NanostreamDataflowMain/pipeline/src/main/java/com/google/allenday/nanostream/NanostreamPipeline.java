@@ -13,6 +13,7 @@ import com.google.allenday.nanostream.kalign.ProceedKAlignmentFn;
 import com.google.allenday.nanostream.kalign.SequenceOnlyDNACoder;
 import com.google.allenday.nanostream.output.PrepareSequencesStatisticToOutputDbFn;
 import com.google.allenday.nanostream.output.WriteDataToFirestoreDbFn;
+import com.google.allenday.nanostream.pipeline.LoopingTimerTransform;
 import com.google.allenday.nanostream.probecalculation.KVCalculationAccumulatorFn;
 import com.google.allenday.nanostream.pubsub.DecodeNotificationJsonMessage;
 import com.google.allenday.nanostream.pubsub.FilterObjectFinalizeMessage;
@@ -24,6 +25,7 @@ import com.google.allenday.nanostream.util.trasform.FlattenMapToKV;
 import com.google.allenday.nanostream.util.trasform.RemoveValueDoFn;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import japsa.seq.Sequence;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.transforms.Combine;
@@ -35,6 +37,7 @@ import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionView;
 import org.joda.time.Duration;
+import org.joda.time.Minutes;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -58,28 +61,37 @@ public class NanostreamPipeline implements Serializable {
         Pipeline pipeline = Pipeline.create(options);
         CoderUtils.setupCoders(pipeline, new SequenceOnlyDNACoder());
 
+        Window<KV<KV<GCSSourceData, String>, Sequence>> groupBySamRefWindow = Window
+                .<KV<KV<GCSSourceData, String>, Sequence>>into(FixedWindows.of(Duration.standardSeconds(options.getAlignmentWindow())))
+                .triggering(AfterWatermark.pastEndOfWindow()
+                        .withEarlyFirings(AfterProcessingTime.pastFirstElementInPane().plusDelayOf(Duration.standardSeconds(options.getAlignmentWindow() * 2)))
+                        .withLateFirings(AfterPane.elementCountAtLeast(1)))
+                .withAllowedLateness(Duration.ZERO)
+                .discardingFiredPanes();
+
+        Window<KV<KV<GCSSourceData, String>, GeneData>> globalWindowWithTriggering = Window
+                .<KV<KV<GCSSourceData, String>, GeneData>>into(new GlobalWindows())
+                .triggering(Repeatedly.forever(AfterProcessingTime
+                        .pastFirstElementInPane()
+                        .plusDelayOf(Duration.standardSeconds(options.getStatisticUpdatingDelay()))))
+                .withAllowedLateness(Duration.ZERO)
+                .accumulatingFiredPanes();
+
         pipeline.apply("Reading PubSub", PubsubIO.readMessagesWithAttributes().fromSubscription(options.getInputDataSubscription()))
                 .apply("Filter only ADD FILE", ParDo.of(new FilterObjectFinalizeMessage()))
                 .apply("Deserialize messages", ParDo.of(new DecodeNotificationJsonMessage()))
                 .apply("Parse GCloud notification", ParDo.of(injector.getInstance(ParseGCloudNotification.class)))
-                .apply(options.getAlignmentWindow() + "s FastQ collect window",
-                        Window.into(FixedWindows.of(Duration.standardSeconds(options.getAlignmentWindow())))
-                )
                 .apply("Alignment", injector.getInstance(AlignTransform.class))
+                .apply("Looping timer", new LoopingTimerTransform<>(Minutes.minutes(15).toStandardSeconds().getSeconds()))
                 .apply("Extract Sequences",
                         ParDo.of(injector.getInstance(GetSequencesFromSamDataFn.class)))
+                .apply(options.getAlignmentWindow() + "s FastQ collect window", groupBySamRefWindow)
                 .apply("Group by SAM reference", GroupByKey.create())
                 .apply("K-Align", ParDo.of(injector.getInstance(ProceedKAlignmentFn.class)))
                 .apply("Error correction", ParDo.of(new ErrorCorrectionFn()))
                 .apply("Remove Sequence part", ParDo.of(new RemoveValueDoFn<>()))
                 .apply("Get Taxonomy data", getTaxonomyData(pipeline))
-                .apply("Global Window with Repeatedly triggering" + options.getStatisticUpdatingDelay(),
-                        Window.<KV<KV<GCSSourceData, String>, GeneData>>into(new GlobalWindows())
-                                .triggering(Repeatedly.forever(AfterProcessingTime
-                                        .pastFirstElementInPane()
-                                        .plusDelayOf(Duration.standardSeconds(options.getStatisticUpdatingDelay()))))
-                                .withAllowedLateness(Duration.ZERO)
-                                .accumulatingFiredPanes())
+                .apply("Global Window with Repeatedly triggering" + options.getStatisticUpdatingDelay(), globalWindowWithTriggering)
                 .apply("Accumulate results to Map", Combine.globally(new KVCalculationAccumulatorFn()))
                 .apply("Flatten result map", ParDo.of(new FlattenMapToKV<>()))
                 .apply("Prepare sequences statistic to output",
