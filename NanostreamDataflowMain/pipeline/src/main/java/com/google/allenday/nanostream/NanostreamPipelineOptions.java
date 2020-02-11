@@ -16,9 +16,9 @@ public interface NanostreamPipelineOptions extends GenomicsPipelineOptions {
 
     @Description("GCP PubSub subscription name to read messages from")
     @Validation.Required
-    String getInputDataSubscription();
+    ValueProvider<String> getInputDataSubscription();
 
-    void setInputDataSubscription(String value);
+    void setInputDataSubscription(ValueProvider<String> value);
 
 
     @Description("Size of the Window in which FastQ records will be collected for Alignment")
