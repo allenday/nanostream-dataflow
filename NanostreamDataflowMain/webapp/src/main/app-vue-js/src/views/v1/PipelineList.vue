@@ -68,10 +68,7 @@
         },
 
         mounted() {
-            const loader = this.$loading.show();
-            this.getPipelines().then(function () {
-                loader.hide()
-            })
+            this.getPipelinesFirstTime();
         },
 
         components: {
@@ -80,6 +77,11 @@
         },
 
         methods: {
+            async getPipelinesFirstTime() {
+                const loader = this.$loading.show();
+                await this.getPipelines();
+                loader.hide()
+            },
             getPipelines() {
                 let that = this;
 

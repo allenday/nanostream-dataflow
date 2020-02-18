@@ -64,6 +64,7 @@ export default {
                 method: 'POST',
                 body: JSON.stringify(reqData)
             }))
+            .then((response) => response.json());
     },
     updatePipeline(pipeline) {
         console.log('updatePipeline called', pipeline)
@@ -91,6 +92,7 @@ export default {
                 method: 'POST',
                 body: encodeURLData(reqData)
             }))
+            .then((response) => response.json());
     },
     deleteSubscription(subscriptionId) {
         // TODO: Implement

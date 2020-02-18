@@ -44,11 +44,8 @@
             pipelineName: '',
             inputFolder: '',
             processingMode: 'species',
-            // reference_database_location: '', // todo: remove?
             inputDataSubscription: '',
 //            outputCollectionNamePrefix: '',
-//            documentNamePrefix: '',
-//            autostop_minutes: 5, // // todo: remove?
             pipelineAutoStart: true,
             pipelineStartImmediately: false,
             referenceNameList: _makeReferenceNameList()
@@ -118,24 +115,10 @@
                     return p.block_id !== pipeline.block_id;
                 });
             },
-            _createSubscriptionThanSavePipelineOptions(pipeline) {
-                api.createSubscription(config.general.uploadPubSubTopic)
-                    .then(
-                        successResponse => {
-                            if (successResponse.status != 200) {
-                                // TODO: show error
-                                return null;
-                            } else {
-                                return successResponse.json();
-                            }
-                        },
-                        failResponse => {
-                            // TODO: show error
-                            return null;
-                        }
-                    )
-                    .then((data) => {
-                        console.log('data from create subscription call', data)
+            async startPipeline() {
+                async function _createSubscriptionThanSavePipelineOptions(pipeline) {
+                    let data = await api.createSubscription(config.general.uploadPubSubTopic);
+                    console.log('data from create subscription call', data)
 //                        {
 //                            "name": "projects/nanostream-test1/subscriptions/p-20200205t132755.495z-44a17051-b2d7-4820-8b53-e9d7c4ebaaf9",
 //                            "topic": "projects/nanostream-test1/topics/nanostream-test1-pubsub-topic",
@@ -147,52 +130,36 @@
 //                        }
 //                        }
 
-                        if (data && data.name) {
-                            pipeline.inputDataSubscription = data.name;
-                            this._savePipelineOptions(pipeline);
-                        } else {
-                            // TODO: show error
-                            return null;
-                        }
-                    })
-            },
-            _savePipelineOptions(pipeline) {
-                api.saveNewPipeline(pipeline)
-                    .then(
-                        successResponse => {
-                            if (successResponse.status != 200) {
-                                // TODO: show error
-                                return null;
-                            } else {
-                                return successResponse.json();
-                            }
-                        },
-                        failResponse => {
-                            // TODO: show error
-                            return null;
-                        }
-                    )
-                    .then((data) => {  // TODO: receive some data
-                        console.log('data from saveNewPipeline call', data)
-                        if (data) {
-                            if (this.$route.name != 'pipeline_list') {
-                                this.$router.push({name: 'pipeline_list'})
-                            }
-                        } else {
-                            // TODO: show error
-                            return null;
-                        }
-                    })
-            },
-            startPipeline() {
+                    if (data && data.name) {
+                        pipeline.inputDataSubscription = data.name;
+                        await _savePipelineOptions(pipeline);
+                    } else {
+                        // TODO: show error
+                        return null;
+                    }
+                }
+
+                async function _savePipelineOptions(pipeline) {
+                    let data = await api.saveNewPipeline(pipeline);
+
+                    console.log('data from saveNewPipeline call', data)
+                    if (!data) {
+                        // TODO: show error
+                        return null;
+                    }
+                }
+
                 console.log('startPipeline');
 
-                let that = this;
-                this.pipelines.forEach(function (pipeline) {
-                    console.log(pipeline)
-
-                    that._createSubscriptionThanSavePipelineOptions(pipeline);
-                })
+                const loader = this.$loading.show();
+                for (const pipeline of this.pipelines) {
+                    await _createSubscriptionThanSavePipelineOptions(pipeline)
+                }
+                loader.hide();
+                // redirect to pipeline list
+                if (this.$route.name != 'pipeline_list') {
+                    this.$router.push({name: 'pipeline_list'})
+                }
             },
         }
 
