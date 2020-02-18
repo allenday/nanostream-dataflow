@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * Utilities class for manipulations fist FastQ data
@@ -31,13 +32,16 @@ public class FastQUtils {
         ByteBuffer bytes = ByteBuffer.allocate(BUFFER_SIZE);
         while (readChannel.read(bytes) > 0) {
             bytes.flip();
-            fastqBuilder.append(StandardCharsets.UTF_8.decode(bytes).toString());
+            String readString = StandardCharsets.UTF_8.decode(bytes).toString();
+            readString = String.join("\n", Stream.of(readString.trim().split("\n"))
+                    .map(String::trim).filter(str -> !str.isEmpty())
+                    .toArray(String[]::new));
+            fastqBuilder.append(readString);
             bytes.clear();
 
             boolean foundStart, foundEnd;
             do {
-                String[] readData = fastqBuilder.toString().trim().split("\n");
-
+                String[] readData = fastqBuilder.toString().split("\n");
                 StringBuilder builtFastqBuilder = new StringBuilder();
 
                 foundStart = false;
@@ -93,8 +97,15 @@ public class FastQUtils {
                     .filter(line -> !line.trim().isEmpty()).collect(Collectors.toList());
 
             String readName = linesList.get(0);
+            if (readName.charAt(0) == '@'){
+                readName = readName.substring(1);
+            }
+
             String readBases = linesList.get(1);
             String qualityHeader = linesList.get(2);
+            if (qualityHeader.charAt(0) == '+'){
+                qualityHeader = qualityHeader.substring(1);
+            }
             String baseQualities = linesList.get(3);
 
             FastqRecord fastQ = new FastqRecord(readName, readBases, qualityHeader, baseQualities);

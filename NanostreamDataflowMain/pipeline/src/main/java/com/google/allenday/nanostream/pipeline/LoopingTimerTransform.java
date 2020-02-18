@@ -1,5 +1,8 @@
 package com.google.allenday.nanostream.pipeline;
 
+import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
+import org.apache.beam.sdk.options.PipelineOptions;
+import org.apache.beam.sdk.options.ValueProvider;
 import org.apache.beam.sdk.state.TimeDomain;
 import org.apache.beam.sdk.state.Timer;
 import org.apache.beam.sdk.state.TimerSpec;
@@ -14,12 +17,16 @@ import org.joda.time.Seconds;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+
 public class LoopingTimerTransform<KVKeyT, KVValueT> extends PTransform<PCollection<KV<KVKeyT, KVValueT>>, PCollection<KV<KVKeyT, KVValueT>>> {
 
-    private Integer maxDeltaSec;
+    private ValueProvider<Integer> maxDeltaSec;
+    private PipelineManagerService pipelineManagerService;
 
-    public LoopingTimerTransform(Integer maxDeltaSec) {
+    public LoopingTimerTransform(ValueProvider<Integer> maxDeltaSec, PipelineManagerService pipelineManagerService) {
         this.maxDeltaSec = maxDeltaSec;
+        this.pipelineManagerService = pipelineManagerService;
     }
 
     @Override
@@ -27,7 +34,8 @@ public class LoopingTimerTransform<KVKeyT, KVValueT> extends PTransform<PCollect
         return input
                 .apply(WithKeys.of(0))
                 .apply(ParDo.of(new LoopingTimer<>(
-                        Minutes.minutes(maxDeltaSec).toStandardSeconds().getSeconds())))
+                        pipelineManagerService,
+                        maxDeltaSec)))
                 .apply(MapElements.via(new SimpleFunction<KV<Integer, KV<KVKeyT, KVValueT>>, KV<KVKeyT, KVValueT>>() {
                     @Override
                     public KV<KVKeyT, KVValueT> apply(KV<Integer, KV<KVKeyT, KVValueT>> input) {
@@ -39,10 +47,12 @@ public class LoopingTimerTransform<KVKeyT, KVValueT> extends PTransform<PCollect
     public static class LoopingTimer<KVValue> extends DoFn<KV<Integer, KVValue>, KV<Integer, KVValue>> {
         private Logger LOG = LoggerFactory.getLogger(LoopingTimer.class);
 
-        private Integer maxDeltaSec;
+        private ValueProvider<Integer> maxDeltaSec;
+        private PipelineManagerService pipelineManagerService;
 
-        LoopingTimer(Integer maxDeltaSec) {
+        LoopingTimer(PipelineManagerService pipelineManagerService, ValueProvider<Integer> maxDeltaSec) {
             this.maxDeltaSec = maxDeltaSec;
+            this.pipelineManagerService = pipelineManagerService;
         }
 
         @TimerId("loopingTimer")
@@ -60,16 +70,26 @@ public class LoopingTimerTransform<KVKeyT, KVValueT> extends PTransform<PCollect
         @ProcessElement
         public void process(ProcessContext c,
                             @TimerId("loopingTimer") Timer loopingTimer) {
-            LOG.info("Pass trough  LoopingTimer {}, {}, {}", c.element(), c.timestamp(), c.pane().toString());
+
+            ;
+            LOG.info("Pass trough  LoopingTimer {}, {}, {}. Set timer: {}", c.element(), c.timestamp(), c.pane().toString(),
+                    Instant.now().plus(Duration.standardSeconds(maxDeltaSec.get())).toString());
             c.output(c.element());
-            loopingTimer.offset(Duration.standardSeconds(maxDeltaSec)).setRelative();
+            loopingTimer.offset(Duration.standardSeconds(maxDeltaSec.get())).setRelative();
         }
 
         @OnTimer("loopingTimer")
         public void onTimer(
-                OnTimerContext c,
+                OnTimerContext c, PipelineOptions pipelineOptions,
                 @TimerId("loopingTimer") Timer loopingTimer) {
             LOG.info("Timer @ {} fired. STOPPING the pipeline", c.timestamp());
+
+            DataflowPipelineOptions opt = pipelineOptions.as(DataflowPipelineOptions.class);
+            try {
+                pipelineManagerService.sendStopPipelineCommand(opt.getProject(), opt.getJobName());
+            } catch (IOException e) {
+                LOG.error(e.getMessage());
+            }
         }
     }
 

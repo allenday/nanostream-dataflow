@@ -1,8 +1,9 @@
 package com.google.allenday.nanostream.pubsub;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.apache.beam.sdk.coders.AvroCoder;
 import org.apache.beam.sdk.coders.DefaultCoder;
-import org.json.JSONObject;
 
 import javax.annotation.Nonnull;
 import java.io.Serializable;
@@ -75,18 +76,18 @@ public class GCSSourceData implements Serializable {
                 '}';
     }
 
-    public String toJsonString(){
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put(BUCKET_KEY, bucket);
-        jsonObject.put(FOLDER_KEY, folder);
+    public String toJsonString() {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty(BUCKET_KEY, bucket);
+        jsonObject.addProperty(FOLDER_KEY, folder);
         return jsonObject.toString();
     }
 
-    public static GCSSourceData fromJsonString(String jsonString){
-        JSONObject jsonObject =  new JSONObject(jsonString);
+    public static GCSSourceData fromJsonString(String jsonString) {
+        JsonObject jsonObject = new JsonParser().parse(jsonString).getAsJsonObject();
         GCSSourceData gcsSourceData = new GCSSourceData();
-        gcsSourceData.setBucket(jsonObject.getString(BUCKET_KEY));
-        gcsSourceData.setFolder(jsonObject.getString(FOLDER_KEY));
+        gcsSourceData.setBucket(jsonObject.get(BUCKET_KEY).getAsString());
+        gcsSourceData.setFolder(jsonObject.get(FOLDER_KEY).getAsString());
         return gcsSourceData;
     }
 }
