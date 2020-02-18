@@ -13,12 +13,12 @@ import java.net.URL;
 import static com.google.allenday.nanostream.launcher.worker.PipelineUtil.*;
 import static java.lang.String.format;
 
-public class Stopper {
+public class JobStopper {
     private String project;
     private String location;
     private String jobId;
 
-    public Stopper(HttpServletRequest request) {
+    public JobStopper(HttpServletRequest request) {
         project = getProjectId();
 
         location = request.getParameter("location");

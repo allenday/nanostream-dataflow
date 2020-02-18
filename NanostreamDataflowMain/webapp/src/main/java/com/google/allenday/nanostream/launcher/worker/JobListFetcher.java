@@ -11,10 +11,10 @@ import static com.google.allenday.nanostream.launcher.worker.PipelineUtil.*;
 import static java.lang.String.format;
 
 @Service
-public class ListFetcher {
+public class JobListFetcher {
     private final String project;
 
-    public ListFetcher() {
+    public JobListFetcher() {
         project = getProjectId();
     }
 
@@ -30,6 +30,6 @@ public class ListFetcher {
 
     private URL getUrl() throws MalformedURLException {
         // see https://cloud.google.com/dataflow/docs/reference/rest/v1b3/projects.jobs/list
-        return new URL(format(DATAFLOW_API_BASE_URI + "projects/%s/jobs?pageSize=3", project));
+        return new URL(format(DATAFLOW_API_BASE_URI + "projects/%s/jobs", project));
     }
 }

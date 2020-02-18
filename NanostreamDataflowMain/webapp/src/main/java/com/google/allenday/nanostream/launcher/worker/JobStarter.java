@@ -1,6 +1,5 @@
 package com.google.allenday.nanostream.launcher.worker;
 
-import com.google.allenday.nanostream.launcher.exception.BadRequestException;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -14,6 +13,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+
 
 import static com.google.allenday.nanostream.launcher.worker.PipelineUtil.*;
 import static com.jayway.jsonpath.Criteria.where;
@@ -22,44 +23,61 @@ import static com.jayway.jsonpath.JsonPath.parse;
 import static java.lang.String.format;
 
 @Service
-public class Starter {
+public class JobStarter {
 
-    private static final Logger logger = LoggerFactory.getLogger(Starter.class);
+    private static final Logger logger = LoggerFactory.getLogger(JobStarter.class);
 
-    private final ListFetcher listFetcher;
+    private final JobListFetcher jobListFetcher;
 
     private String project;
     private String bucket;
 
     @Autowired
-    public Starter(ListFetcher listFetcher) {
-        this.listFetcher = listFetcher;
+    public JobStarter(JobListFetcher jobListFetcher) {
+        this.jobListFetcher = jobListFetcher;
         project = getProjectId();
         bucket = format("gs://%s-dataflow", project);
     }
 
-    public String invoke(LaunchParams launchParams) throws IOException {
-        String templateName = format("nanostream-%s", launchParams.processingMode);
-        JSONObject jsonObj = makeParams(launchParams);
+    public String invoke(PipelineRequestParams pipelineRequestParams) throws IOException, ExecutionException, InterruptedException {
+        String templateName = format("nanostream-%s", pipelineRequestParams.getProcessingMode());
+        JSONObject jsonObj = makeParams(pipelineRequestParams);
 
-        if (!isRunningJob()) {
-            logger.info("Starting pipeline: {}", launchParams.pipelineName);
+//        if (!isRunningJob()) {
+            logger.info("Starting job: {}", pipelineRequestParams.getPipelineName());
             HttpURLConnection connection = sendLaunchDataflowJobFromTemplateRequest(jsonObj, templateName);
-            return getRequestOutput(connection);
-        } else {
-            throw new BadRequestException("NO_MORE_RUNNING_JOBS_ALLOWED", "Only one running job allowed");
-        }
+        String requestOutput = getRequestOutput(connection);
+
+// Request output sample:
+//        {
+//          "job": {
+//            "id": "2020-02-11_03_16_40-8884773552833626077",
+//            "projectId": "nanostream-test1",
+//            "name": "id123467",
+//            "type": "JOB_TYPE_STREAMING",
+//            "currentStateTime": "1970-01-01T00:00:00Z",
+//            "createTime": "2020-02-11T11:16:41.405546Z",
+//            "location": "us-central1",
+//            "startTime": "2020-02-11T11:16:41.405546Z"
+//          }
+//        }
+
+        return requestOutput;
+//        } else {
+//            throw new BadRequestException("NO_MORE_RUNNING_JOBS_ALLOWED", "Only one running job allowed");
+//        }
     }
 
+    // TODO: check isRunningPipeline (by input backet & folder)
     private boolean isRunningJob() throws IOException {
-        String json = listFetcher.invoke();
+        String json = jobListFetcher.invoke();
 
 // Json sample:
 //    {
 //      "jobs": [
 //        {
 //          "id": "2019-12-12_05_14_07-11307687861672664813",
-//          "projectId": "tas-nanostream-test1",
+//          "projectId": "nanostream-test1",
 //          "name": "template-32a4ca21-24d5-41fe-b531-f551f5179cdf",
 //          "type": "JOB_TYPE_STREAMING",
 //          "currentState": "JOB_STATE_CANCELLING",
@@ -87,18 +105,19 @@ public class Starter {
         return jobList.size() > 0;
     }
 
-    private JSONObject makeParams(LaunchParams params) {
+    private JSONObject makeParams(PipelineRequestParams params) {
         JSONObject jsonObj = null;
         try {
             JSONObject parameters = new JSONObject();
-            parameters.put("outputCollectionNamePrefix", params.outputCollectionNamePrefix);
-            parameters.put("outputDocumentNamePrefix", params.outputDocumentNamePrefix);
+            parameters.put("outputCollectionNamePrefix", params.getOutputDocumentNamePrefix());
+            parameters.put("outputDocumentNamePrefix", params.getOutputDocumentNamePrefix());
+            parameters.put("inputDataSubscription", params.getInputDataSubscription());
 
             JSONObject environment = new JSONObject()
                     .put("tempLocation", bucket + "/tmp/")
                     .put("bypassTempDirValidation", false);
             jsonObj = new JSONObject()
-                    .put("jobName", params.pipelineName)
+                    .put("jobName", params.getPipelineName())
                     .put("parameters", parameters)
                     .put("environment", environment);
         } catch (JSONException e) {
