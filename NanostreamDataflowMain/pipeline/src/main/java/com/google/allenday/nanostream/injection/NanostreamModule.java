@@ -20,6 +20,10 @@ public class NanostreamModule extends AbstractModule {
     protected ValueProvider<String> outputDocumentNamePrefix;
     protected ProcessingMode processingMode;
     protected GenomicsOptions genomicsOptions;
+    protected int batchSize;
+    protected int alignmentWindow;
+    protected ValueProvider<Integer> autoStopDelay;
+    protected String autoStopTopic;
 
     public NanostreamModule(Builder builder) {
         this.projectId = builder.projectId;
@@ -28,6 +32,10 @@ public class NanostreamModule extends AbstractModule {
         this.processingMode = builder.processingMode;
         this.outputDocumentNamePrefix = builder.outputDocumentNamePrefix;
         this.genomicsOptions = builder.alignerOptions;
+        this.batchSize = builder.batchSize;
+        this.alignmentWindow = builder.alignmentWindow;
+        this.autoStopTopic = builder.autoStopTopic;
+        this.autoStopDelay = builder.autoStopDelay;
     }
 
     public static class Builder {
@@ -38,6 +46,10 @@ public class NanostreamModule extends AbstractModule {
         protected ValueProvider<String> outputDocumentNamePrefix;
         protected ProcessingMode processingMode;
         protected GenomicsOptions alignerOptions;
+        protected int batchSize;
+        protected int alignmentWindow;
+        protected String autoStopTopic;
+        protected ValueProvider<Integer> autoStopDelay;
 
 
         public Builder setProjectId(String projectId) {
@@ -70,6 +82,25 @@ public class NanostreamModule extends AbstractModule {
             return this;
         }
 
+        public Builder setBatchSize(int batchSize) {
+            this.batchSize = batchSize;
+            return this;
+        }
+
+        private Builder setAlignmentWindow(Integer alignmentWindow) {
+            this.alignmentWindow = alignmentWindow;
+            return this;
+        }
+
+        private Builder setAutoStopTopic(String autoStopTopic) {
+            this.autoStopTopic = autoStopTopic;
+            return this;
+        }
+        private Builder setAutoStopDelay(ValueProvider<Integer> autoStopDelay) {
+            this.autoStopDelay = autoStopDelay;
+            return this;
+        }
+
         public String getProjectId() {
             return projectId;
         }
@@ -82,6 +113,10 @@ public class NanostreamModule extends AbstractModule {
             setProcessingMode(ProcessingMode.findByLabel(nanostreamPipelineOptions.getProcessingMode()));
             setOutputDocumentNamePrefix(nanostreamPipelineOptions.getOutputDocumentNamePrefix());
             setAlignerOptions(GenomicsOptions.fromAlignerPipelineOptions(nanostreamPipelineOptions));
+            setBatchSize(nanostreamPipelineOptions.getAlignmentBatchSize());
+            setAlignmentWindow(nanostreamPipelineOptions.getAlignmentWindow());
+            setAutoStopTopic(nanostreamPipelineOptions.getAutoStopTopic());
+            setAutoStopDelay(nanostreamPipelineOptions.getAutoStopDelay());
             return this;
         }
 
