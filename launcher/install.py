@@ -360,7 +360,7 @@ class FirebaseHandler:
     def _try_get_id_from_app_list(self):
         cmd = 'firebase apps:list --project %s' % self.google_cloud_project
         app_list = subprocess.check_output(cmd, shell=True).strip().decode("utf-8")
-        log('Application list: %s' % app_list)
+        log('Application list: \n%s' % app_list)
         expected_app_name = 'web_%s' % self.google_cloud_project
         # │ web_nanostream-test1 │ 1:253229025431:web:e39391f630f6c68ba981d2     │ WEB      │
         pattern = '^[\s\│]+%s[\s\│]+(.+?)[\s\│]+WEB[\s\│]+$' % expected_app_name
