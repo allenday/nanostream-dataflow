@@ -64,14 +64,9 @@ public class ParseFastQFnTest {
                     IntStream.range(0, outputFastqListSize).forEach(index -> {
                         KV<GCSSourceData, FastqRecord> kv = fastqRecordIterator.next();
                         FastqRecord fastqRecord = kv.getValue();
-                        Assert.assertEquals(assertData[0],
-                                fastqRecord.getReadName());
-                        Assert.assertEquals(assertData[1],
-                                fastqRecord.getReadString());
-                        Assert.assertEquals(assertData[2],
-                                fastqRecord.getBaseQualityHeader());
-                        Assert.assertEquals(assertData[3],
-                                fastqRecord.getBaseQualityString());
+
+                        Assert.assertEquals(String.join("\n", assertData),
+                                fastqRecord.toFastQString());
                     });
                     return null;
                 });

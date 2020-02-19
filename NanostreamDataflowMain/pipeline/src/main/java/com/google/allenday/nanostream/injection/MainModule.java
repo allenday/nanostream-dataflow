@@ -12,12 +12,16 @@ import com.google.allenday.genomics.core.processing.sam.SamBamManipulationServic
 import com.google.allenday.genomics.core.reference.ReferencesProvider;
 import com.google.allenday.genomics.core.utils.NameProvider;
 import com.google.allenday.nanostream.aligner.GetSequencesFromSamDataFn;
+import com.google.allenday.nanostream.batch.CreateBatchesTransform;
+import com.google.allenday.nanostream.fastq.ParseFastQFn;
+import com.google.allenday.nanostream.gcs.GetDataFromFastQFileFn;
 import com.google.allenday.nanostream.gcs.ParseGCloudNotification;
 import com.google.allenday.nanostream.geneinfo.LoadGeneInfoTransform;
-import com.google.allenday.nanostream.kalign.ProceedKAlignmentFn;
 import com.google.allenday.nanostream.other.Configuration;
 import com.google.allenday.nanostream.output.PrepareSequencesStatisticToOutputDbFn;
 import com.google.allenday.nanostream.output.WriteDataToFirestoreDbFn;
+import com.google.allenday.nanostream.pipeline.LoopingTimerTransform;
+import com.google.allenday.nanostream.pipeline.PipelineManagerService;
 import com.google.allenday.nanostream.taxonomy.GetResistanceGenesTaxonomyDataFn;
 import com.google.allenday.nanostream.taxonomy.GetSpeciesTaxonomyDataFn;
 import com.google.allenday.nanostream.taxonomy.GetTaxonomyFromTree;
@@ -56,11 +60,6 @@ public class MainModule extends NanostreamModule {
     @Provides
     public KAlignService provideKAlignService(WorkerSetupService workerSetupService, CmdExecutor cmdExecutor) {
         return new KAlignService(workerSetupService, cmdExecutor);
-    }
-
-    @Provides
-    public ProceedKAlignmentFn provideProceedKAlignmentFn(FileUtils fileUtils, KAlignService kAlignService) {
-        return new ProceedKAlignmentFn(fileUtils, kAlignService);
     }
 
     @Provides
@@ -127,6 +126,12 @@ public class MainModule extends NanostreamModule {
 
     @Provides
     @Singleton
+    public AlignService.Instrument provideInstrument() {
+        return AlignService.Instrument.OXFORD_NANOPORE;
+    }
+
+    @Provides
+    @Singleton
     public AlignService provideAlignService(WorkerSetupService workerSetupService, CmdExecutor cmdExecutor, FileUtils fileUtils) {
         return new AlignService(workerSetupService, cmdExecutor, fileUtils);
     }
@@ -166,4 +171,31 @@ public class MainModule extends NanostreamModule {
         return new AlignTransform("Align reads transform", alignFn, genomicsOptions.getGeneReferences());
     }
 
+
+    @Provides
+    @Singleton
+    public CreateBatchesTransform provideCreateBatchesTransform(GetDataFromFastQFileFn getDataFromFastQFileFn,
+                                                                ParseFastQFn parseFastQFn,
+                                                                CreateBatchesTransform.SequenceBatchesToFastqFiles sequenceBatchesToFastqFiles) {
+        return new CreateBatchesTransform(getDataFromFastQFileFn, parseFastQFn, sequenceBatchesToFastqFiles,
+                batchSize, alignmentWindow);
+    }
+
+    @Provides
+    @Singleton
+    public GetDataFromFastQFileFn provideGetDataFromFastQFileFn(FileUtils fileUtils) {
+        return new GetDataFromFastQFileFn(fileUtils);
+    }
+
+    @Provides
+    @Singleton
+    public CreateBatchesTransform.SequenceBatchesToFastqFiles provideCreateBatchesTransformSequenceBatchesToFastqFiles(AlignService.Instrument instrument) {
+        return new CreateBatchesTransform.SequenceBatchesToFastqFiles(batchSize, instrument);
+    }
+
+    @Provides
+    @Singleton
+    public PipelineManagerService providePipelineManagerService() {
+        return new PipelineManagerService(autoStopTopic);
+    }
 }
