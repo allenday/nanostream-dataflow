@@ -133,7 +133,7 @@ public class MainModule extends NanostreamModule {
     @Provides
     @Singleton
     public AlignService provideAlignService(WorkerSetupService workerSetupService, CmdExecutor cmdExecutor, FileUtils fileUtils) {
-        return new AlignService(workerSetupService, cmdExecutor, fileUtils, AlignService.Instrument.OXFORD_NANOPORE);
+        return new AlignService(workerSetupService, cmdExecutor, fileUtils);
     }
 
     @Provides
