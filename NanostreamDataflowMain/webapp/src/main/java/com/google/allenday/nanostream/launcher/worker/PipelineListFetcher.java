@@ -10,9 +10,9 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
-import static com.google.allenday.nanostream.launcher.worker.PipelineUtil.FIRESTORE_PIPELINES_COLLECTION;
-import static com.google.allenday.nanostream.launcher.worker.PipelineUtil.getProjectId;
-import static com.google.allenday.nanostream.launcher.worker.PipelineUtil.initFirestoreConnection;
+import static com.google.allenday.nanostream.launcher.util.PipelineUtil.FIRESTORE_PIPELINES_COLLECTION;
+import static com.google.allenday.nanostream.launcher.util.PipelineUtil.getProjectId;
+import static com.google.allenday.nanostream.launcher.util.PipelineUtil.initFirestoreConnection;
 import static java.lang.String.format;
 
 @Service

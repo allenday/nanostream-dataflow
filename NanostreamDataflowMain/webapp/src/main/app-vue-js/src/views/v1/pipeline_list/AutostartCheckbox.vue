@@ -9,7 +9,7 @@
     import api from '../../../api.js';
 
     export default {
-        name: 'Autostart',
+        name: 'AutostartCheckbox',
 
         props: ["pipeline"],
 

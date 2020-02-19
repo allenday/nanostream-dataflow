@@ -28,7 +28,8 @@ export default {
     getPipelines() {
         console.log('getPipelines called');
         return fetch(urlPrefix + pipelineListURL)
-            .then((response) => response.json());
+            .then((response) => response.json())
+            // .catch(error => console.error('get piplines error', error));
     },
     _selectedReferencesToCsvString: function (referenceNameList) {
         let selectedItems = referenceNameList
@@ -102,6 +103,7 @@ export default {
         console.log('getJobDetails called, jobId=' + jobId + '&location=' + location)
 
         return fetch(urlPrefix + infoReqURL + '?jobId=' + jobId + '&location=' + location)
+            .then((response) => response.json());
     },
     getPipelineDetails(pipelineId) {
 

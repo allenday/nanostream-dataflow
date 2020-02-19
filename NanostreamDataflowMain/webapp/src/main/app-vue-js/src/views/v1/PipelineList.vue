@@ -1,8 +1,8 @@
 <template>
-    <div style="overflow-x:auto;">
+    <div>
         <H1>Available pipelines</H1>
-        <div class="row ">
-            <div class="col-sm">
+        <div class="row">
+            <div class="col-sm" style="overflow-x:auto;">
                 <table>
                     <thead>
                         <th>Name</th>
@@ -24,19 +24,18 @@
                         <td><Jobs v-bind:jobs="pipeline.jobs"/></td>
                         <td>{{ pipeline.createdAt }}</td>
                         <td>{{ pipeline.status }}</td>
-                        <td><Autostart v-bind:pipeline="pipeline"/></td>
-                        <!--<td><router-link :to="{name: 'pipeline_details', params: { job_id: pipeline.id, location: pipeline.location }}">{{ pipeline.name }}</router-link></td>-->
-                        <!--<td><a v-if="isJobStarted(job)" href="#" v-on:click="stopJob(job.id, job.location)"><i class="fa fa-stop" aria-hidden="true"></i></a></td>-->
+                        <td><AutostartCheckbox v-bind:pipeline="pipeline"/></td>
                     </tr>
                 </table>
             </div>
         </div>
+        <error-message v-bind:errMsg="errMsg" />
     </div>
 </template>
 
 <style scoped>
     table, th, td {
-        padding: 10px;
+        padding-left: 10px;
     }
     table {
         width: 100%;
@@ -52,9 +51,11 @@
 
     import config from '../../config.js';
     import Jobs from './pipeline_list/Jobs.vue';
-    import Autostart from "./pipeline_list/Autostart.vue"
+    import AutostartCheckbox from "./pipeline_list/AutostartCheckbox.vue"
     import api from "../../api";
     import PipelineUtil from "../../pipeline.util";
+    import ErrorMessage from './ErrorMessage.vue'
+
 
     export default {
 
@@ -64,6 +65,10 @@
             return {
                 pipelines: [],
                 reloadPipelinesTaskId: null,
+                errMsg: {
+                    show: false,
+                    message: ''
+                },
             }
         },
 
@@ -73,14 +78,21 @@
 
         components: {
             Jobs,
-            Autostart,
+            AutostartCheckbox,
+            ErrorMessage,
         },
 
         methods: {
             async getPipelinesFirstTime() {
                 const loader = this.$loading.show();
-                await this.getPipelines();
-                loader.hide()
+                try {
+                    await this.getPipelines();
+                } catch (error) {
+                    loader.hide();
+                    this.showError(error);
+                } finally {
+                    loader.hide();
+                }
             },
             getPipelines() {
                 let that = this;
@@ -103,6 +115,11 @@
                         }
                         that.reloadPipelines();
                         resolve();
+                    })
+                    .catch(error => {
+                        console.error('getPipelines error:', error)
+                        reject(error);
+                        that.showError(error);
                     });
                 });
             },
@@ -118,6 +135,10 @@
                         this.getPipelines();
                     }, 30000);
                 }
+            },
+            showError(message) {
+                this.errMsg.message = message;
+                this.errMsg.show = true;
             },
             getFirestoreCollectionUrl(pipeline) {
                 return "https://console.firebase.google.com/u/0/project/" + config.firebase.projectId + "/database/firestore/data~2F"

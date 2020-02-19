@@ -1,4 +1,4 @@
-package com.google.allenday.nanostream.launcher.worker;
+package com.google.allenday.nanostream.launcher.util;
 
 import com.google.appengine.api.appidentity.AppIdentityService;
 import com.google.appengine.api.appidentity.AppIdentityServiceFactory;
@@ -19,7 +19,7 @@ import java.util.List;
 import static com.google.apphosting.api.ApiProxy.getCurrentEnvironment;
 import static java.net.HttpURLConnection.HTTP_OK;
 
-class PipelineUtil {
+public final class PipelineUtil {
     public static final String DATAFLOW_API_BASE_URI = "https://dataflow.googleapis.com/v1b3/";
     public static final String PUBSUB_API_BASE_URI = "https://pubsub.googleapis.com/v1/";
     public static final String DATAFLOW_JOB_STATE_CANCELLED = "JOB_STATE_CANCELLED";

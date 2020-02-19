@@ -17,14 +17,13 @@ import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
-import static com.google.allenday.nanostream.launcher.worker.DateTimeUtil.makeTimestamp;
-import static com.google.allenday.nanostream.launcher.worker.PipelineUtil.*;
+import static com.google.allenday.nanostream.launcher.util.DateTimeUtil.makeTimestamp;
+import static com.google.allenday.nanostream.launcher.util.PipelineUtil.*;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.jayway.jsonpath.Criteria.where;
 import static com.jayway.jsonpath.Filter.filter;
 import static com.jayway.jsonpath.JsonPath.parse;
 import static java.lang.String.format;
-import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 
 /**
  * Documentation reference:
@@ -53,6 +52,24 @@ public class JobLauncher {
     public List<String> launchAutostarted(String targetInputFolder, String uploadBucketName) throws ExecutionException, InterruptedException, IOException {
         logger.info(format("Launch new job: targetInputFolder %s, uploadBucketName %s", targetInputFolder, uploadBucketName));
 
+        List<QueryDocumentSnapshot> documents = getUnlockedDocumentsToStart(targetInputFolder, uploadBucketName);
+
+        List<String> jobIds = new ArrayList<>();
+        for (DocumentSnapshot document : documents) {
+            tryProcessDocument(jobIds, document);
+        }
+
+        return jobIds;
+    }
+
+    public void launchById(String pipelineId) throws ExecutionException, InterruptedException, IOException {
+        logger.info("Launch new job for pipeline: {}", pipelineId);
+        DocumentSnapshot document = getDocumentById(pipelineId);
+        List<String> jobIds = new ArrayList<>();
+        tryProcessDocument(jobIds, document);
+    }
+
+    private List<QueryDocumentSnapshot> getUnlockedDocumentsToStart(String targetInputFolder, String uploadBucketName) throws InterruptedException, ExecutionException {
 //        {"inputDataSubscription":"projects/nanostream-test1/subscriptions/nanostream-20200211t090136.895z",
 //        "inputFolder":"dogbite","jobIds":[],"processingMode":"species","outputCollectionNamePrefix":"test89",
 //        "name":"test89","outputDocumentNamePrefix":"","uploadBucketName":"nanostream-test1-upload-bucket",
@@ -66,18 +83,11 @@ public class JobLauncher {
                 .whereEqualTo("pipelineAutoStart", true);
         ApiFuture<QuerySnapshot> querySnapshot = query.get();
 
-        List<String> jobIds = new ArrayList<>();
-        for (DocumentSnapshot document : querySnapshot.get().getDocuments()) {
-            tryProcessDocument(jobIds, document);
-        }
-        return jobIds;
+        return querySnapshot.get().getDocuments();
     }
 
-    public void launchById(String pipelineId) throws ExecutionException, InterruptedException, IOException {
-        logger.info("Launch new job for pipeline: {}", pipelineId);
-        DocumentSnapshot document = db.collection(FIRESTORE_PIPELINES_COLLECTION).document(pipelineId).get().get();
-        List<String> jobIds = new ArrayList<>();
-        tryProcessDocument(jobIds, document);
+    private DocumentSnapshot getDocumentById(String pipelineId) throws InterruptedException, ExecutionException {
+        return db.collection(FIRESTORE_PIPELINES_COLLECTION).document(pipelineId).get().get();
     }
 
     private void tryProcessDocument(List<String> jobIds, DocumentSnapshot document) throws InterruptedException, ExecutionException, IOException {
@@ -123,38 +133,7 @@ public class JobLauncher {
     }
 
     private String runNewJob(PipelineEntity pipelineEntity) throws IOException {
-        String templateName = getTemplateName(pipelineEntity);
-        JSONObject jsonObj = makeParams(pipelineEntity);
-
-        logger.info("Starting job for pipeline: {}", pipelineEntity.getPipelineName());
-        HttpURLConnection connection = sendLaunchDataflowJobFromTemplateRequest(jsonObj, templateName);
-        String requestOutput = getRequestOutput(connection);
-
-        return extractJobId(requestOutput);
-    }
-
-    private String getTemplateName(PipelineEntity pipelineEntity) {
-        return format("nanostream-%s", pipelineEntity.getProcessingMode());
-    }
-
-    private String extractJobId(String json) {
-// Request output sample:
-//        {
-//          "job": {
-//            "id": "2020-02-11_03_16_40-8884773552833626077",
-//            "projectId": "nanostream-test1",
-//            "name": "id123467",
-//            "type": "JOB_TYPE_STREAMING",
-//            "currentStateTime": "1970-01-01T00:00:00Z",
-//            "createTime": "2020-02-11T11:16:41.405546Z",
-//            "location": "us-central1",
-//            "startTime": "2020-02-11T11:16:41.405546Z"
-//          }
-//        }
-        DocumentContext document = parse(json); // TODO: move parser to a separate class
-        String jobId = document.read("$.job.id");
-        logger.info("new job id: " + jobId);
-        return jobId;
+        return new JobRunner(pipelineEntity).invoke();
     }
 
     private PipelineEntity lockPipeline(DocumentSnapshot document) throws InterruptedException, ExecutionException {
@@ -230,36 +209,81 @@ public class JobLauncher {
         ));
     }
 
-    private JSONObject makeParams(PipelineEntity params) {
-        JSONObject jsonObj = null;
-        try {
-            JSONObject parameters = new JSONObject();
-            parameters.put("outputCollectionNamePrefix", params.getOutputCollectionNamePrefix());
-//            parameters.put("outputDocumentNamePrefix", params.getOutputDocumentNamePrefix());
-            parameters.put("inputDataSubscription", params.getInputDataSubscription());
-
-            JSONObject environment = new JSONObject()
-                    .put("tempLocation", bucket + "/tmp/")
-                    .put("bypassTempDirValidation", false);
-            jsonObj = new JSONObject()
-                    .put("jobName", params.getPipelineName() + "_" + makeTimestamp())
-                    .put("parameters", parameters)
-                    .put("environment", environment);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return jsonObj;
-    }
-
-    private HttpURLConnection sendLaunchDataflowJobFromTemplateRequest(JSONObject jsonObj, String templateName) throws IOException {
-        return sendRequest("POST", getUrl(templateName), jsonObj);
-    }
-
-    private URL getUrl(String templateName) throws MalformedURLException {
-        return new URL(format(DATAFLOW_API_BASE_URI + "projects/%s/templates:launch?gcs_path=%s/templates/%s",
-                project, bucket, templateName));
-    }
-
     private class AlreadyLockedException extends RuntimeException {
+    }
+
+    private class JobRunner {
+        private PipelineEntity pipelineEntity;
+
+        public JobRunner(PipelineEntity pipelineEntity) {
+            this.pipelineEntity = pipelineEntity;
+        }
+
+        public String invoke() throws IOException {
+            String templateName = getTemplateName(pipelineEntity);
+            JSONObject jsonObj = makeParams(pipelineEntity);
+
+            logger.info("Starting job for pipeline: {}", pipelineEntity.getPipelineName());
+            HttpURLConnection connection = sendLaunchDataflowJobFromTemplateRequest(jsonObj, templateName);
+            String requestOutput = getRequestOutput(connection);
+
+            return extractJobId(requestOutput);
+        }
+
+        private String getTemplateName(PipelineEntity pipelineEntity) {
+            return format("nanostream-%s", pipelineEntity.getProcessingMode());
+        }
+
+        private JSONObject makeParams(PipelineEntity params) {
+            JSONObject jsonObj = null;
+            try {
+                JSONObject parameters = new JSONObject();
+                parameters.put("outputCollectionNamePrefix", params.getOutputCollectionNamePrefix());
+    //            parameters.put("outputDocumentNamePrefix", params.getOutputDocumentNamePrefix());
+                parameters.put("inputDataSubscription", params.getInputDataSubscription());
+
+                JSONObject environment = new JSONObject()
+                        .put("tempLocation", bucket + "/tmp/")
+                        .put("bypassTempDirValidation", false);
+                jsonObj = new JSONObject()
+                        .put("jobName", params.getPipelineName() + "_" + makeTimestamp())
+                        .put("parameters", parameters)
+                        .put("environment", environment);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return jsonObj;
+        }
+
+        private HttpURLConnection sendLaunchDataflowJobFromTemplateRequest(JSONObject jsonObj, String templateName) throws IOException {
+            return sendRequest("POST", getUrl(templateName), jsonObj);
+        }
+
+        private String extractJobId(String json) {
+    // Request output sample:
+    //        {
+    //          "job": {
+    //            "id": "2020-02-11_03_16_40-8884773552833626077",
+    //            "projectId": "nanostream-test1",
+    //            "name": "id123467",
+    //            "type": "JOB_TYPE_STREAMING",
+    //            "currentStateTime": "1970-01-01T00:00:00Z",
+    //            "createTime": "2020-02-11T11:16:41.405546Z",
+    //            "location": "us-central1",
+    //            "startTime": "2020-02-11T11:16:41.405546Z"
+    //          }
+    //        }
+            DocumentContext document = parse(json); // TODO: move parser to a separate class
+            String jobId = document.read("$.job.id");
+            logger.info("new job id: " + jobId);
+            return jobId;
+        }
+
+        private URL getUrl(String templateName) throws MalformedURLException {
+            // See docs: https://cloud.google.com/dataflow/docs/reference/rest/v1b3/projects.templates/launch
+            return new URL(format(DATAFLOW_API_BASE_URI + "projects/%s/templates:launch?gcs_path=%s/templates/%s",
+                    project, bucket, templateName));
+        }
+
     }
 }

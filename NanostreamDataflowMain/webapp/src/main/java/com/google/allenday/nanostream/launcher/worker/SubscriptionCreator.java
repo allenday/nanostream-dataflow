@@ -11,11 +11,10 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
-import static com.google.allenday.nanostream.launcher.worker.DateTimeUtil.makeTimestamp;
-import static com.google.allenday.nanostream.launcher.worker.PipelineUtil.*;
+import static com.google.allenday.nanostream.launcher.util.DateTimeUtil.makeTimestamp;
+import static com.google.allenday.nanostream.launcher.util.PipelineUtil.*;
 import static com.google.common.util.concurrent.Uninterruptibles.sleepUninterruptibly;
 import static java.lang.String.format;
 

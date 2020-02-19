@@ -7,7 +7,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import static com.google.allenday.nanostream.launcher.worker.PipelineUtil.*;
+import static com.google.allenday.nanostream.launcher.util.PipelineUtil.*;
 import static java.lang.String.format;
 
 @Service

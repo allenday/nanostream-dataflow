@@ -1,4 +1,4 @@
-package com.google.allenday.nanostream.launcher.worker;
+package com.google.allenday.nanostream.launcher.util;
 
 import java.time.Instant;
 

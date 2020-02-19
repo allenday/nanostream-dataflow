@@ -1,8 +1,8 @@
 <template>
-    <div style="overflow-x:auto;">
+    <div>
         <H1>Available jobs</H1>
         <div class="row ">
-            <div class="col-sm">
+            <div class="col-sm" style="overflow-x:auto;">
                 <table>
                     <thead>
                     <th>Name</th>
@@ -21,12 +21,13 @@
                 </table>
             </div>
         </div>
+        <error-message v-bind:errMsg="errMsg" />
     </div>
 </template>
 
 <style scoped>
     table, th, td {
-        padding: 10px;
+        padding: 5px;
     }
     table {
         width: 100%;
@@ -42,6 +43,8 @@
 
     import api from '../../api.js';
     import JobUtil from '../../pipeline.util.js'
+    import ErrorMessage from './ErrorMessage.vue'
+
 
     export default {
 
@@ -51,16 +54,33 @@
             return {
                 jobs: [],
                 reloadJobsTaskId: null,
+                errMsg: {
+                    show: false,
+                    message: ''
+                },
             }
         },
 
         mounted() {
-            const loader = this.$loading.show();
-            this.getJobs().then(function () {
-                loader.hide()
-            })
+            this.getJobsFirstTime();
         },
+
+        components: {
+            ErrorMessage,
+        },
+
         methods: {
+            async getJobsFirstTime() {
+                const loader = this.$loading.show();
+                try {
+                    await this.getJobs();
+                } catch (error) {
+                    loader.hide();
+                    this.showError(error);
+                } finally {
+                    loader.hide();
+                }
+            },
             getJobs() {
                 let that = this;
                 return new Promise(function (resolve, reject) {
@@ -83,6 +103,10 @@
                             that.reloadJobs();
                             resolve();
                         })
+                        .catch(error => {
+                            reject(error);
+                            that.showError(error);
+                        });
                 });
             },
             reloadJobs: function () {
@@ -95,7 +119,7 @@
                     this.reloadJobsTaskId = setTimeout(() => {
                         console.log('Call reloadJobs after timeout')
                         this.getJobs();
-                    }, 20000);
+                    }, 30000);
                 }
             },
             stopJob(job_id, location) {
@@ -119,14 +143,13 @@
                         this.getJobs();
                     })
             },
-            isJobStarted(job) { // TODO: use PipelineUtil
+            isJobStarted(job) {
                 return JobUtil.isJobStarted(job);
-                // // console.log(job)
-                // return job.currentState !== "JOB_STATE_CANCELLED"
-                //     && job.currentState !== 'JOB_STATE_FAILED'
-                //     && job.currentState !== 'JOB_STATE_CANCELLING'
-                //     ;
-            }
+            },
+            showError(message) {
+                this.errMsg.message = message;
+                this.errMsg.show = true;
+            },
         }
 
     }

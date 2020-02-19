@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +19,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class MainController {
 
     private final JobListFetcher jobListFetcher;
-    private final JobStarter jobStarter;
     private final SubscriptionCreator subscriptionCreator;
     private final PipelineOptionsSaver pipelineOptionsSaver;
     private final JobLauncher jobLauncher;
@@ -28,13 +26,12 @@ public class MainController {
     private final PipelineDetailsFetcher pipelineDetailsFetcher;
 
     @Autowired
-    public MainController(JobListFetcher jobListFetcher, JobStarter jobStarter,
+    public MainController(JobListFetcher jobListFetcher,
                           SubscriptionCreator subscriptionCreator, PipelineOptionsSaver pipelineOptionsSaver,
                           JobLauncher jobLauncher, PipelineListFetcher pipelineListFetcher,
                           PipelineDetailsFetcher pipelineDetailsFetcher
     ) {
         this.jobListFetcher = jobListFetcher;
-        this.jobStarter = jobStarter;
         this.subscriptionCreator = subscriptionCreator;
         this.pipelineOptionsSaver = pipelineOptionsSaver;
         this.jobLauncher = jobLauncher;
@@ -55,12 +52,6 @@ public class MainController {
         pipelineOptionsSaver.update(pipelineRequestParams);
         return ResponseEntity.ok(pipelineRequestParams);
     }
-
-//    @CrossOrigin
-//    @PostMapping(value = "/launch", produces = APPLICATION_JSON_VALUE)
-//    public String launch(HttpServletRequest request) throws Exception {
-//        return jobStarter.invoke(new PipelineRequestParams(request));
-//    }
 
     @CrossOrigin
     @PostMapping(value = "/job/launch", produces = APPLICATION_JSON_VALUE)
@@ -108,6 +99,5 @@ public class MainController {
     public String createSubscription(@RequestParam String topic) throws IOException {
         return subscriptionCreator.invoke(topic);
     }
-
 
 }

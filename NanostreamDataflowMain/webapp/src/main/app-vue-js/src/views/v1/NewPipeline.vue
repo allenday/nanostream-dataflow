@@ -26,6 +26,7 @@
                 </form>
             </div>
         </div>
+        <error-message v-bind:errMsg="errMsg" />
     </div>
 </template>
 
@@ -34,9 +35,10 @@
     import NewPipelineBlock from './new_pipeline/NewPipelineBlock.vue';
     import api from '../../api.js';
     import config from '../../config.js';
+    import ErrorMessage from './ErrorMessage.vue'
 
 
-    var g_block_id = 0;
+    let g_block_id = 0;
 
     function _preparePipelineData(pipelines) {
         let pipeline = {
@@ -74,14 +76,20 @@
 
     export default {
         name: 'NewPipeline',
+
         data() {
             return {
                 pipelines: [],
+                errMsg: {
+                    show: false,
+                    message: ''
+                },
             }
         },
 
         components: {
-            NewPipelineBlock: NewPipelineBlock
+            NewPipelineBlock: NewPipelineBlock,
+            ErrorMessage: ErrorMessage,
         },
 
         created() {
@@ -100,8 +108,8 @@
             addNewPipelineBlock() {
                 console.log('Add new pipeline')
 
-                var ComponentClass = Vue.extend(NewPipelineBlock);
-                var instance = new ComponentClass({
+                let ComponentClass = Vue.extend(NewPipelineBlock);
+                let instance = new ComponentClass({
                     propsData: {pipeline: _preparePipelineData(this.pipelines)}
                 });
 //                instance.$slots.default = ['Click me!']
@@ -115,7 +123,12 @@
                     return p.block_id !== pipeline.block_id;
                 });
             },
+            showError(message) {
+                this.errMsg.message = message;
+                this.errMsg.show = true;
+            },
             async startPipeline() {
+
                 async function _createSubscriptionThanSavePipelineOptions(pipeline) {
                     let data = await api.createSubscription(config.general.uploadPubSubTopic);
                     console.log('data from create subscription call', data)
@@ -126,16 +139,16 @@
 //                            "ackDeadlineSeconds": 10,
 //                            "messageRetentionDuration": "604800s",
 //                            "expirationPolicy": {
-//                            "ttl": "2678400s"
-//                        }
+//                              "ttl": "2678400s"
+//                            }
 //                        }
 
                     if (data && data.name) {
                         pipeline.inputDataSubscription = data.name;
                         await _savePipelineOptions(pipeline);
                     } else {
-                        // TODO: show error
-                        return null;
+                        console.log('Cannot create subscription: ' + data)
+                        throw 'Cannot create subscription: ' + JSON.stringify(data);
                     }
                 }
 
@@ -143,22 +156,32 @@
                     let data = await api.saveNewPipeline(pipeline);
 
                     console.log('data from saveNewPipeline call', data)
-                    if (!data) {
-                        // TODO: show error
-                        return null;
+                    if (!data || data.error) {
+                        throw 'Cannot save pipeline options: ' + data.message;
                     }
                 }
 
                 console.log('startPipeline');
 
+                let self = this;
                 const loader = this.$loading.show();
-                for (const pipeline of this.pipelines) {
-                    await _createSubscriptionThanSavePipelineOptions(pipeline)
-                }
-                loader.hide();
-                // redirect to pipeline list
-                if (this.$route.name != 'pipeline_list') {
-                    this.$router.push({name: 'pipeline_list'})
+                let wasError = false;
+                try {
+                    for (const pipeline of this.pipelines) {
+                        await _createSubscriptionThanSavePipelineOptions(pipeline)
+                    }
+                } catch (error) {
+                    wasError = true;
+                    loader.hide();
+                    self.showError(error)
+                } finally {
+                    loader.hide();
+                    if (!wasError) {
+                        // redirect to pipeline list
+                        if (self.$route.name != 'pipeline_list') {
+                            self.$router.push({name: 'pipeline_list'})
+                        }
+                    }
                 }
             },
         }

@@ -17,16 +17,16 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
-import static com.google.allenday.nanostream.launcher.worker.DateTimeUtil.makeTimestamp;
-import static com.google.allenday.nanostream.launcher.worker.PipelineUtil.*;
+import static com.google.allenday.nanostream.launcher.util.AssertUtil.assertNotEmpty;
+import static com.google.allenday.nanostream.launcher.util.DateTimeUtil.makeTimestamp;
+import static com.google.allenday.nanostream.launcher.util.PipelineUtil.*;
 import static java.lang.String.format;
-import static org.hibernate.validator.internal.util.Contracts.assertNotEmpty;
 
 
 @Service
 public class PipelineOptionsSaver {
 
-    private static final Logger logger = LoggerFactory.getLogger(JobStarter.class);
+    private static final Logger logger = LoggerFactory.getLogger(PipelineOptionsSaver.class);
 
     private final JobLauncher jobLauncher;
 
@@ -49,15 +49,16 @@ public class PipelineOptionsSaver {
     }
 
     private PipelineEntity createOptionsForNewPipeline(PipelineRequestParams pipelineRequestParams) {
-        // TODO: use validation that maps to 400
-        assertNotEmpty(pipelineRequestParams.getReferenceNameList(), "Empty reference name list not allowed");
-        assertNotEmpty(pipelineRequestParams.getUploadBucketName(), "Empty upload bucket name not allowed");
-        assertNotEmpty(pipelineRequestParams.getInputFolder(), "Empty input folder not allowed");
         assertNotEmpty(pipelineRequestParams.getPipelineName(), "Empty pipeline name not allowed");
+        assertNotEmpty(pipelineRequestParams.getInputFolder(), "Empty input folder not allowed");
+        assertNotEmpty(pipelineRequestParams.getUploadBucketName(), "Empty upload bucket name not allowed");
+        assertNotEmpty(pipelineRequestParams.getReferenceNameList(), "Empty reference name list not allowed");
+        assertNotEmpty(pipelineRequestParams.getProcessingMode(), "Empty processing mode not allowed");
+        assertNotEmpty(pipelineRequestParams.getInputDataSubscription(), "Empty input data subscription not allowed");
 
         PipelineEntity pipelineEntity = new PipelineEntity(pipelineRequestParams);
         String now = Instant.now().toString();
-        pipelineEntity.setId("pl-" + makeTimestamp() + "-" + UUID.randomUUID().toString());
+        pipelineEntity.setId(makePipelineId());
         pipelineEntity.setOutputCollectionNamePrefix(makeOutputCollectionNamePrefix(pipelineRequestParams.getPipelineName()));
         pipelineEntity.setCreatedAt(now);
         pipelineEntity.setUpdatedAt(now);
@@ -66,8 +67,12 @@ public class PipelineOptionsSaver {
         return pipelineEntity;
     }
 
+    private String makePipelineId() {
+        return "pl-" + makeTimestamp() + "-" + UUID.randomUUID().toString();
+    }
+
     private String makeOutputCollectionNamePrefix(String pipelineName) {
-        String prefix = pipelineName.replaceAll("[:\\s]", "_");
+        String prefix = pipelineName.replaceAll("[^\\w]+", "_").toLowerCase();
         return format("%s_%s", prefix, makeTimestamp());
     }
 

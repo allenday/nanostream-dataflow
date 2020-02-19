@@ -37,8 +37,8 @@ public class PipelineEntity {
         this.inputDataSubscription = pipelineRequestParams.getInputDataSubscription();
         this.uploadBucketName = pipelineRequestParams.getUploadBucketName();
         this.referenceNameList = pipelineRequestParams.getReferenceNameList();
-        this.pipelineAutoStart = Boolean.valueOf(pipelineRequestParams.getPipelineAutoStart());
-        this.pipelineStartImmediately = Boolean.valueOf(pipelineRequestParams.getPipelineStartImmediately());
+        this.pipelineAutoStart = pipelineRequestParams.getPipelineAutoStart();
+        this.pipelineStartImmediately = pipelineRequestParams.getPipelineStartImmediately();
     }
 
     public String getId() {

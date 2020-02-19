@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.concurrent.ExecutionException;
 
-import static com.google.allenday.nanostream.launcher.worker.PipelineUtil.*;
+import static com.google.allenday.nanostream.launcher.util.PipelineUtil.*;
 
 @Service
 public class PipelineDetailsFetcher {

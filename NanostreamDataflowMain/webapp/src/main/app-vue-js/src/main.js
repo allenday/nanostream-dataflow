@@ -5,7 +5,6 @@ import Argon from "./plugins/argon-kit";
 import BootstrapVue from 'bootstrap-vue'
 import VueSimpleMarkdown from 'vue-simple-markdown'
 import Loading from 'vue-loading-overlay';
-// Import stylesheet
 import 'vue-loading-overlay/dist/vue-loading.css';
 
 //import './registerServiceWorker'
