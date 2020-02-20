@@ -82,6 +82,11 @@
             ErrorMessage,
         },
 
+        beforeRouteLeave (to, from, next) {
+            this.clearScheduledReloadPipelinesTask();
+            next(true);
+        },
+
         methods: {
             async getPipelinesFirstTime() {
                 const loader = this.$loading.show();
@@ -123,12 +128,15 @@
                     });
                 });
             },
-            reloadPipelines() {
+            clearScheduledReloadPipelinesTask() {
                 if (this.reloadPipelinesTaskId) {
-                    console.log('Call clearTimeout')
+                    console.log('clearScheduledReloadPipelinesTask called')
                     clearTimeout(this.reloadPipelinesTaskId); // cancel previous timeout request
                     this.reloadPipelinesTaskId = null;
                 }
+            },
+            reloadPipelines() {
+                this.clearScheduledReloadPipelinesTask();
                 if (this.$route.name === 'pipeline_list') { // reload only from pipeline list page
                     this.reloadPipelinesTaskId = setTimeout(() => {
                         console.log('Call reloadPipelines after timeout')

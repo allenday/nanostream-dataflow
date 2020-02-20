@@ -64,13 +64,13 @@
                            <!--placeholder="Enter collection name prefix">-->
                 <!--</div>-->
 
-<!--                <div class="form-group">-->
-<!--                    <label for="auto-stop">Auto-stop: </label>&nbsp;-->
-<!--                    <a class="tooltip-icon" data-toggle="tooltip" data-placement="top"-->
-<!--                       title="Number of minutes no new files added to the pipeline to stop."><i class="fa fa-question-circle"></i></a>-->
-<!--                    <input v-model="pipeline.autostop_minutes" type="text" class="form-control" id="auto-stop"-->
-<!--                           placeholder="Enter number of minutes" name="document-name-prefix">-->
-<!--                </div>-->
+                <div class="form-group">
+                    <label for="auto-stop">Auto-stop (seconds): </label>&nbsp;
+                    <a class="tooltip-icon" data-toggle="tooltip" data-placement="top"
+                       title="Number of seconds no new files added to the pipeline to stop."><i class="fa fa-question-circle"></i></a>
+                    <input v-model="pipeline.autoStopDelaySeconds" type="text" class="form-control" id="auto-stop"
+                           placeholder="Enter number of seconds" name="document-name-prefix">
+                </div>
 
                 <div class="form-group">
                     <base-checkbox class="mb-3" v-model="pipeline.pipelineAutoStart">

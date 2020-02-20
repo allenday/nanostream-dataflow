@@ -10,8 +10,6 @@ export default {
     general : {
         uploadBucketName: "$uploadBucketName",
         referenceNamesList: "$referenceNamesList",
-        refSpeciesDir: "$refSpeciesDir",
-        refGenesDir: "$refGenesDir",
         uploadPubSubTopic: "$uploadPubSubTopic",
     }
 }

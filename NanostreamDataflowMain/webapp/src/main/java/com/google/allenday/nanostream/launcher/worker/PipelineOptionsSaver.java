@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
+import java.util.regex.Pattern;
 
 import static com.google.allenday.nanostream.launcher.util.AssertUtil.assertNotEmpty;
 import static com.google.allenday.nanostream.launcher.util.DateTimeUtil.makeTimestamp;
@@ -27,6 +28,7 @@ import static java.lang.String.format;
 public class PipelineOptionsSaver {
 
     private static final Logger logger = LoggerFactory.getLogger(PipelineOptionsSaver.class);
+    private static final Pattern NOT_WORD_CHARACTERS = Pattern.compile("[^\\w]+");
 
     private final JobLauncher jobLauncher;
 
@@ -44,17 +46,12 @@ public class PipelineOptionsSaver {
     public PipelineEntity create(PipelineRequestParams pipelineRequestParams) throws IOException, ExecutionException, InterruptedException {
         PipelineEntity pipelineEntity = createOptionsForNewPipeline(pipelineRequestParams);
         savePipelineConfiguration(pipelineEntity);
-        launchJobIfRequired(pipelineEntity);
+        launchJobIfRequired(pipelineEntity, pipelineRequestParams.getPipelineStartImmediately());
         return pipelineEntity;
     }
 
     private PipelineEntity createOptionsForNewPipeline(PipelineRequestParams pipelineRequestParams) {
-        assertNotEmpty(pipelineRequestParams.getPipelineName(), "Empty pipeline name not allowed");
-        assertNotEmpty(pipelineRequestParams.getInputFolder(), "Empty input folder not allowed");
-        assertNotEmpty(pipelineRequestParams.getUploadBucketName(), "Empty upload bucket name not allowed");
-        assertNotEmpty(pipelineRequestParams.getReferenceNameList(), "Empty reference name list not allowed");
-        assertNotEmpty(pipelineRequestParams.getProcessingMode(), "Empty processing mode not allowed");
-        assertNotEmpty(pipelineRequestParams.getInputDataSubscription(), "Empty input data subscription not allowed");
+        validateCreatePipelineRequestParams(pipelineRequestParams);
 
         PipelineEntity pipelineEntity = new PipelineEntity(pipelineRequestParams);
         String now = Instant.now().toString();
@@ -63,8 +60,16 @@ public class PipelineOptionsSaver {
         pipelineEntity.setCreatedAt(now);
         pipelineEntity.setUpdatedAt(now);
 
-
         return pipelineEntity;
+    }
+
+    private void validateCreatePipelineRequestParams(PipelineRequestParams pipelineRequestParams) {
+        assertNotEmpty(pipelineRequestParams.getPipelineName(), "Empty pipeline name not allowed");
+        assertNotEmpty(pipelineRequestParams.getInputFolder(), "Empty input folder not allowed");
+        assertNotEmpty(pipelineRequestParams.getUploadBucketName(), "Empty upload bucket name not allowed");
+        assertNotEmpty(pipelineRequestParams.getReferenceNameList(), "Empty reference name list not allowed");
+        assertNotEmpty(pipelineRequestParams.getProcessingMode(), "Empty processing mode not allowed");
+        assertNotEmpty(pipelineRequestParams.getInputDataSubscription(), "Empty input data subscription not allowed");
     }
 
     private String makePipelineId() {
@@ -72,16 +77,8 @@ public class PipelineOptionsSaver {
     }
 
     private String makeOutputCollectionNamePrefix(String pipelineName) {
-        String prefix = pipelineName.replaceAll("[^\\w]+", "_").toLowerCase();
+        String prefix = NOT_WORD_CHARACTERS.matcher(pipelineName).replaceAll("_").toLowerCase();
         return format("%s_%s", prefix, makeTimestamp());
-    }
-
-
-    private PipelineEntity createOptionsForExistingPipeline(PipelineRequestParams pipelineRequestParams) {
-        PipelineEntity pipelineEntity = new PipelineEntity(pipelineRequestParams);
-        String now = Instant.now().toString();
-        pipelineEntity.setUpdatedAt(now);
-        return pipelineEntity;
     }
 
     private void savePipelineConfiguration(PipelineEntity pipelineEntity) throws ExecutionException, InterruptedException {
@@ -90,8 +87,8 @@ public class PipelineOptionsSaver {
         logger.info("Pipeline '{}' saved to  firestore at {}", pipelineEntity.getPipelineName(), writeResult.getUpdateTime());
     }
 
-    private void launchJobIfRequired(PipelineEntity pipelineEntity) throws ExecutionException, InterruptedException, IOException {
-        if (pipelineEntity.getPipelineStartImmediately()) {
+    private void launchJobIfRequired(PipelineEntity pipelineEntity, Boolean pipelineStartImmediately) throws ExecutionException, InterruptedException, IOException {
+        if (pipelineStartImmediately) {
             jobLauncher.launchById(pipelineEntity.getId());
         }
     }

@@ -1,7 +1,7 @@
 <template>
 <div class="row">
     <div class="col">
-      	<div class="row"><div class="col card-header"><h2>Table</h2></div></div>
+      	<div class="row"><div class="col card-header"><h4>Table</h4></div></div>
        	<div class="row card-body">  
 	        <div class="col-sm-8 mx-auto">
               <b-table striped bordered hover :items="recordsProcessed"></b-table> 

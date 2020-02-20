@@ -10,6 +10,7 @@ public class PipelineRequestParams {
     private String inputDataSubscription;
     private String inputFolder;
     private String referenceNameList;
+    private Integer autoStopDelaySeconds;
     private Boolean pipelineAutoStart;
     private Boolean pipelineStartImmediately;
     private String uploadBucketName;
@@ -76,6 +77,14 @@ public class PipelineRequestParams {
 
     public void setReferenceNameList(String referenceNameList) {
         this.referenceNameList = referenceNameList;
+    }
+
+    public Integer getAutoStopDelaySeconds() {
+        return autoStopDelaySeconds;
+    }
+
+    public void setAutoStopDelaySeconds(Integer autoStopDelaySeconds) {
+        this.autoStopDelaySeconds = autoStopDelaySeconds;
     }
 
     public Boolean getPipelineAutoStart() {

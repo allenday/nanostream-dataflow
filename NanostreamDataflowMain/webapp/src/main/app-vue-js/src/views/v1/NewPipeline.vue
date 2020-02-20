@@ -47,7 +47,7 @@
             inputFolder: '',
             processingMode: 'species',
             inputDataSubscription: '',
-//            outputCollectionNamePrefix: '',
+            autoStopDelaySeconds: 300,
             pipelineAutoStart: true,
             pipelineStartImmediately: false,
             referenceNameList: _makeReferenceNameList()

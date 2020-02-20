@@ -1,16 +1,11 @@
-// const https = require('https');
-
 const config = require('./config.js');
 const request = require('request');
-const Firestore = require('@google-cloud/firestore');
-const firestore = new Firestore();
 
 
 const appengineUrl = "https://" + config.projectId + ".appspot.com/api/v1";
 // const appengineUrl = 'http://localhost:8080/api/v1';
-const launchPipelineUrl = '/launch';
+
 const launchJobUrl = '/job/launch';
-const FIRESTORE_PIPELINES_COLLECTION = '_pipelines';
 
 
 /**
@@ -54,7 +49,6 @@ function main(processingFileName, uploadBucketName)
     console.log(`Target folder: ${targetInputFolder}`);
 
     if (targetInputFolder && uploadBucketName) {
-        // _getDataFromFirestore(targetInputFolder);
         _run_pipeline_job_if_required(targetInputFolder, uploadBucketName);
     }
 }
@@ -74,7 +68,6 @@ function _extractTargetInputFolder(processingFileName) {
     }
 }
 
-
 function _run_pipeline_job_if_required(targetInputFolder, uploadBucketName) {
     const url = appengineUrl + launchJobUrl;
     const params = {targetInputFolder: targetInputFolder, uploadBucketName: uploadBucketName};
@@ -90,63 +83,4 @@ function _run_pipeline_job_if_required(targetInputFolder, uploadBucketName) {
         }
     );
 }
-
-
-/**
- * See https://firebase.google.com/docs/firestore/query-data/get-data
- * @private
- */
-function _getDataFromFirestore(targetInputFolder) {
-    let collectionRef = firestore.collection(FIRESTORE_PIPELINES_COLLECTION);
-
-    collectionRef.listDocuments()
-        .then(documentRefs => {
-            for (let documentRef of documentRefs) {
-                // console.log(`document with id '${documentRef.id}'`);
-                // console.log(`document with path '${documentRef.path}'`);
-                documentRef.get().then(documentSnapshot => {
-                    if (documentSnapshot.exists) {
-                        let data = documentSnapshot.data();
-                        if (data.inputFolder === targetInputFolder) {
-                            console.log('Document retrieved successfully.');
-
-                            let createTime = documentSnapshot.createTime;
-                            console.log(`Document created at '${createTime.toDate()}'`);
-
-                            console.log(`Retrieved data: ${JSON.stringify(data)}`);
-                            _startJobForPipeline(data);
-                        }
-
-
-                    }
-                })
-            }
-        });
-}
-
-function _startJobForPipeline(pipelineOptions) {
-    console.log(pipelineOptions)
-    
-    let launchParams = _pipelineOptionsToLaunchParams(pipelineOptions);
-    console.log('launchParams', launchParams);
-
-    request.post(appengineUrl + launchPipelineUrl,
-        { form: launchParams },
-        function (error, response, body) {
-            if (!error && response.statusCode == 200) {
-                console.log(body);
-            }
-        }
-    );
-}
-
-function _pipelineOptionsToLaunchParams(pipelineOptions) {
-    return {
-        collection_name_prefix: pipelineOptions.outputCollectionNamePrefix,
-        document_name_prefix: pipelineOptions.outputDocumentNamePrefix,
-        processing_mode: pipelineOptions.processingMode,
-        input_data_subscription: pipelineOptions.inputDataSubscription
-    }
-}
-
 

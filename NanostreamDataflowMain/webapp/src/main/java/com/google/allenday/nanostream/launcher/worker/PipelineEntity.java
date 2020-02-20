@@ -8,20 +8,17 @@ public class PipelineEntity {
     private String pipelineName;
     private String inputFolder;
     private String outputCollectionNamePrefix;
-//    private String outputDocumentNamePrefix;
     private String processingMode;
     private String inputDataSubscription;
     private String referenceNameList;
+    private Integer autoStopDelaySeconds;
     private Boolean pipelineAutoStart;
-    private Boolean pipelineStartImmediately; // TODO: Used only once just upon creation. Do not save to firestore?
     private String uploadBucketName;
     private String createdAt;
     private String updatedAt;
     private List<String> jobIds = new ArrayList<>();
     private String lockStatus = "UNLOCKED";  // Possible values: LOCKED, UNLOCKED
     private String version = "1";  // use a version or github commit to identify pipeline version
-    // pipeline state
-    // CREATED, RUNNING, PAUSED
 
 
     public PipelineEntity() {
@@ -31,14 +28,12 @@ public class PipelineEntity {
     public PipelineEntity(PipelineRequestParams pipelineRequestParams) {
         this.pipelineName = pipelineRequestParams.getPipelineName();
         this.inputFolder = pipelineRequestParams.getInputFolder();
-//        this.outputCollectionNamePrefix = pipelineRequestParams.getOutputCollectionNamePrefix();
-//        this.outputDocumentNamePrefix = pipelineRequestParams.getOutputDocumentNamePrefix();
         this.processingMode = pipelineRequestParams.getProcessingMode();
         this.inputDataSubscription = pipelineRequestParams.getInputDataSubscription();
         this.uploadBucketName = pipelineRequestParams.getUploadBucketName();
         this.referenceNameList = pipelineRequestParams.getReferenceNameList();
+        this.autoStopDelaySeconds = pipelineRequestParams.getAutoStopDelaySeconds();
         this.pipelineAutoStart = pipelineRequestParams.getPipelineAutoStart();
-        this.pipelineStartImmediately = pipelineRequestParams.getPipelineStartImmediately();
     }
 
     public String getId() {
@@ -105,12 +100,12 @@ public class PipelineEntity {
         return referenceNameList;
     }
 
-    public Boolean getPipelineAutoStart() {
-        return pipelineAutoStart;
+    public Integer getAutoStopDelaySeconds() {
+        return autoStopDelaySeconds;
     }
 
-    public Boolean getPipelineStartImmediately() {
-        return pipelineStartImmediately;
+    public Boolean getPipelineAutoStart() {
+        return pipelineAutoStart;
     }
 
     public String getLockStatus() {

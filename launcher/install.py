@@ -7,16 +7,11 @@ from string import Template
 import json
 from datetime import datetime
 
-# JS_CONFIG_TEMPLATE_FILENAME = 'config.js.template'
-# JS_CONFIG_FILENAME = '../NanostreamDataflowMain/webapp/src/main/app-vue-js/src/config.js'
-#
-# START_FUNCTION_TEMPLATE_FILENAME = 'start_function.config.js.template'
-# START_FUNCTION_CONFIG_FILENAME = './start_function/config.js'
-
 TEMPLATES = [
     {'inp': 'config.js.template', 'out': '../NanostreamDataflowMain/webapp/src/main/app-vue-js/src/config.js'},
     {'inp': 'start_function.config.js.template', 'out': './start_function/config.js'},
 ]
+
 
 class Install:
 
@@ -27,17 +22,13 @@ class Install:
         self.reference_db_bucket_name = self.google_cloud_project + '-reference-db'
         self.results_bucket_name = self.google_cloud_project + '-results'
         self.upload_pub_sub_topic = self.google_cloud_project + '-pubsub-topic'
-        # self.upload_subscription = self.google_cloud_project + '-upload-subscription'
+        self.autostop_pub_sub_topic = self.google_cloud_project + '-autostop'
         self.app_engine_region = 'us-central'  # TODO: parametrize
 
-        # self.upload_subscription_fullname = 'projects/%s/subscriptions/%s' % (
-        #     self.google_cloud_project,
-        #     self.upload_subscription
-        # )
-
-        log("Used names: \n  project: %s\n  pubsub topic: %s\n  app engine region: %s\n" % (
+        log("Used names: \n  project: %s\n  upload pubsub topic: %s\n  autostop pubsub topic: %s\n  app engine region: %s\n" % (
                 self.google_cloud_project,
                 self.upload_pub_sub_topic,
+                self.autostop_pub_sub_topic,
                 self.app_engine_region
             ))
 
@@ -55,7 +46,7 @@ class Install:
             ))
 
         # reference database config:
-        self.reference_name_list = 'DB,DB1,DB2,DB3'  # how reference files are named: DB.fasta -> DB
+        self.reference_name_list = 'DB'  # how reference files are named: DB.fasta -> DB
         self.ref_species_dir = self.reference_db_bucket_url + 'reference-sequences/species/'
         self.ref_genes_dir = self.reference_db_bucket_url + 'reference-sequences/antibiotic-resistance-genes/'
         self.resistance_genes_list = self.reference_db_bucket_url + 'gene_info/resistance_genes_list.txt'
@@ -69,13 +60,16 @@ class Install:
 
         self.dir_file = os.path.dirname(os.path.realpath(__file__))  # a folder where this script is located
         self._config_data = []  # a placeholder for config data
+        self._recreate_bucket_notifications = True
 
     def main(self):
         self.set_default_project_for_gcloud()
         self.enable_apis()
         self.create_storage_buckets()
+        self.create_pub_sub_topics()
         self.create_bucket_notifications()
         self.deploy_start_pipeline_function()
+        self.deploy_stop_pipeline_function()
         self.install_required_libs()
         self.deploy_dataflow_templates()
         self.initialize_app_engine_in_project()
@@ -121,6 +115,23 @@ class Install:
         self.create_storage_bucket(bucket_list, self.results_bucket_name, self.results_bucket_url,
                                    'Create a Google Cloud Storage bucket for output files')
 
+    def create_pub_sub_topics(self):
+        self._create_pub_sub_topic(self.autostop_pub_sub_topic)
+        self._recreate_bucket_notifications = self._create_pub_sub_topic(self.upload_pub_sub_topic)
+
+    def _create_pub_sub_topic(self, topic_name):
+        cmd = 'gcloud pubsub topics list'
+        list = subprocess.check_output(cmd, shell=True).decode("utf-8")
+        if topic_name in list:
+            log('PubSub topic already already exists: %s' % list)
+            create_new = False
+        else:
+            cmd = 'gcloud pubsub topics create %s' % topic_name
+            log('Create a PubSub topic: %s' % cmd)
+            subprocess.check_call(cmd, shell=True)
+            create_new = True
+        return create_new
+
     def create_storage_bucket(self, bucket_list, bucket_name, bucket_url, message):
         if bucket_url in bucket_list:
             log('Bucket %s already exists' % bucket_name)
@@ -130,7 +141,7 @@ class Install:
             subprocess.check_call(cmd, shell=True)
 
     def create_bucket_notifications(self):
-        handler = BucketNotificationHandler(self.upload_pub_sub_topic, self.upload_bucket_url)
+        handler = BucketNotificationHandler(self.upload_pub_sub_topic, self.upload_bucket_url, self._recreate_bucket_notifications)
         handler.create_bucket_notifications()
 
     def deploy_start_pipeline_function(self):
@@ -142,6 +153,17 @@ class Install:
         log('Deploy start pipeline function: %s' % cmd)
         wd = os.getcwd()
         os.chdir(self.dir_file + "/start_function")
+        subprocess.check_call(cmd, shell=True)
+        os.chdir(wd)
+
+    def deploy_stop_pipeline_function(self):
+        cmd = 'gcloud functions deploy stop_dataflow_job \
+                --no-allow-unauthenticated \
+                --runtime python37 \
+                --trigger-topic %s' % self.autostop_pub_sub_topic
+        log('Deploy stop pipeline function: %s' % cmd)
+        wd = os.getcwd()
+        os.chdir(self.dir_file + "/stop_function")
         subprocess.check_call(cmd, shell=True)
         os.chdir(wd)
 
@@ -176,6 +198,8 @@ class Install:
 
         output_gcs_uri = self.results_bucket_url + 'clinic_processing_output/'
 
+        autostop_pub_sub_topic_full_path = 'projects/%s/topics/%s' % (self.google_cloud_project, self.autostop_pub_sub_topic)
+
         cmd = 'mvn compile exec:java ' \
               '-f NanostreamDataflowMain/pipeline/pom.xml ' \
               '-Dexec.mainClass=com.google.allenday.nanostream.NanostreamApp ' \
@@ -190,6 +214,7 @@ class Install:
               '--outputGcsUri=%s ' \
               '--referenceNamesList=%s ' \
               '--allReferencesDirGcsUri=%s ' \
+              '--autoStopTopic=%s ' \
               '--gcpTempLocation=%s ' \
               '--stagingLocation=%s ' \
               '--templateLocation=%s ' \
@@ -206,6 +231,7 @@ class Install:
                   output_gcs_uri,
                   self.reference_name_list,
                   all_references_dir_gcs_uri,
+                  autostop_pub_sub_topic_full_path,
                   self.dataflow_bucket_url + 'tmp',
                   self.dataflow_bucket_url + 'staging',
                   self.dataflow_bucket_url + 'templates/' + template_name,
@@ -233,9 +259,6 @@ class Install:
     def write_config_file(self):
         self._config_data['uploadBucketName'] = self.upload_bucket_name
         self._config_data['referenceNamesList'] = self.reference_name_list
-        # self._config_data['referenceDbBucketUrl'] = self.reference_db_bucket_url
-        self._config_data['refSpeciesDir'] = self.ref_species_dir
-        self._config_data['refGenesDir'] = self.ref_genes_dir
         self._config_data['uploadPubSubTopic'] = self.upload_pub_sub_topic
         handler = ConfigHandler(self._config_data, self.dir_file)
         handler.write_configs()
@@ -248,59 +271,17 @@ class Install:
 
 class BucketNotificationHandler:
 
-    def __init__(self, upload_pub_sub_topic, upload_bucket_url):
+    def __init__(self, upload_pub_sub_topic, upload_bucket_url, recreate_bucket_notifications):
         self.upload_pub_sub_topic = upload_pub_sub_topic
-        # self.upload_subscription = upload_subscription
         self.upload_bucket_url = upload_bucket_url
+        self.recreate_bucket_notifications = recreate_bucket_notifications;
 
     def create_bucket_notifications(self):
-        create_new = self._create_pub_sub_topic()
-        # create_new = self._create_pub_sub_subscription(create_new)
-        self._configure_bucket_file_upload_notifications(create_new)
-
-    def _create_pub_sub_topic(self):
-        cmd = 'gcloud pubsub topics list'
-        list = subprocess.check_output(cmd, shell=True).decode("utf-8")
-        if self.upload_pub_sub_topic in list:
-            log('PubSub topic already already exists: %s' % list)
-            create_new = False
-        else:
-            cmd = 'gcloud pubsub topics create %s' % self.upload_pub_sub_topic
-            log('Create a PubSub topic: %s' % cmd)
-            subprocess.check_call(cmd, shell=True)
-            create_new = True
-        return create_new
-
-    # def _create_pub_sub_subscription(self, create_new):
-    #     cmd = 'gcloud pubsub subscriptions list'
-    #     subsriptions = subprocess.check_output(cmd, shell=True).decode("utf-8")
-    #     if self.upload_subscription in subsriptions:
-    #         log('PubSub subscription already exists: %s' % subsriptions)
-    #         if create_new:
-    #             log('Recreate subscription: %s' % self.upload_subscription)
-    #             self._delete_pub_sub_subscription()
-    #             self._create_new_pub_sub_subscription()
-    #     else:
-    #         self._create_new_pub_sub_subscription()
-    #         create_new = True
-    #     return create_new
-    #
-    # def _delete_pub_sub_subscription(self):
-    #     cmd = 'gcloud pubsub subscriptions delete %s' % self.upload_subscription
-    #     log('Delete a PubSub subscription: %s' % cmd)
-    #     subprocess.check_call(cmd, shell=True)
-    #
-    # def _create_new_pub_sub_subscription(self):
-    #     cmd = 'gcloud pubsub subscriptions create %s --topic %s' % (self.upload_subscription, self.upload_pub_sub_topic)
-    #     log('Create a PubSub subscription: %s' % cmd)
-    #     subprocess.check_call(cmd, shell=True)
-
-    def _configure_bucket_file_upload_notifications(self, create_new):
         cmd = 'gsutil notifications list %s' % self.upload_bucket_url
         notifications = subprocess.check_output(cmd, shell=True).decode("utf-8")
         if self.upload_pub_sub_topic in notifications:
             log('Bucket notification already exists: %s' % notifications)
-            if create_new:
+            if self.recreate_bucket_notifications:
                 log('Recreate bucket notification for bucket: %s' % self.upload_bucket_url)
                 self._delete_bucket_upload_notifications()
                 self._create_bucket_upload_notifications()
@@ -421,7 +402,8 @@ class ConfigHandler:
 
 
 class IllegalArgumentException(Exception):
-    def __init__(self, msg):
+    def __init__(self, msg, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.msg = msg
 
 

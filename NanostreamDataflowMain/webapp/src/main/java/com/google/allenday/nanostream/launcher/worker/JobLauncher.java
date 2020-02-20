@@ -18,6 +18,7 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 import static com.google.allenday.nanostream.launcher.util.DateTimeUtil.makeTimestamp;
+import static com.google.allenday.nanostream.launcher.util.JsonResponseParser.extractJobId;
 import static com.google.allenday.nanostream.launcher.util.PipelineUtil.*;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.jayway.jsonpath.Criteria.where;
@@ -93,16 +94,17 @@ public class JobLauncher {
     private void tryProcessDocument(List<String> jobIds, DocumentSnapshot document) throws InterruptedException, ExecutionException, IOException {
         if (document.exists()) {
             try {
-                jobIds.add(processDocument(document));
+                Optional<String> newJobId = processDocument(document);
+                newJobId.ifPresent(jobIds::add);
             } catch (AlreadyLockedException e) {
                 // do nothing. Ignore already locked
             }
         }
     }
 
-    private String processDocument(DocumentSnapshot document) throws InterruptedException, ExecutionException, IOException {
+    private Optional<String> processDocument(DocumentSnapshot document) throws InterruptedException, ExecutionException, IOException {
         PipelineEntity pipelineEntity = lockPipeline(document);
-        String newJobId = "";
+        Optional<String> newJobId = Optional.empty();
         try {
             logger.info("Pipeline name: {}", pipelineEntity.getPipelineName());
 //            logger.info("DocumentSnapshot id: " + document.getId());
@@ -110,7 +112,7 @@ public class JobLauncher {
 //            logger.info("Lock status: " + pipelineEntity.getLockStatus());
 
             if (!runningJobsContains(pipelineEntity.getJobIds())) {
-                newJobId = runNewJob(pipelineEntity);
+                newJobId = Optional.of(runNewJob(pipelineEntity));
             } else {
                 logger.info("Pipeline {} already has running jobs", pipelineEntity.getPipelineName());
             }
@@ -152,13 +154,13 @@ public class JobLauncher {
         return futureTransaction.get();
     }
 
-    private PipelineEntity unlockPipeline(DocumentSnapshot document, String newJobId) throws ExecutionException, InterruptedException {
+    private PipelineEntity unlockPipeline(DocumentSnapshot document, Optional<String> newJobId) throws ExecutionException, InterruptedException {
         DocumentReference docRef = document.getReference();
         ApiFuture<PipelineEntity> futureTransaction = db.runTransaction(transaction -> {
             DocumentSnapshot snapshot = transaction.get(docRef).get();
             PipelineEntity pipelineEntity = mapToPipelineOptions(snapshot);
-            if (newJobId != null) {
-                pipelineEntity.getJobIds().add(newJobId);
+            if (newJobId.isPresent()) {
+                pipelineEntity.getJobIds().add(newJobId.get());
                 transaction.update(docRef, "jobIds", pipelineEntity.getJobIds());
             }
             pipelineEntity.setLockStatus("UNLOCKED");
@@ -241,6 +243,7 @@ public class JobLauncher {
                 parameters.put("outputCollectionNamePrefix", params.getOutputCollectionNamePrefix());
     //            parameters.put("outputDocumentNamePrefix", params.getOutputDocumentNamePrefix());
                 parameters.put("inputDataSubscription", params.getInputDataSubscription());
+                parameters.put("autoStopDelay", params.getAutoStopDelaySeconds().toString());
 
                 JSONObject environment = new JSONObject()
                         .put("tempLocation", bucket + "/tmp/")
@@ -250,33 +253,13 @@ public class JobLauncher {
                         .put("parameters", parameters)
                         .put("environment", environment);
             } catch (JSONException e) {
-                e.printStackTrace();
+                logger.error(e.getMessage(), e);
             }
             return jsonObj;
         }
 
         private HttpURLConnection sendLaunchDataflowJobFromTemplateRequest(JSONObject jsonObj, String templateName) throws IOException {
             return sendRequest("POST", getUrl(templateName), jsonObj);
-        }
-
-        private String extractJobId(String json) {
-    // Request output sample:
-    //        {
-    //          "job": {
-    //            "id": "2020-02-11_03_16_40-8884773552833626077",
-    //            "projectId": "nanostream-test1",
-    //            "name": "id123467",
-    //            "type": "JOB_TYPE_STREAMING",
-    //            "currentStateTime": "1970-01-01T00:00:00Z",
-    //            "createTime": "2020-02-11T11:16:41.405546Z",
-    //            "location": "us-central1",
-    //            "startTime": "2020-02-11T11:16:41.405546Z"
-    //          }
-    //        }
-            DocumentContext document = parse(json); // TODO: move parser to a separate class
-            String jobId = document.read("$.job.id");
-            logger.info("new job id: " + jobId);
-            return jobId;
         }
 
         private URL getUrl(String templateName) throws MalformedURLException {

@@ -64,7 +64,7 @@ public interface NanostreamPipelineOptions extends GenomicsPipelineOptions {
 
     void setAlignmentBatchSize(int value);
 
-    @Description("Time period in seconds after which pipekine will be automatically stopped")
+    @Description("Time period in seconds after which pipeline will be automatically stopped")
     @Default.Integer(Integer.MAX_VALUE)
     ValueProvider<Integer> getAutoStopDelay();
 

@@ -69,6 +69,11 @@
             ErrorMessage,
         },
 
+        beforeRouteLeave (to, from, next) {
+            this.clearScheduledReloadJobTask();
+            next(true);
+        },
+
         methods: {
             async getJobsFirstTime() {
                 const loader = this.$loading.show();
@@ -109,12 +114,15 @@
                         });
                 });
             },
-            reloadJobs: function () {
+            clearScheduledReloadJobTask() {
                 if (this.reloadJobsTaskId) {
-                    console.log('Call clearTimeout')
+                    console.log('clearScheduledReloadJobTask called')
                     clearTimeout(this.reloadJobsTaskId); // cancel previous timeout request
                     this.reloadJobsTaskId = null;
                 }
+            },
+            reloadJobs: function () {
+                this.clearScheduledReloadJobTask();
                 if (this.$route.name === 'job_list') { // reload only from the current page
                     this.reloadJobsTaskId = setTimeout(() => {
                         console.log('Call reloadJobs after timeout')

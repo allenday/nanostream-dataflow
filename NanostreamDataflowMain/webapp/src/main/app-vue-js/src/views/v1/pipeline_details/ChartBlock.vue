@@ -1,23 +1,14 @@
 <template>
     <div id="visualization-chart">
         <div class="row row-default-bg diagram-title">
-<!--            <div class="col">-->
-<!--                <div class="row">-->
-<!--                    <div>-->
-<!--                        <div class="row row-default-bg"></div>-->
-<!--                    </div>-->
-
-
 
             <div class="col-sm">
-                <h3>Output</h3>
+                <h4>Output</h4>
             </div>
             <div class="col-sm">
                 <div id="document-selector-area">
-                    <div class="">
-                        <h3>Document :</h3>
-                    </div>
-                    <div >
+                        <h4>Document :</h4>
+                    <div>
 
                         <select
                                 v-if="document_list.length"
@@ -46,18 +37,9 @@
 
 
         </div>
-<!--                <div class="row">-->
-<!--                    <div class="col d-flex diagram-title">-->
-<!--                        <div class="col-sm">-->
-<!--                            <h3>Diagram {{ diagram_name }}</h3>-->
-<!--                        </div>-->
-<!--                    </div>-->
-<!--                </div>-->
-                <div class="col d-flex mx-auto">
-                    <chart v-bind:records="records" v-bind:loading="loading"></chart>
-                </div>
-<!--            </div>-->
-<!--        </div>-->
+        <div class="col d-flex mx-auto">
+            <chart v-bind:records="records" v-bind:loading="loading"></chart>
+        </div>
         <VisTable v-bind:records="records"/>
     </div>
 </template>
@@ -65,7 +47,6 @@
 <script>
     import Chart from './Chart.vue'
     import VisTable from './VisTable.vue'
-    // import firebase from 'firebase';
     import firebase from 'firebase/app';
     import 'firebase/firestore';
 
