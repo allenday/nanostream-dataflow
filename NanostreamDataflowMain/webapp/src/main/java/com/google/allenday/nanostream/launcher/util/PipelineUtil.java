@@ -1,8 +1,10 @@
-package com.google.allenday.nanostream.launcher.worker;
+package com.google.allenday.nanostream.launcher.util;
 
 import com.google.appengine.api.appidentity.AppIdentityService;
 import com.google.appengine.api.appidentity.AppIdentityServiceFactory;
 import com.google.apphosting.api.ApiProxy;
+import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.FirestoreOptions;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -17,9 +19,12 @@ import java.util.List;
 import static com.google.apphosting.api.ApiProxy.getCurrentEnvironment;
 import static java.net.HttpURLConnection.HTTP_OK;
 
-class PipelineUtil {
+public final class PipelineUtil {
     public static final String DATAFLOW_API_BASE_URI = "https://dataflow.googleapis.com/v1b3/";
+    public static final String PUBSUB_API_BASE_URI = "https://pubsub.googleapis.com/v1/";
     public static final String DATAFLOW_JOB_STATE_CANCELLED = "JOB_STATE_CANCELLED";
+    public static final String FIRESTORE_PIPELINES_COLLECTION = "_pipelines";
+
 
     private static final Logger logger = LoggerFactory.getLogger(PipelineUtil.class);
 
@@ -39,6 +44,13 @@ class PipelineUtil {
             logger.info("ProjectId from api proxy: " + projectId);
             return projectId;
         }
+    }
+
+    public static Firestore initFirestoreConnection() {
+        FirestoreOptions firestoreOptions = FirestoreOptions.getDefaultInstance().toBuilder()
+                .setProjectId(getProjectId())
+                .build();
+        return firestoreOptions.getService();
     }
 
     public static String getAccessToken() {

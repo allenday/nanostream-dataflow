@@ -9,9 +9,9 @@
 <template>
     <div id="app" class="container-fluid main">      
         <router-view name="header"></router-view>
-        <main>
+
                 <router-view/>
-        </main>
+        
         <router-view name="footer"></router-view>
     </div>
 </template>

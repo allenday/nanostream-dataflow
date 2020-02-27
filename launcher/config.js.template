@@ -1,10 +1,15 @@
 export default {
-    config : {
+    firebase : {
         apiKey: "$apiKey",
         authDomain: "$authDomain",
         databaseURL: "$databaseURL",
         projectId: "$projectId",
         storageBucket: "$storageBucket",
         messagingSenderId: "$messagingSenderId"
+    },
+    general : {
+        uploadBucketName: "$uploadBucketName",
+        referenceNamesList: "$referenceNamesList",
+        uploadPubSubTopic: "$uploadPubSubTopic",
     }
 }

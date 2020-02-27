@@ -6,7 +6,7 @@ from oauth2client.client import GoogleCredentials
 REQUESTED_STATE_TUPLE = "requestedState", "JOB_STATE_DRAINING"
 
 
-def main(event, context):
+def stop_dataflow_job(event, context):
     """Triggered from a message on a Cloud Pub/Sub topic.
     Args:
          event (dict): Event payload.

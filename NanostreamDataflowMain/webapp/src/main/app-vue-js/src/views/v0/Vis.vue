@@ -109,7 +109,7 @@
 <script>
 
 
-    import * as firebase from 'firebase';
+    import * as firebase from 'firebase/index';
     import config from '../firebase.config.js';
 
     import Chart from './Chart.vue';
