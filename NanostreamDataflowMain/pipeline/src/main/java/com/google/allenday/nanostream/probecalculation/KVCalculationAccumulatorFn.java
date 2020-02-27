@@ -1,5 +1,6 @@
 package com.google.allenday.nanostream.probecalculation;
 
+import com.google.allenday.genomics.core.reference.ReferenceDatabaseSource;
 import com.google.allenday.nanostream.geneinfo.GeneData;
 import com.google.allenday.nanostream.pubsub.GCSSourceData;
 import org.apache.beam.sdk.transforms.Combine;
@@ -17,41 +18,44 @@ import java.util.stream.StreamSupport;
  *
  */
 public class KVCalculationAccumulatorFn extends Combine.CombineFn<
-        KV<KV<GCSSourceData, String>, GeneData>,
-        Map<GCSSourceData, Map<String, SequenceCountAndTaxonomyData>>,
-        Map<GCSSourceData, Map<String, SequenceCountAndTaxonomyData>>> {
+        KV<KV<GCSSourceData, String>, KV<ReferenceDatabaseSource, GeneData>>,
+        Map<KV<GCSSourceData, String>, Map<String, SequenceCountAndTaxonomyData>>,
+        Map<KV<GCSSourceData, String>, Map<String, SequenceCountAndTaxonomyData>>> {
 
 
     @Override
-    public Map<GCSSourceData, Map<String, SequenceCountAndTaxonomyData>> createAccumulator() {
+    public Map<KV<GCSSourceData, String>, Map<String, SequenceCountAndTaxonomyData>> createAccumulator() {
         return new HashMap<>();
     }
 
     @Override
-    public Map<GCSSourceData, Map<String, SequenceCountAndTaxonomyData>> addInput(
-            Map<GCSSourceData, Map<String, SequenceCountAndTaxonomyData>> accumulator,
-            KV<KV<GCSSourceData, String>, GeneData> input) {
+    public Map<KV<GCSSourceData, String>, Map<String, SequenceCountAndTaxonomyData>> addInput(
+            Map<KV<GCSSourceData, String>, Map<String, SequenceCountAndTaxonomyData>> accumulator,
+            KV<KV<GCSSourceData, String>, KV<ReferenceDatabaseSource, GeneData>> input) {
         @Nonnull
         KV<GCSSourceData, String> gcsSourceDataStringKV = input.getKey();
-        if (!accumulator.containsKey(gcsSourceDataStringKV.getKey()) || accumulator.get(gcsSourceDataStringKV.getKey()) == null) {
-            accumulator.put(gcsSourceDataStringKV.getKey(), new HashMap<>());
+        @Nonnull
+        KV<ReferenceDatabaseSource, GeneData> refAndGeneData = input.getValue();
+
+        KV<GCSSourceData, String> accumKey = KV.of(gcsSourceDataStringKV.getKey(), refAndGeneData.getKey().getName());
+        if (!accumulator.containsKey(accumKey) || accumulator.get(accumKey) == null) {
+            accumulator.put(accumKey, new HashMap<>());
         }
 
-        Map<String, SequenceCountAndTaxonomyData> stringSequenceCountAndTaxonomyDataMap =
-                accumulator.get(gcsSourceDataStringKV.getKey());
-        if (stringSequenceCountAndTaxonomyDataMap.containsKey(gcsSourceDataStringKV.getValue())
-                && stringSequenceCountAndTaxonomyDataMap.get(gcsSourceDataStringKV.getValue()) != null) {
-            stringSequenceCountAndTaxonomyDataMap.get(gcsSourceDataStringKV.getValue()).increment();
+        Map<String, SequenceCountAndTaxonomyData> accumValue = accumulator.get(accumKey);
+        if (accumValue.containsKey(gcsSourceDataStringKV.getValue())
+                && accumValue.get(gcsSourceDataStringKV.getValue()) != null) {
+            accumValue.get(gcsSourceDataStringKV.getValue()).increment();
         } else {
-            stringSequenceCountAndTaxonomyDataMap.put(gcsSourceDataStringKV.getValue(), new SequenceCountAndTaxonomyData(input.getValue()));
+            accumValue.put(gcsSourceDataStringKV.getValue(), new SequenceCountAndTaxonomyData(refAndGeneData.getValue()));
         }
 
         return accumulator;
     }
 
     @Override
-    public Map<GCSSourceData, Map<String, SequenceCountAndTaxonomyData>> mergeAccumulators(
-            Iterable<Map<GCSSourceData, Map<String, SequenceCountAndTaxonomyData>>> accumulators) {
+    public Map<KV<GCSSourceData, String>, Map<String, SequenceCountAndTaxonomyData>> mergeAccumulators(
+            Iterable<Map<KV<GCSSourceData, String>, Map<String, SequenceCountAndTaxonomyData>>> accumulators) {
 
         return StreamSupport.stream(accumulators.spliterator(), false)
                 .map(Map::entrySet)
@@ -76,7 +80,8 @@ public class KVCalculationAccumulatorFn extends Combine.CombineFn<
     }
 
     @Override
-    public Map<GCSSourceData, Map<String, SequenceCountAndTaxonomyData>> extractOutput(Map<GCSSourceData, Map<String, SequenceCountAndTaxonomyData>> accumulator) {
+    public Map<KV<GCSSourceData, String>, Map<String, SequenceCountAndTaxonomyData>> extractOutput(Map<KV<GCSSourceData, String>,
+            Map<String, SequenceCountAndTaxonomyData>> accumulator) {
         return accumulator;
     }
 }

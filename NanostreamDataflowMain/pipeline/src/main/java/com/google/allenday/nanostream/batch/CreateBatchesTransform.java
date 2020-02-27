@@ -1,5 +1,7 @@
 package com.google.allenday.nanostream.batch;
 
+import com.google.allenday.genomics.core.io.FileUtils;
+import com.google.allenday.genomics.core.io.GCSService;
 import com.google.allenday.genomics.core.model.FileWrapper;
 import com.google.allenday.genomics.core.model.SampleMetaData;
 import com.google.allenday.genomics.core.processing.align.AlignService;
@@ -18,6 +20,7 @@ import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -85,8 +88,10 @@ public class CreateBatchesTransform extends PTransform<PCollection<KV<GCSSourceD
                 }
                 SampleMetaData metaData = SampleMetaData.createUnique(element.getKey().toJsonString(),
                         SampleMetaData.LibraryLayout.SINGLE.name(), instrument.name());
+
+                String filename = metaData.getRunId() + ".fastq";
                 c.output(KV.of(metaData, Collections.singletonList(FileWrapper.fromByteArrayContent(fastqDataBuilder.toString().getBytes(),
-                        metaData.getRunId() + ".fastq"))));
+                        filename))));
             }
         }
 

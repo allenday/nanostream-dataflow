@@ -4,14 +4,11 @@ import com.google.allenday.genomics.core.cmd.CmdExecutor;
 import com.google.allenday.genomics.core.cmd.WorkerSetupService;
 import com.google.allenday.genomics.core.io.FileUtils;
 import com.google.allenday.genomics.core.io.TransformIoHandler;
-import com.google.allenday.genomics.core.processing.align.AlignFn;
-import com.google.allenday.genomics.core.processing.align.AlignService;
-import com.google.allenday.genomics.core.processing.align.AlignTransform;
-import com.google.allenday.genomics.core.processing.align.KAlignService;
+import com.google.allenday.genomics.core.processing.align.*;
 import com.google.allenday.genomics.core.processing.sam.SamBamManipulationService;
 import com.google.allenday.genomics.core.reference.ReferencesProvider;
 import com.google.allenday.genomics.core.utils.NameProvider;
-import com.google.allenday.nanostream.aligner.GetSequencesFromSamDataFn;
+import com.google.allenday.nanostream.aligner.GetReferencesFromSamDataFn;
 import com.google.allenday.nanostream.batch.CreateBatchesTransform;
 import com.google.allenday.nanostream.fastq.ParseFastQFn;
 import com.google.allenday.nanostream.gcs.GetDataFromFastQFileFn;
@@ -20,18 +17,14 @@ import com.google.allenday.nanostream.geneinfo.LoadGeneInfoTransform;
 import com.google.allenday.nanostream.other.Configuration;
 import com.google.allenday.nanostream.output.PrepareSequencesStatisticToOutputDbFn;
 import com.google.allenday.nanostream.output.WriteDataToFirestoreDbFn;
-import com.google.allenday.nanostream.pipeline.LoopingTimerTransform;
 import com.google.allenday.nanostream.pipeline.PipelineManagerService;
 import com.google.allenday.nanostream.taxonomy.GetResistanceGenesTaxonomyDataFn;
-import com.google.allenday.nanostream.taxonomy.GetSpeciesTaxonomyDataFn;
+import com.google.allenday.nanostream.taxonomy.GetSpeciesTaxonomyDataFromGeneBankFn;
 import com.google.allenday.nanostream.taxonomy.GetTaxonomyFromTree;
+import com.google.allenday.nanostream.taxonomy.TaxonomyProvider;
 import com.google.allenday.nanostream.util.EntityNamer;
-import com.google.allenday.nanostream.util.ResourcesHelper;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-
-import static com.google.allenday.nanostream.other.Configuration.RESISTANCE_GENES_GENE_DATA_FILE_NAME;
-import static com.google.allenday.nanostream.other.Configuration.SPECIES_GENE_DATA_FILE_NAME;
 
 /**
  * App dependency injection module, that provide graph of main dependencies in app
@@ -68,8 +61,8 @@ public class MainModule extends NanostreamModule {
     }
 
     @Provides
-    public GetSpeciesTaxonomyDataFn provideGetTaxonomyDataFn() {
-        return new GetSpeciesTaxonomyDataFn(EntityNamer.addPrefix(Configuration.GENE_CACHE_COLLECTION_NAME_BASE,
+    public GetSpeciesTaxonomyDataFromGeneBankFn provideGetTaxonomyDataFn() {
+        return new GetSpeciesTaxonomyDataFromGeneBankFn(EntityNamer.addPrefix(Configuration.GENE_CACHE_COLLECTION_NAME_BASE,
                 processingMode.label), projectId);
     }
 
@@ -85,14 +78,19 @@ public class MainModule extends NanostreamModule {
     }
 
     @Provides
-    public GetTaxonomyFromTree provideGetTaxonomyFromTree() {
-        return new GetTaxonomyFromTree(
-                new ResourcesHelper().getFileContent(SPECIES_GENE_DATA_FILE_NAME));
+    @Singleton
+    public TaxonomyProvider provideTaxonomyProvider() {
+        return new TaxonomyProvider();
     }
 
     @Provides
-    public GetResistanceGenesTaxonomyDataFn provideGetResistanceGenesTaxonomyDataFn() {
-        return new GetResistanceGenesTaxonomyDataFn(new ResourcesHelper().getFileContent(RESISTANCE_GENES_GENE_DATA_FILE_NAME));
+    public GetTaxonomyFromTree provideGetTaxonomyFromTree(TaxonomyProvider taxonomyProvider, FileUtils fileUtils) {
+        return new GetTaxonomyFromTree(taxonomyProvider, fileUtils);
+    }
+
+    @Provides
+    public GetResistanceGenesTaxonomyDataFn provideGetResistanceGenesTaxonomyDataFn(TaxonomyProvider taxonomyProvider, FileUtils fileUtils) {
+        return new GetResistanceGenesTaxonomyDataFn(taxonomyProvider, fileUtils);
     }
 
     @Provides
@@ -103,7 +101,7 @@ public class MainModule extends NanostreamModule {
     @Provides
     @Singleton
     public ReferencesProvider provideReferencesProvider(FileUtils fileUtils) {
-        return new ReferencesProvider(fileUtils, genomicsOptions.getAllReferencesDirGcsUri(), ".fasta");
+        return new ReferencesProvider(fileUtils);
     }
 
     @Provides
@@ -155,20 +153,32 @@ public class MainModule extends NanostreamModule {
 
     @Provides
     @Singleton
-    public GetSequencesFromSamDataFn provideGetSequencesFromSamDataFn(FileUtils fileUtils,
-                                                                      SamBamManipulationService samBamManipulationService,
-                                                                      NameProvider nameProvider) {
+    public GetReferencesFromSamDataFn provideGetSequencesFromSamDataFn(FileUtils fileUtils,
+                                                                       SamBamManipulationService samBamManipulationService,
+                                                                       NameProvider nameProvider) {
         TransformIoHandler ioHandler = new TransformIoHandler(genomicsOptions.getResultBucket(),
                 String.format(genomicsOptions.getAlignedOutputDirPattern(), nameProvider.getCurrentTimeInDefaultFormat()),
                 genomicsOptions.getMemoryOutputLimit(), fileUtils);
-        return new GetSequencesFromSamDataFn(fileUtils, ioHandler, samBamManipulationService);
+        return new GetReferencesFromSamDataFn(fileUtils, ioHandler, samBamManipulationService);
     }
-
 
     @Provides
     @Singleton
-    public AlignTransform provideAlignTransform(AlignFn alignFn) {
-        return new AlignTransform("Align reads transform", alignFn, genomicsOptions.getGeneReferences());
+    public AddReferenceDataSourceFn provideAddReferenceDataSourceFn() {
+        if (genomicsOptions.getRefDataJsonString() != null) {
+            return new AddReferenceDataSourceFn.Explicitly(genomicsOptions.getRefDataJsonString());
+        } else if (genomicsOptions.getGeneReferences() != null && genomicsOptions.getAllReferencesDirGcsUri() != null) {
+            return new AddReferenceDataSourceFn.FromNameAndDirPath(genomicsOptions.getAllReferencesDirGcsUri(),
+                    genomicsOptions.getGeneReferences());
+        } else {
+            throw new RuntimeException("You must provide refDataJsonString or allReferencesDirGcsUri+gneReferences");
+        }
+    }
+
+    @Provides
+    @Singleton
+    public AlignTransform provideAlignTransform(AlignFn alignFn, AddReferenceDataSourceFn addReferenceDataSourceFn) {
+        return new AlignTransform("Align reads transform", alignFn, addReferenceDataSourceFn);
     }
 
 
