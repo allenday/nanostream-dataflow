@@ -12,7 +12,6 @@ import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.joda.time.Duration;
 import org.joda.time.Instant;
-import org.joda.time.Minutes;
 import org.joda.time.Seconds;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,11 +21,14 @@ import java.io.IOException;
 public class LoopingTimerTransform<KVKeyT, KVValueT> extends PTransform<PCollection<KV<KVKeyT, KVValueT>>, PCollection<KV<KVKeyT, KVValueT>>> {
 
     private ValueProvider<Integer> maxDeltaSec;
+    private ValueProvider<String> jobNameLabel;
     private PipelineManagerService pipelineManagerService;
 
-    public LoopingTimerTransform(ValueProvider<Integer> maxDeltaSec, PipelineManagerService pipelineManagerService) {
+    public LoopingTimerTransform(ValueProvider<Integer> maxDeltaSec, ValueProvider<String> jobNameLabel,
+                                 PipelineManagerService pipelineManagerService) {
         this.maxDeltaSec = maxDeltaSec;
         this.pipelineManagerService = pipelineManagerService;
+        this.jobNameLabel = jobNameLabel;
     }
 
     @Override
@@ -35,7 +37,8 @@ public class LoopingTimerTransform<KVKeyT, KVValueT> extends PTransform<PCollect
                 .apply(WithKeys.of(0))
                 .apply(ParDo.of(new LoopingTimer<>(
                         pipelineManagerService,
-                        maxDeltaSec)))
+                        maxDeltaSec,
+                        jobNameLabel)))
                 .apply(MapElements.via(new SimpleFunction<KV<Integer, KV<KVKeyT, KVValueT>>, KV<KVKeyT, KVValueT>>() {
                     @Override
                     public KV<KVKeyT, KVValueT> apply(KV<Integer, KV<KVKeyT, KVValueT>> input) {
@@ -48,11 +51,14 @@ public class LoopingTimerTransform<KVKeyT, KVValueT> extends PTransform<PCollect
         private Logger LOG = LoggerFactory.getLogger(LoopingTimer.class);
 
         private ValueProvider<Integer> maxDeltaSec;
+        private ValueProvider<String> jobNameLabel;
         private PipelineManagerService pipelineManagerService;
 
-        LoopingTimer(PipelineManagerService pipelineManagerService, ValueProvider<Integer> maxDeltaSec) {
+        LoopingTimer(PipelineManagerService pipelineManagerService, ValueProvider<Integer> maxDeltaSec,
+                     ValueProvider<String> jobNameLabel) {
             this.maxDeltaSec = maxDeltaSec;
             this.pipelineManagerService = pipelineManagerService;
+            this.jobNameLabel = jobNameLabel;
         }
 
         @TimerId("loopingTimer")
@@ -80,13 +86,14 @@ public class LoopingTimerTransform<KVKeyT, KVValueT> extends PTransform<PCollect
 
         @OnTimer("loopingTimer")
         public void onTimer(
-                OnTimerContext c, PipelineOptions pipelineOptions,
+                OnTimerContext c,
+                PipelineOptions pipelineOptions,
                 @TimerId("loopingTimer") Timer loopingTimer) {
             LOG.info("Timer @ {} fired. STOPPING the pipeline", c.timestamp());
 
             DataflowPipelineOptions opt = pipelineOptions.as(DataflowPipelineOptions.class);
             try {
-                pipelineManagerService.sendStopPipelineCommand(opt.getProject(), opt.getJobName());
+                pipelineManagerService.sendStopPipelineCommand(opt.getProject(), jobNameLabel.get());
             } catch (IOException e) {
                 LOG.error(e.getMessage());
             }

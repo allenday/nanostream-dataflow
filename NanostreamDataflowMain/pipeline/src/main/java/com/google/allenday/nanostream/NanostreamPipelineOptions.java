@@ -74,4 +74,17 @@ public interface NanostreamPipelineOptions extends GenomicsPipelineOptions {
     String getAutoStopTopic();
 
     void setAutoStopTopic(String value);
+
+    @Description("Max size of batch that will be generated before writing to statistic results")
+    @Default.Integer(DEFAULT_STATISTIC_OUTPUT_BATCH_SIZE)
+    Integer getStatisticOutputCountTriigerSize();
+
+    void setStatisticOutputCountTriigerSize(Integer value);
+
+
+    @Description("JobName value provider to access from PTransforms")
+    @Validation.Required
+    ValueProvider<String> getJobNameLabel();
+
+    void setJobNameLabel(ValueProvider<String> value);
 }

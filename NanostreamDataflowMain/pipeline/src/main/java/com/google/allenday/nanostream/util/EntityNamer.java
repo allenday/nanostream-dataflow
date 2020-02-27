@@ -30,11 +30,12 @@ public class EntityNamer {
         return nameBuilder.toString();
     }
 
-    public static String generateNameForDocument(String documentNamePrefix, String folder) {
+    public static String generateNameForDocument(String documentNamePrefix, String refName, String folder) {
         StringBuilder nameBuilder = new StringBuilder();
         if (documentNamePrefix != null && !documentNamePrefix.isEmpty()) {
             nameBuilder.append(documentNamePrefix).append("__");
         }
+        nameBuilder.append(refName).append("__");
         nameBuilder.append(folder.replace("/", "*"));
         return nameBuilder.toString();
     }
