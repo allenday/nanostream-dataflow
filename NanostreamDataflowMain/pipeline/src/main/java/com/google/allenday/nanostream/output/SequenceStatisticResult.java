@@ -18,10 +18,11 @@ public class SequenceStatisticResult implements Serializable {
     private Date resultDate;
     private String bucket;
     private String folder;
+    private String refName;
     private List<SequenceRecord> sequenceRecords;
     private long calculationTime;
 
-    public SequenceStatisticResult(Date startDate, Date resultDate, String bucket, String folder, List<SequenceRecord> sequenceRecords, long calculationTime) {
+    public SequenceStatisticResult(Date startDate, Date resultDate, String bucket, String folder, String refName, List<SequenceRecord> sequenceRecords, long calculationTime) {
         this.startDate = startDate;
         this.resultDate = resultDate;
         this.bucket = bucket;
@@ -54,8 +55,12 @@ public class SequenceStatisticResult implements Serializable {
         return folder;
     }
 
+    public String getRefName() {
+        return refName;
+    }
+
     @DefaultCoder(SerializableCoder.class)
-    public static class SequenceRecord implements Serializable{
+    public static class SequenceRecord implements Serializable {
         private String id;
         private String name;
         private String localName;
@@ -101,7 +106,7 @@ public class SequenceStatisticResult implements Serializable {
     public static class Generator {
 
         public SequenceStatisticResult genereteSequnceInfo(Map<String, SequenceCountAndTaxonomyData> sequenceSourceData,
-                                                           GCSSourceData gcsSourceData, long startTimestamp) {
+                                                           GCSSourceData gcsSourceData, String refName, long startTimestamp) {
             Date date = new Date();
             long startTime = System.currentTimeMillis();
 
@@ -126,7 +131,7 @@ public class SequenceStatisticResult implements Serializable {
             long finishTime = System.currentTimeMillis();
 
             return new SequenceStatisticResult(new Date(startTimestamp), date, gcsSourceData.getBucket(),
-                    gcsSourceData.getFolder(), sequenceRecords, finishTime - startTime);
+                    gcsSourceData.getFolder(), refName, sequenceRecords, finishTime - startTime);
         }
     }
 

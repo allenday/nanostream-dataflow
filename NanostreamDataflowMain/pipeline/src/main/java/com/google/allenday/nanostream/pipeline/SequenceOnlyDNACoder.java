@@ -1,4 +1,4 @@
-package com.google.allenday.nanostream.kalign;
+package com.google.allenday.nanostream.pipeline;
 
 import japsa.seq.Alphabet;
 import japsa.seq.Sequence;

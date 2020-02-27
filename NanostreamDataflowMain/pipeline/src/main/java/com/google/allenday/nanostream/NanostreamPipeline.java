@@ -1,20 +1,20 @@
 package com.google.allenday.nanostream;
 
-import com.google.allenday.genomics.core.model.FileWrapper;
-import com.google.allenday.genomics.core.model.SampleMetaData;
 import com.google.allenday.genomics.core.pipeline.PipelineSetupUtils;
 import com.google.allenday.genomics.core.processing.align.AlignTransform;
-import com.google.allenday.nanostream.aligner.GetSequencesFromSamDataFn;
-import com.google.allenday.nanostream.errorcorrection.ErrorCorrectionFn;
+import com.google.allenday.genomics.core.reference.ReferenceDatabaseSource;
+import com.google.allenday.nanostream.aligner.GetReferencesFromSamDataFn;
+import com.google.allenday.nanostream.batch.CreateBatchesTransform;
 import com.google.allenday.nanostream.gcs.ParseGCloudNotification;
 import com.google.allenday.nanostream.geneinfo.GeneData;
 import com.google.allenday.nanostream.geneinfo.GeneInfo;
 import com.google.allenday.nanostream.geneinfo.LoadGeneInfoTransform;
 import com.google.allenday.nanostream.injection.MainModule;
-import com.google.allenday.nanostream.kalign.ProceedKAlignmentFn;
-import com.google.allenday.nanostream.kalign.SequenceOnlyDNACoder;
 import com.google.allenday.nanostream.output.PrepareSequencesStatisticToOutputDbFn;
 import com.google.allenday.nanostream.output.WriteDataToFirestoreDbFn;
+import com.google.allenday.nanostream.pipeline.LoopingTimerTransform;
+import com.google.allenday.nanostream.pipeline.PipelineManagerService;
+import com.google.allenday.nanostream.pipeline.SequenceOnlyDNACoder;
 import com.google.allenday.nanostream.probecalculation.KVCalculationAccumulatorFn;
 import com.google.allenday.nanostream.pubsub.DecodeNotificationJsonMessage;
 import com.google.allenday.nanostream.pubsub.FilterObjectFinalizeMessage;
@@ -23,23 +23,19 @@ import com.google.allenday.nanostream.taxonomy.GetResistanceGenesTaxonomyDataFn;
 import com.google.allenday.nanostream.taxonomy.GetTaxonomyFromTree;
 import com.google.allenday.nanostream.util.CoderUtils;
 import com.google.allenday.nanostream.util.trasform.FlattenMapToKV;
-import com.google.allenday.nanostream.util.trasform.RemoveValueDoFn;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.transforms.Combine;
-import org.apache.beam.sdk.transforms.GroupByKey;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.View;
 import org.apache.beam.sdk.transforms.windowing.*;
 import org.apache.beam.sdk.values.KV;
-import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionView;
 import org.joda.time.Duration;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Map;
 
 import static com.google.allenday.nanostream.ProcessingMode.RESISTANT_GENES;
@@ -61,30 +57,30 @@ public class NanostreamPipeline implements Serializable {
         Pipeline pipeline = Pipeline.create(options);
         CoderUtils.setupCoders(pipeline, new SequenceOnlyDNACoder());
 
+        Window<KV<KV<GCSSourceData, String>, KV<ReferenceDatabaseSource, GeneData>>> globalWindowWithTriggering = Window
+                .<KV<KV<GCSSourceData, String>, KV<ReferenceDatabaseSource, GeneData>>>into(new GlobalWindows())
+                .triggering(Repeatedly.forever(AfterFirst.of(
+                        AfterPane.elementCountAtLeast(options.getStatisticOutputCountTriigerSize()),
+                        AfterProcessingTime
+                                .pastFirstElementInPane()
+                                .plusDelayOf(Duration.standardSeconds(options.getStatisticUpdatingDelay())))))
+                .withAllowedLateness(Duration.ZERO)
+                .accumulatingFiredPanes();
+
         pipeline.apply("Reading PubSub", PubsubIO.readMessagesWithAttributes().fromSubscription(options.getInputDataSubscription()))
                 .apply("Filter only ADD FILE", ParDo.of(new FilterObjectFinalizeMessage()))
                 .apply("Deserialize messages", ParDo.of(new DecodeNotificationJsonMessage()))
                 .apply("Parse GCloud notification", ParDo.of(injector.getInstance(ParseGCloudNotification.class)))
-                .apply(options.getAlignmentWindow() + "s FastQ collect window",
-                        Window.<KV<SampleMetaData, List<FileWrapper>>>into(FixedWindows.of(Duration.standardSeconds(options.getAlignmentWindow())))
-                                .triggering(AfterPane.elementCountAtLeast(1))
-                                .discardingFiredPanes()
-                )
+                .apply("Create FastQ batches", injector.getInstance(CreateBatchesTransform.class))
                 .apply("Alignment", injector.getInstance(AlignTransform.class))
-                .apply("Extract Sequences",
-                        ParDo.of(injector.getInstance(GetSequencesFromSamDataFn.class)))
-                .apply("Group by SAM reference", GroupByKey.create())
-                .apply("K-Align", ParDo.of(injector.getInstance(ProceedKAlignmentFn.class)))
-                .apply("Error correction", ParDo.of(new ErrorCorrectionFn()))
-                .apply("Remove Sequence part", ParDo.of(new RemoveValueDoFn<>()))
+                .apply("Looping timer", new LoopingTimerTransform<>(
+                        options.getAutoStopDelay(),
+                        options.getJobNameLabel(),
+                        injector.getInstance(PipelineManagerService.class)))
+                .apply("Extract reference name",
+                        ParDo.of(injector.getInstance(GetReferencesFromSamDataFn.class)))
                 .apply("Get Taxonomy data", getTaxonomyData(pipeline))
-                .apply("Global Window with Repeatedly triggering" + options.getStatisticUpdatingDelay(),
-                        Window.<KV<KV<GCSSourceData, String>, GeneData>>into(new GlobalWindows())
-                                .triggering(Repeatedly.forever(AfterProcessingTime
-                                        .pastFirstElementInPane()
-                                        .plusDelayOf(Duration.standardSeconds(options.getStatisticUpdatingDelay()))))
-                                .withAllowedLateness(Duration.ZERO)
-                                .accumulatingFiredPanes())
+                .apply("Global Window with Repeatedly triggering" + options.getStatisticUpdatingDelay(), globalWindowWithTriggering)
                 .apply("Accumulate results to Map", Combine.globally(new KVCalculationAccumulatorFn()))
                 .apply("Flatten result map", ParDo.of(new FlattenMapToKV<>()))
                 .apply("Prepare sequences statistic to output",
@@ -96,17 +92,15 @@ public class NanostreamPipeline implements Serializable {
         pipeline.run();
     }
 
-    private ParDo.SingleOutput<KV<GCSSourceData, String>, KV<KV<GCSSourceData, String>, GeneData>> getTaxonomyData(Pipeline pipeline) {
-        ParDo.SingleOutput<KV<GCSSourceData, String>, KV<KV<GCSSourceData, String>, GeneData>> taxonomy;
+    private ParDo.SingleOutput<KV<KV<GCSSourceData, String>, ReferenceDatabaseSource>, KV<KV<GCSSourceData, String>, KV<ReferenceDatabaseSource, GeneData>>> getTaxonomyData(Pipeline pipeline) {
         if (processingMode == RESISTANT_GENES) {
-            PCollection<KV<String, GeneInfo>> geneInfoMapPCollection = pipeline.apply(injector.getInstance(LoadGeneInfoTransform.class));
-            PCollectionView<Map<String, GeneInfo>> geneInfoMapPCollectionView = geneInfoMapPCollection.apply(View.asMap());
-            taxonomy = ParDo.of(injector.getInstance(GetResistanceGenesTaxonomyDataFn.class)
+            PCollectionView<Map<String, GeneInfo>> geneInfoMapPCollectionView = pipeline.apply(injector.getInstance(LoadGeneInfoTransform.class))
+                    .apply(View.asMap());
+            return ParDo.of(injector.getInstance(GetResistanceGenesTaxonomyDataFn.class)
                     .setGeneInfoMapPCollectionView(geneInfoMapPCollectionView))
                     .withSideInputs(geneInfoMapPCollectionView);
         } else {
-            taxonomy = ParDo.of(injector.getInstance(GetTaxonomyFromTree.class));
+            return ParDo.of(injector.getInstance(GetTaxonomyFromTree.class));
         }
-        return taxonomy;
     }
 }

@@ -15,14 +15,14 @@ import java.util.Optional;
 /**
  *
  */
-public class GetSpeciesTaxonomyDataFn extends DoFn<String, KV<String, GeneData>> {
+public class GetSpeciesTaxonomyDataFromGeneBankFn extends DoFn<String, KV<String, GeneData>> {
 
     private GeneBankRepository geneBankRepositoryOpt;
 
     private String firestoreDestCollection;
     private String projectId;
 
-    public GetSpeciesTaxonomyDataFn(String firestoreDestCollection, String projectId) {
+    public GetSpeciesTaxonomyDataFromGeneBankFn(String firestoreDestCollection, String projectId) {
         this.firestoreDestCollection = firestoreDestCollection;
         this.projectId = projectId;
     }

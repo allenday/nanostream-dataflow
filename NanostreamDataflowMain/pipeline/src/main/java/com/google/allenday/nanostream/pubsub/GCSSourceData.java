@@ -75,15 +75,15 @@ public class GCSSourceData implements Serializable {
                 '}';
     }
 
-    public String toJsonString(){
+    public String toJsonString() {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put(BUCKET_KEY, bucket);
         jsonObject.put(FOLDER_KEY, folder);
         return jsonObject.toString();
     }
 
-    public static GCSSourceData fromJsonString(String jsonString){
-        JSONObject jsonObject =  new JSONObject(jsonString);
+    public static GCSSourceData fromJsonString(String jsonString) {
+        JSONObject jsonObject = new JSONObject(jsonString);
         GCSSourceData gcsSourceData = new GCSSourceData();
         gcsSourceData.setBucket(jsonObject.getString(BUCKET_KEY));
         gcsSourceData.setFolder(jsonObject.getString(FOLDER_KEY));

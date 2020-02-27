@@ -21,7 +21,7 @@ public class FilterObjectFinalizeMessage extends DoFn<PubsubMessage, PubsubMessa
         PubsubMessage pubsubMessage = c.element();
         LOG.info(pubsubMessage.getAttributeMap().toString());
         if (EVENT_TYPE_OBJECT_FINALIZE.equals(pubsubMessage.getAttribute(EVENT_TYPE_KEY))) {
-            c.outputWithTimestamp(pubsubMessage, Instant.now());
+            c.output(pubsubMessage);
         }
     }
 }

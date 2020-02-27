@@ -58,10 +58,33 @@ public interface NanostreamPipelineOptions extends GenomicsPipelineOptions {
     void setOutputDocumentNamePrefix(ValueProvider<String> value);
 
 
-    //TODO implement
     @Description("Max size of batch that will be generated before alignment")
     @Default.Integer(DEFAULT_ALIGNMENT_BATCH_SIZE)
     int getAlignmentBatchSize();
 
     void setAlignmentBatchSize(int value);
+
+    @Description("Time period in seconds after which pipekine will be automatically stopped")
+    @Default.Integer(Integer.MAX_VALUE)
+    ValueProvider<Integer> getAutoStopDelay();
+
+    void setAutoStopDelay(ValueProvider<Integer> value);
+
+    @Description("PubSub topic for triggering autostop GCF")
+    String getAutoStopTopic();
+
+    void setAutoStopTopic(String value);
+
+    @Description("Max size of batch that will be generated before writing to statistic results")
+    @Default.Integer(DEFAULT_STATISTIC_OUTPUT_BATCH_SIZE)
+    Integer getStatisticOutputCountTriigerSize();
+
+    void setStatisticOutputCountTriigerSize(Integer value);
+
+
+    @Description("JobName value provider to access from PTransforms")
+    @Validation.Required
+    ValueProvider<String> getJobNameLabel();
+
+    void setJobNameLabel(ValueProvider<String> value);
 }
