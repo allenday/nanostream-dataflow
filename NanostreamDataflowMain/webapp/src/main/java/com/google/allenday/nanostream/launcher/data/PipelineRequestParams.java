@@ -1,4 +1,6 @@
-package com.google.allenday.nanostream.launcher.worker;
+package com.google.allenday.nanostream.launcher.data;
+
+import java.util.List;
 
 public class PipelineRequestParams {
 
@@ -14,6 +16,7 @@ public class PipelineRequestParams {
     private Boolean pipelineAutoStart;
     private Boolean pipelineStartImmediately;
     private String uploadBucketName;
+    private List<ReferenceDb> referenceDbs;
 
     public String getId() {
         return id;
@@ -109,5 +112,13 @@ public class PipelineRequestParams {
 
     public void setUploadBucketName(String uploadBucketName) {
         this.uploadBucketName = uploadBucketName;
+    }
+
+    public List<ReferenceDb> getReferenceDbs() {
+        return referenceDbs;
+    }
+
+    public void setReferenceDbs(List<ReferenceDb> referenceDbs) {
+        this.referenceDbs = referenceDbs;
     }
 }

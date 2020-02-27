@@ -9,13 +9,13 @@ import java.net.URL;
 import static com.google.allenday.nanostream.launcher.util.PipelineUtil.*;
 import static java.lang.String.format;
 
-public class InfoFetcher {
+public class JobInfoFetcher {
 
     private final String project;
     private final String location;
     private final String jobId;
 
-    public InfoFetcher(HttpServletRequest request) {
+    public JobInfoFetcher(HttpServletRequest request) {
         project = getProjectId();
         jobId = request.getParameter("jobId");
         location = request.getParameter("location");

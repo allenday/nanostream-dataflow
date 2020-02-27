@@ -212,8 +212,6 @@ class Install:
               '--statisticUpdatingDelay=%s ' \
               '%s ' \
               '--outputGcsUri=%s ' \
-              '--referenceNamesList=%s ' \
-              '--allReferencesDirGcsUri=%s ' \
               '--autoStopTopic=%s ' \
               '--gcpTempLocation=%s ' \
               '--stagingLocation=%s ' \
@@ -229,8 +227,6 @@ class Install:
                   stats_update_frequency,
                   resistance_genes_list_param,
                   output_gcs_uri,
-                  self.reference_name_list,
-                  all_references_dir_gcs_uri,
                   autostop_pub_sub_topic_full_path,
                   self.dataflow_bucket_url + 'tmp',
                   self.dataflow_bucket_url + 'staging',

@@ -9,9 +9,8 @@
     export default {
         data() {
             return {
-                source: "## TODO: add a description here\n" +
-                "" +
-                "##Nanostream management application " +
+                source: 
+                "## Management application " +
                 "\n" +
                 "" +
                 "- Nanostream management application is designed to run/stop previously deployed dataflow templates.\n" +

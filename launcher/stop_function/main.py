@@ -19,11 +19,14 @@ def stop_dataflow_job(event, context):
 
     project_id = data['project_id']
     job_name = data['job_name']
+    logging.info(project_id)
+    logging.info(job_name)
 
     credentials = GoogleCredentials.get_application_default()
     dataflow = googleapiclient.discovery.build('dataflow', 'v1b3', credentials=credentials, cache_discovery=False)
 
     response = dataflow.projects().jobs().list(projectId=project_id, filter="ACTIVE").execute()
+    logging.info(response)
 
     if "jobs" in response:
         results = [v for k, v in enumerate(response["jobs"]) if job_name in v["name"]]

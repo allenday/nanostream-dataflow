@@ -1,9 +1,9 @@
 package com.google.allenday.nanostream.launcher.worker;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.allenday.nanostream.launcher.data.PipelineEntity;
+import com.google.allenday.nanostream.launcher.data.PipelineRequestParams;
+import com.google.allenday.nanostream.launcher.data.ReferenceDb;
 import com.google.api.core.ApiFuture;
-import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.WriteResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,35 +12,29 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Map;
-import java.util.Objects;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 
 import static com.google.allenday.nanostream.launcher.util.AssertUtil.assertNotEmpty;
 import static com.google.allenday.nanostream.launcher.util.DateTimeUtil.makeTimestamp;
-import static com.google.allenday.nanostream.launcher.util.PipelineUtil.*;
+import static com.google.allenday.nanostream.launcher.util.PipelineUtil.FIRESTORE_PIPELINES_COLLECTION;
 import static java.lang.String.format;
 
 
 @Service
-public class PipelineOptionsSaver {
+public class PipelineCreator extends PipelineBase {
 
-    private static final Logger logger = LoggerFactory.getLogger(PipelineOptionsSaver.class);
+    private static final Logger logger = LoggerFactory.getLogger(PipelineCreator.class);
     private static final Pattern NOT_WORD_CHARACTERS = Pattern.compile("[^\\w]+");
 
     private final JobLauncher jobLauncher;
 
-    private String project;
-    private Firestore db;
-
     @Autowired
-    public PipelineOptionsSaver(JobLauncher jobLauncher) {
+    public PipelineCreator(JobLauncher jobLauncher) {
+        super();
         this.jobLauncher = jobLauncher;
-
-        project = getProjectId();
-        db = initFirestoreConnection();
     }
 
     public PipelineEntity create(PipelineRequestParams pipelineRequestParams) throws IOException, ExecutionException, InterruptedException {
@@ -70,6 +64,16 @@ public class PipelineOptionsSaver {
         assertNotEmpty(pipelineRequestParams.getReferenceNameList(), "Empty reference name list not allowed");
         assertNotEmpty(pipelineRequestParams.getProcessingMode(), "Empty processing mode not allowed");
         assertNotEmpty(pipelineRequestParams.getInputDataSubscription(), "Empty input data subscription not allowed");
+        validateReferenceDbs(pipelineRequestParams.getReferenceDbs());
+    }
+
+    private void validateReferenceDbs(List<ReferenceDb> referenceDbs) {
+        assertNotEmpty(referenceDbs, "Empty reference db list allowed");
+        for (ReferenceDb referenceDb : referenceDbs) {
+            assertNotEmpty(referenceDb.getName(), "Empty reference db name not allowed");
+            assertNotEmpty(referenceDb.getFastaUri(), "Empty reference db Fasta Uri not allowed");
+            assertNotEmpty(referenceDb.getNcbiTreeUri(), "Empty reference db Ncbi Tree Uri not allowed");
+        }
     }
 
     private String makePipelineId() {
@@ -91,17 +95,6 @@ public class PipelineOptionsSaver {
         if (pipelineStartImmediately) {
             jobLauncher.launchById(pipelineEntity.getId());
         }
-    }
-
-    public void update(PipelineRequestParams pipelineRequestParams) throws ExecutionException, InterruptedException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        Map<String, Object> map = objectMapper.convertValue(pipelineRequestParams, new TypeReference<Map<String, Object>>() {});
-        map.values().removeIf(Objects::isNull);
-        map.put("updatedAt", Instant.now().toString());
-        logger.info(map.toString());
-        ApiFuture<WriteResult> future = db.collection(FIRESTORE_PIPELINES_COLLECTION).document(pipelineRequestParams.getId()).update(map);
-        WriteResult writeResult = future.get();
-        logger.info("Pipeline '{}' updated at {}", pipelineRequestParams.getId(), writeResult.getUpdateTime());
     }
 
 }

@@ -5,7 +5,9 @@
                 <h2>Start pipelines</h2>
             </div>
             <div class="col-lg-3 text-right">
-                <button v-on:click="addNewPipelineBlock()">Add</button>
+                <button type="button"
+                        v-on:click="addNewPipelineBlock()"
+                        class="btn btn-link">Add</button>
             </div>
         </div>
         <div class="row">
@@ -50,7 +52,8 @@
             autoStopDelaySeconds: 300,
             pipelineAutoStart: true,
             pipelineStartImmediately: false,
-            referenceNameList: _makeReferenceNameList()
+            referenceNameList: _makeReferenceNameList(),
+            referenceDbs: [],
         };
         pipelines.push(pipeline);
 
@@ -153,9 +156,9 @@
                 }
 
                 async function _savePipelineOptions(pipeline) {
-                    let data = await api.saveNewPipeline(pipeline);
+                    let data = await api.createNewPipeline(pipeline);
 
-                    console.log('data from saveNewPipeline call', data)
+                    console.log('data from createNewPipeline call', data)
                     if (!data || data.error) {
                         throw 'Cannot save pipeline options: ' + data.message;
                     }
