@@ -16,9 +16,9 @@ public interface NanostreamPipelineOptions extends GenomicsPipelineOptions {
 
     @Description("GCP PubSub subscription name to read messages from")
     @Validation.Required
-    String getInputDataSubscription();
+    ValueProvider<String> getInputDataSubscription();
 
-    void setInputDataSubscription(String value);
+    void setInputDataSubscription(ValueProvider<String> value);
 
 
     @Description("Size of the Window in which FastQ records will be collected for Alignment")
@@ -64,7 +64,7 @@ public interface NanostreamPipelineOptions extends GenomicsPipelineOptions {
 
     void setAlignmentBatchSize(int value);
 
-    @Description("Time period in seconds after which pipekine will be automatically stopped")
+    @Description("Time period in seconds after which pipeline will be automatically stopped")
     @Default.Integer(Integer.MAX_VALUE)
     ValueProvider<Integer> getAutoStopDelay();
 

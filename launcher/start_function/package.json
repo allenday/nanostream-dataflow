@@ -1,0 +1,16 @@
+{
+  "name": "start_function",
+  "version": "0.0.1",
+  "dependencies": {
+    "@google-cloud/firestore": "^3.5.0",
+    "@google-cloud/functions-framework": "^1.4.0",
+    "@google-cloud/storage": "^1.6.0",
+    "firebase": "^7.8.1"
+  },
+  "description": "google cloud function for pipeline start",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "locally": "functions-framework --target=run_dataflow_job_http --port=8082"
+  }
+}
