@@ -9,7 +9,10 @@ import 'vue-loading-overlay/dist/vue-loading.css';
 
 //import './registerServiceWorker'
 //import {Select, Option} from 'element-ui'
-Vue.use(Loading);
+Vue.use(Loading, {
+    opacity: 0.5,
+    loader: 'bars',
+});
 
 // const fetch = window.fetch;
 // window.fetch = (...args) => (async(args) => {

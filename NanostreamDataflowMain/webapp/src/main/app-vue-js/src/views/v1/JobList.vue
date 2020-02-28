@@ -16,7 +16,7 @@
                         <td>{{ job.startTime }}</td>
                         <td>{{ job.stopTime }}</td>
                         <td>{{ job.currentState }}</td>
-                        <td><a v-if="isJobStarted(job)" href="#" v-on:click="stopJob(job.id, job.location)"><i class="fa fa-stop" aria-hidden="true"></i></a></td>
+                        <td><a v-if="showStopButton(job)" href="#" v-on:click="stopJob(job.id, job.location)"><i class="fa fa-stop" aria-hidden="true"></i></a></td>
                     </tr>
                 </table>
             </div>
@@ -75,16 +75,19 @@
         },
 
         methods: {
-            async getJobsFirstTime() {
+            async makeRequestUsingLoader(callback) {
                 const loader = this.$loading.show();
                 try {
-                    await this.getJobs();
+                    await callback();
                 } catch (error) {
                     loader.hide();
                     this.showError(error);
                 } finally {
                     loader.hide();
                 }
+            },
+            async getJobsFirstTime() {
+                this.makeRequestUsingLoader(() => this.getJobs());
             },
             getJobs() {
                 let that = this;
@@ -95,7 +98,7 @@
                                 // console.log(data);
                                 that.jobs = data.jobs;
                                 that.jobs.forEach(function (job) {
-                                    if (job.currentState == "JOB_STATE_CANCELLED" || job.currentState == 'JOB_STATE_FAILED') {
+                                    if (JobUtil.isJobStopped(job)) {
                                         job.stopTime = job.currentStateTime;
                                     } else {
                                         job.stopTime = '';
@@ -132,27 +135,26 @@
             },
             stopJob(job_id, location) {
                 console.log('stop job', job_id)
-                // todo: delete subscription on stop job 
-                api.stopJob(job_id, location)
-                    .then(
-                        successResponse => {
-                            if (successResponse.status != 200) {
-                                return null;
-                            } else {
-                                return successResponse.json();
-                            }
-                        },
-                        failResponse => {
-                            return null;
-                        }
-                    )
-                    .then((data) => {
-                        console.log('Stop Pipeline response data:', data)
-                        this.getJobs();
-                    })
+
+                this.makeRequestUsingLoader(() => {
+                    return api.stopJob(job_id, location)
+                        .then((data) => {
+                            console.log('Stop Pipeline response data:', data)
+                            this.setStopRequestSent(job_id);
+                            this.clearScheduledReloadJobTask();
+                            this.getJobs();
+                        })
+                });
             },
-            isJobStarted(job) {
-                return JobUtil.isJobStarted(job);
+            showStopButton(job) {
+                return JobUtil.isJobStarted(job) &&  !job.stopRequestSent;
+            },
+            setStopRequestSent(job_id) {
+                this.jobs.forEach(job => {
+                    if (job.id === job_id) {
+                        job.stopRequestSent = true;
+                    }
+                });
             },
             showError(message) {
                 this.errMsg.message = message;

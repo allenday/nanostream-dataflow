@@ -1,8 +1,11 @@
 package com.google.allenday.nanostream.launcher.worker;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.allenday.nanostream.launcher.data.PipelineEntity;
+import com.google.allenday.nanostream.launcher.data.ReferenceDb;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
-import com.jayway.jsonpath.DocumentContext;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -107,9 +110,6 @@ public class JobLauncher {
         Optional<String> newJobId = Optional.empty();
         try {
             logger.info("Pipeline name: {}", pipelineEntity.getPipelineName());
-//            logger.info("DocumentSnapshot id: " + document.getId());
-//            logger.info("Subscription: " + pipelineEntity.getInputDataSubscription());
-//            logger.info("Lock status: " + pipelineEntity.getLockStatus());
 
             if (!runningJobsContains(pipelineEntity.getJobIds())) {
                 newJobId = Optional.of(runNewJob(pipelineEntity));
@@ -205,7 +205,7 @@ public class JobLauncher {
 //    }
 
         // JsonPath docs: https://github.com/json-path/JsonPath
-        // TODO: fix filter error when job list is empty
+        // TODO: fix filter error when job list is empty; move to JsonResponseParser
         return parse(json).read("$.jobs[?]", filter(
                 where("currentState").in("JOB_STATE_RUNNING", "JOB_STATE_PENDING", "JOB_STATE_QUEUED")
         ));
@@ -236,26 +236,38 @@ public class JobLauncher {
             return format("nanostream-%s", pipelineEntity.getProcessingMode());
         }
 
-        private JSONObject makeParams(PipelineEntity params) {
+        private JSONObject makeParams(PipelineEntity pipelineEntity) throws JsonProcessingException {
             JSONObject jsonObj = null;
             try {
+                String jobName = pipelineEntity.getPipelineName() + '_' + makeTimestamp();
+                
                 JSONObject parameters = new JSONObject();
-                parameters.put("outputCollectionNamePrefix", params.getOutputCollectionNamePrefix());
-    //            parameters.put("outputDocumentNamePrefix", params.getOutputDocumentNamePrefix());
-                parameters.put("inputDataSubscription", params.getInputDataSubscription());
-                parameters.put("autoStopDelay", params.getAutoStopDelaySeconds().toString());
+                parameters.put("outputCollectionNamePrefix", pipelineEntity.getOutputCollectionNamePrefix());
+                parameters.put("inputDataSubscription", pipelineEntity.getInputDataSubscription());
+                parameters.put("autoStopDelay", pipelineEntity.getAutoStopDelaySeconds().toString());
+                parameters.put("refDataJsonString", makeRefDataJsonString(pipelineEntity.getReferenceDbs()));
+                parameters.put("jobNameLabel", jobName);  // This parameter used in autostop logic to identify currently running pipeline. For unknown reason jobName not available in pipeline itself
 
                 JSONObject environment = new JSONObject()
                         .put("tempLocation", bucket + "/tmp/")
                         .put("bypassTempDirValidation", false);
+
+
                 jsonObj = new JSONObject()
-                        .put("jobName", params.getPipelineName() + "_" + makeTimestamp())
+                        .put("jobName", jobName)
                         .put("parameters", parameters)
                         .put("environment", environment);
+
+                logger.info("Launch pipeline params: {}", jsonObj);
             } catch (JSONException e) {
                 logger.error(e.getMessage(), e);
             }
             return jsonObj;
+        }
+
+        private String makeRefDataJsonString(List<ReferenceDb> referenceDbs) throws JsonProcessingException {
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.writeValueAsString(referenceDbs);
         }
 
         private HttpURLConnection sendLaunchDataflowJobFromTemplateRequest(JSONObject jsonObj, String templateName) throws IOException {

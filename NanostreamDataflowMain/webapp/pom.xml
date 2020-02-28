@@ -15,7 +15,7 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <spring.boot.version>2.2.1.RELEASE</spring.boot.version> <!-- DO NOT UPDATE w/o MANUAL TESTING -->
+    <spring.boot.version>2.2.4.RELEASE</spring.boot.version> <!-- DO NOT UPDATE w/o MANUAL TESTING -->
     <!-- REQUIRED by appengine-maven-plugin plugin, if web.xml does not exist for your application -->
     <failOnMissingWebXml>false</failOnMissingWebXml>
 
@@ -161,10 +161,10 @@
         <configuration>
           <projectId>GCLOUD_CONFIG</projectId>
           <version>GCLOUD_CONFIG</version>
-          <!--<jvmFlags>-->
-            <!--<jvmFlag>-Xdebug</jvmFlag>-->
-            <!--<jvmFlag>-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005</jvmFlag>-->
-          <!--</jvmFlags>-->
+<!--          <jvmFlags>-->
+<!--            <jvmFlag>-Xdebug</jvmFlag>-->
+<!--            <jvmFlag>-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005</jvmFlag>-->
+<!--          </jvmFlags>-->
         </configuration>
       </plugin>
       

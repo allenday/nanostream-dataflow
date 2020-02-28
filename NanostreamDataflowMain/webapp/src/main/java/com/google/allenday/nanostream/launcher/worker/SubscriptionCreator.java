@@ -20,6 +20,7 @@ import static java.lang.String.format;
 
 @Service
 public class SubscriptionCreator {
+
     private static final Logger logger = LoggerFactory.getLogger(SubscriptionCreator.class);
 
     private String project;
@@ -73,4 +74,5 @@ public class SubscriptionCreator {
         // See: https://cloud.google.com/pubsub/docs/reference/rest/v1/projects.subscriptions/create
         return new URL(format(PUBSUB_API_BASE_URI + "projects/%s/subscriptions/%s", project, subscriptionName));
     }
+
 }

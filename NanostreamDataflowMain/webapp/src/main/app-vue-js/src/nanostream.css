@@ -114,7 +114,7 @@
 	input[type="text"],#processing_mode{
 		border: 1px solid #8492A6;
 	  border-radius: 5px;
-	  max-width: 332px;
+	  /*max-width: 332px;*/
 	  width: 100%;
 	  height: auto;
 	}

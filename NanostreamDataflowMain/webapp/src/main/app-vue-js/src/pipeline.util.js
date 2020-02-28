@@ -3,6 +3,9 @@ export default {
         // console.log(job)
         return job.currentState === "JOB_STATE_RUNNING";
     },
+    isJobStopped(job) {
+        return job.currentState === "JOB_STATE_CANCELLED" || job.currentState === 'JOB_STATE_FAILED' || job.currentState === 'JOB_STATE_DRAINED'
+    },
     preparePipelines(pipelines, jobs) {
         pipelines = this.substitutePipelineJobIdToAppropriateJobObject(pipelines, jobs);
         pipelines = this.setPipelineStatus(pipelines);

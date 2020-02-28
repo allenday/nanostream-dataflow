@@ -14,17 +14,21 @@
                         <th>Created at</th>
                         <th>Status</th>
                         <th>Autostart</th>
+                        <th>Remove</th>
                     </thead>
                     <tr v-for="pipeline in pipelines">
                         <td><router-link :to="{name: 'pipeline_details', params: { pipeline_id: pipeline.id }}">{{ pipeline.pipelineName }}</router-link></td>
                         <td><a :href="getBucketFolderUrl(pipeline)" target="_blank"><i class="fa fa-sign-in"></i>&nbsp;{{ pipeline.inputFolder }}</a></td>
                         <td><a :href="getFirestoreCollectionUrl(pipeline)" target="_blank"><i class="fa fa-sign-in"></i>&nbsp;{{ pipeline.outputCollectionNamePrefix }}</a></td>
                         <td>{{ pipeline.processingMode }}</td>
-                        <td><a :href="getInputDataSubsciptionUrl(pipeline)" target="_blank"><i class="fa fa-sign-in"></i>&nbsp;{{ subscriptionToShort(pipeline.inputDataSubscription) }}</a></td>
+                        <td><a :href="getInputDataSubscriptionUrl(pipeline)" target="_blank"><i class="fa fa-sign-in"></i>&nbsp;{{ subscriptionToShort(pipeline.inputDataSubscription) }}</a></td>
                         <td><Jobs v-bind:jobs="pipeline.jobs"/></td>
                         <td>{{ pipeline.createdAt }}</td>
                         <td>{{ pipeline.status }}</td>
                         <td><AutostartCheckbox v-bind:pipeline="pipeline"/></td>
+                        <td><button type="button"
+                                    v-on:click="removePipelineItem(pipeline)"
+                                    class="btn btn-link"><i class="fa fa-minus-circle" aria-hidden="true"></i></button></td>
                     </tr>
                 </table>
             </div>
@@ -72,10 +76,6 @@
             }
         },
 
-        mounted() {
-            this.getPipelinesFirstTime();
-        },
-
         components: {
             Jobs,
             AutostartCheckbox,
@@ -85,6 +85,10 @@
         beforeRouteLeave (to, from, next) {
             this.clearScheduledReloadPipelinesTask();
             next(true);
+        },
+
+        mounted() {
+            this.getPipelinesFirstTime();
         },
 
         methods: {
@@ -152,7 +156,7 @@
                 return "https://console.firebase.google.com/u/0/project/" + config.firebase.projectId + "/database/firestore/data~2F"
                     + pipeline.outputCollectionNamePrefix + '__statistic__' + pipeline.uploadBucketName;
             },
-            getInputDataSubsciptionUrl(pipeline) {
+            getInputDataSubscriptionUrl(pipeline) {
                 // projects/nanostream-test1/subscriptions/nanostream-20200212t161049707z => nanostream-20200212t161049707z
                 let subscription = pipeline.inputDataSubscription.replace(new RegExp("^.+\/(.*)"), '$1');  // get part after the last slash
                 return "https://console.cloud.google.com/cloudpubsub/subscription/detail/" + subscription + "?authuser=0&project=" + config.firebase.projectId;
@@ -166,6 +170,20 @@
             getPipelineStatus(pipeline) {
                 return PipelineUtil.getPipelineStatus(pipeline);
             },
+            async removePipelineItem(pipeline) {
+                console.log('removePipelineItem', pipeline)
+                const loader = this.$loading.show();
+                try {
+                    await api.removePipeline(pipeline);
+                    await this.getPipelines();
+                } catch (error) {
+                    console.error('removePipelineItem error', error);
+                    loader.hide();
+                    this.showError(error);
+                } finally {
+                    loader.hide();
+                }
+            }
         }
 
     }
