@@ -68,13 +68,13 @@ class Install:
         self.create_storage_buckets()
         self.create_pub_sub_topics()
         self.create_bucket_notifications()
-        self.deploy_start_pipeline_function()
-        self.deploy_stop_pipeline_function()
         self.install_required_libs()
         self.deploy_dataflow_templates()
         self.initialize_app_engine_in_project()
         self.initialize_firebase_project()
-        self.write_config_file()
+        self.write_config_files()
+        self.deploy_start_pipeline_function()
+        self.deploy_stop_pipeline_function()
         self.deploy_app_engine_management_application()
 
     def get_google_cloud_env_var(self):
@@ -253,7 +253,7 @@ class Install:
         handler.add_firebase_to_project()
         self._config_data = handler.prepare_firebase_config_data()
 
-    def write_config_file(self):
+    def write_config_files(self):
         self._config_data['uploadBucketName'] = self.upload_bucket_name
         self._config_data['referenceNamesList'] = self.reference_name_list
         self._config_data['uploadPubSubTopic'] = self.upload_pub_sub_topic
