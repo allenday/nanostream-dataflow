@@ -78,6 +78,13 @@ class Install:
         self.deploy_app_engine_management_application()
 
     def get_google_cloud_env_var(self):
+        google_cloud_project = self.try_get_google_cloud_project()
+        if not google_cloud_project:
+            raise IllegalArgumentException('Cannot figure out project name. '
+                                           'Please define GOOGLE_CLOUD_PROJECT environment variable')
+        return google_cloud_project
+
+    def try_get_google_cloud_project(self):
         if 'GOOGLE_CLOUD_PROJECT' in os.environ:
             return os.environ['GOOGLE_CLOUD_PROJECT'].strip()
         else:
