@@ -77,9 +77,9 @@ public interface NanostreamPipelineOptions extends GenomicsPipelineOptions {
 
     @Description("Max size of batch that will be generated before writing to statistic results")
     @Default.Integer(DEFAULT_STATISTIC_OUTPUT_BATCH_SIZE)
-    Integer getStatisticOutputCountTriigerSize();
+    Integer getStatisticOutputCountTriggerSize();
 
-    void setStatisticOutputCountTriigerSize(Integer value);
+    void setStatisticOutputCountTriggerSize(Integer value);
 
 
     @Description("JobName value provider to access from PTransforms")

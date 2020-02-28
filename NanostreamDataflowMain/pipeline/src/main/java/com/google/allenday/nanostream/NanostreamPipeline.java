@@ -60,7 +60,7 @@ public class NanostreamPipeline implements Serializable {
         Window<KV<KV<GCSSourceData, String>, KV<ReferenceDatabaseSource, GeneData>>> globalWindowWithTriggering = Window
                 .<KV<KV<GCSSourceData, String>, KV<ReferenceDatabaseSource, GeneData>>>into(new GlobalWindows())
                 .triggering(Repeatedly.forever(AfterFirst.of(
-                        AfterPane.elementCountAtLeast(options.getStatisticOutputCountTriigerSize()),
+                        AfterPane.elementCountAtLeast(options.getStatisticOutputCountTriggerSize()),
                         AfterProcessingTime
                                 .pastFirstElementInPane()
                                 .plusDelayOf(Duration.standardSeconds(options.getStatisticUpdatingDelay())))))
