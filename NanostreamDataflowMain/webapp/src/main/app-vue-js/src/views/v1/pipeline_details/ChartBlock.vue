@@ -54,7 +54,9 @@
 
     export default {
         name: 'PipelineChartBlock',
+
         props: {"pipelineDetails": Object},
+
         data() {
             return {
 
@@ -68,29 +70,36 @@
 
                 diagram_name: 'Diagram-Name',
                 document_list: [],
+                reloadDocsTaskId: null,
+                unsubscribeOnSnapshot: null,
             }
         },
+
         watch: {
             pipelineDetails: function (val) {
                 console.log('watch pipelineDetails', val)
                 this.getDocs();
             },
         },
+
         components: {
             Chart,
             VisTable,
         },
-        created() {
-            // console.log('PipelineChartBlock created')
-            // this.$vueEventBus.$on('pipeline-details-received', this.onPipelineDetailsReceived)
-        },
 
-        beforeDestroy() {
-            // this.$vueEventBus.$off('pipeline-details-received')
-        },
         mounted() {
             this.db = this.firebaseInit();
         },
+
+        beforeDestroy() {
+            console.log('beforeDestroy Chart block')
+            this.clearScheduledGetDocsTask();
+            if (this.unsubscribeOnSnapshot) {
+                this.unsubscribeOnSnapshot();
+            }
+            this.db = null;
+        },
+
         methods: {
             firebaseInit: function () {
                 if (!firebase.apps.length) {
@@ -104,10 +113,6 @@
 
                 console.log('== db init finished ==')
                 return db;
-            },
-            onPipelineDetailsReceived(value) {
-                console.log('onPipelineDetailsReceived called', value)
-                this.getDocs();
             },
             getCollectionName: function () {
                 console.log('getcollectionName: ', this.pipelineDetails)
@@ -138,7 +143,8 @@
                         }));
                         console.log('DOCUMENT-LIST Length:', this.document_list.length);
                         if (this.document_list.length <= 0) {
-                            setTimeout(() => {
+                            this.clearScheduledGetDocsTask();
+                            this.reloadDocsTaskId = setTimeout(() => {
                                 console.log('Try get doc list again');
                                 this.getDocs();
                             }, 15000);
@@ -154,7 +160,13 @@
                     }
                 });
             },
-
+            clearScheduledGetDocsTask() {
+                if (this.reloadDocsTaskId) {
+                    console.log('clearScheduledGetDocsTask called')
+                    clearTimeout(this.reloadDocsTaskId);
+                    this.reloadDocsTaskId = null;
+                }
+            },
             getRecords: function () {
                 console.log('Get Records called');
 
@@ -165,7 +177,7 @@
                     // console.log('Reading firebase', this.document_list[0].value)
                     console.log(`Reading firebase: docname = ${docname}, collection = ${collection}`);
 
-                    this.db.collection(collection).doc(docname)
+                    this.unsubscribeOnSnapshot = this.db.collection(collection).doc(docname)
                         .onSnapshot((doc) => {
                             this.records = this.transform(doc.data());
                             console.log('got data:' + this.records.length + ' records', this.records)

@@ -56,11 +56,8 @@
                     });
                     if (pipelines && jobs) {
                         that.pipelineDetails = PipelineUtil.preparePipelines(pipelines, jobs)[0];
-//                        console.log('pipelineDetails', that.pipelineDetails);
-//                        console.log('emit pipeline-details-received event')
-//                        that.$vueEventBus.$emit("pipeline-details-received", that.pipelineDetails);
                     } else {
-                        console.log('Cannot load pipelines or jobs', pipelines, jobs);
+                        console.error('Cannot load pipelines or jobs', pipelines, jobs);
                         that.showError('Cannot load pipelines or jobs');
                     }
 

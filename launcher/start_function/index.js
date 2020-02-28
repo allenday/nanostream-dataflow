@@ -5,7 +5,7 @@ const request = require('request');
 const appengineUrl = "https://" + config.projectId + ".appspot.com/api/v1";
 // const appengineUrl = 'http://localhost:8080/api/v1';
 
-const launchJobUrl = '/job/launch';
+const launchJobUrl = '/jobs/launch';
 
 
 /**

@@ -1,61 +1,73 @@
 package com.google.allenday.nanostream.taxonomy;
 
+import com.google.allenday.genomics.core.io.FileUtils;
+import com.google.allenday.genomics.core.io.GCSService;
+import com.google.allenday.genomics.core.reference.ReferenceDatabaseSource;
 import com.google.allenday.nanostream.geneinfo.GeneData;
 import com.google.allenday.nanostream.pubsub.GCSSourceData;
+import com.google.cloud.storage.Blob;
 import japsa.bio.phylo.NCBITree;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.values.KV;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
-public class GetTaxonomyFromTree extends DoFn<KV<GCSSourceData, String>, KV<KV<GCSSourceData, String>, GeneData>> {
-    private String treeText;
-    private NCBITree tree;
+public class GetTaxonomyFromTree extends DoFn<KV<KV<GCSSourceData, String>, ReferenceDatabaseSource>,
+        KV<KV<GCSSourceData, String>, KV<ReferenceDatabaseSource, GeneData>>> {
+    private Logger LOG = LoggerFactory.getLogger(GetTaxonomyFromTree.class);
 
-    public GetTaxonomyFromTree(String treeText) {
-        this.treeText = treeText;
+    private TaxonomyProvider taxonomyProvider;
+    private FileUtils fileUtils;
+
+    private GCSService gcsService;
+
+    public GetTaxonomyFromTree(TaxonomyProvider taxonomyProvider, FileUtils fileUtils) {
+        this.taxonomyProvider = taxonomyProvider;
+        this.fileUtils = fileUtils;
     }
 
     @Setup
     public void setup() throws IOException {
-        File temp = File.createTempFile("tree", "txt");
-
-        // Delete temp file when program exits.
-        temp.deleteOnExit();
-
-        // Write to temp file
-        BufferedWriter out = new BufferedWriter(new FileWriter(temp));
-        out.write(treeText);
-        out.close();
-
-        tree = new NCBITree(temp, false);
+        gcsService = GCSService.initialize(fileUtils);
     }
 
     @ProcessElement
     public void processElement(ProcessContext c) {
-        KV<GCSSourceData, String> gcsSourceDataStringKV = c.element();
+        KV<KV<GCSSourceData, String>, ReferenceDatabaseSource> gcsSourceDataStringKV = c.element();
 
-        String geneName = gcsSourceDataStringKV.getValue();
+        ReferenceDatabaseSource referenceDatabaseSource = gcsSourceDataStringKV.getValue();
+        Optional<Blob> ncbiTreeBlob = referenceDatabaseSource.getCustomDatabaseFileByKey(gcsService, TaxonomyProvider.NCBI_TREE_KEY);
 
-        // convert names like "gi|564911138|ref|NC_023018.1|" to "NC_023018.1"
-        if (geneName.split("\\|").length > 3) {
-            geneName = geneName.split("\\|")[3];
-        }
+        ncbiTreeBlob.ifPresent(blob -> {
+            try {
+                NCBITree ncbiTree = taxonomyProvider.getNcbiTree(gcsService, fileUtils, blob);
 
-        String[][] taxonomyAndColor = tree.getTaxonomy(geneName.trim());
+                String geneName = gcsSourceDataStringKV.getKey().getValue();
 
-        List<String> taxonomy = Arrays.asList(taxonomyAndColor[0]);
-        Collections.reverse(taxonomy);
+                // convert names like "gi|564911138|ref|NC_023018.1|" to "NC_023018.1"
+                if (geneName.split("\\|").length > 3) {
+                    geneName = geneName.split("\\|")[3];
+                }
 
-        List<String> colors = Arrays.asList(taxonomyAndColor[1]);
-        Collections.reverse(colors);
+                String[][] taxonomyAndColor = ncbiTree.getTaxonomy(geneName.trim());
 
-        c.output(KV.of(gcsSourceDataStringKV, new GeneData(taxonomy, colors)));
+                List<String> taxonomy = Arrays.asList(taxonomyAndColor[0]);
+                Collections.reverse(taxonomy);
+
+                List<String> colors = Arrays.asList(taxonomyAndColor[1]);
+                Collections.reverse(colors);
+
+                c.output(KV.of(gcsSourceDataStringKV.getKey(), KV.of(referenceDatabaseSource, new GeneData(taxonomy, colors))));
+            } catch (IOException e) {
+                LOG.error(e.getMessage(), e);
+            }
+
+        });
     }
 }

@@ -16,7 +16,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * Prepare {@link SequenceStatisticResult} data to output
  */
-public class PrepareSequencesStatisticToOutputDbFn extends DoFn<KV<GCSSourceData, Map<String, SequenceCountAndTaxonomyData>>,
+public class PrepareSequencesStatisticToOutputDbFn extends DoFn<KV<KV<GCSSourceData, String>, Map<String, SequenceCountAndTaxonomyData>>,
         KV<KV<String, String>, SequenceStatisticResult>> {
 
     private ValueProvider<String> collectionNamePrefix;
@@ -31,14 +31,25 @@ public class PrepareSequencesStatisticToOutputDbFn extends DoFn<KV<GCSSourceData
 
     @ProcessElement
     public void processElement(ProcessContext c) {
-        KV<GCSSourceData, Map<String, SequenceCountAndTaxonomyData>> gcsSourceDataMapKV = c.element();
+        KV<KV<GCSSourceData, String>, Map<String, SequenceCountAndTaxonomyData>> gcsSourceDataMapKV = c.element();
         SequenceStatisticResult.Generator sequenceStatisticGenerator = new SequenceStatisticResult.Generator();
 
         @Nonnull
-        GCSSourceData gcsSourceData = requireNonNull(gcsSourceDataMapKV.getKey());
+        KV<GCSSourceData, String> gcsSourceDataAndRef = requireNonNull(gcsSourceDataMapKV.getKey());
+
+        GCSSourceData gcsSourceData = gcsSourceDataAndRef.getKey();
+        String refName = gcsSourceDataAndRef.getValue();
         SequenceStatisticResult sequenceStatisticResult =
-                sequenceStatisticGenerator.genereteSequnceInfo(gcsSourceDataMapKV.getValue(), gcsSourceDataMapKV.getKey(), startTimestamp);
-        c.output(KV.of(KV.of(EntityNamer.generateNameForCollection(collectionNamePrefix.get(), gcsSourceData.getBucket()),
-                EntityNamer.generateNameForDocument(documentNamePrefix.get(), gcsSourceData.getFolder())), sequenceStatisticResult));
+                sequenceStatisticGenerator.genereteSequnceInfo(
+                        gcsSourceDataMapKV.getValue(),
+                        gcsSourceData,
+                        refName,
+                        startTimestamp);
+
+
+        c.output(KV.of(KV.of(
+                EntityNamer.generateNameForCollection(collectionNamePrefix.get(), gcsSourceData.getBucket()),
+                EntityNamer.generateNameForDocument(documentNamePrefix.get(), refName, gcsSourceData.getFolder())),
+                sequenceStatisticResult));
     }
 }

@@ -1,4 +1,4 @@
-package com.google.allenday.nanostream.launcher.worker;
+package com.google.allenday.nanostream.launcher.data;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +17,7 @@ public class PipelineEntity {
     private String createdAt;
     private String updatedAt;
     private List<String> jobIds = new ArrayList<>();
+    private List<ReferenceDb> referenceDbs;
     private String lockStatus = "UNLOCKED";  // Possible values: LOCKED, UNLOCKED
     private String version = "1";  // use a version or github commit to identify pipeline version
 
@@ -34,6 +35,7 @@ public class PipelineEntity {
         this.referenceNameList = pipelineRequestParams.getReferenceNameList();
         this.autoStopDelaySeconds = pipelineRequestParams.getAutoStopDelaySeconds();
         this.pipelineAutoStart = pipelineRequestParams.getPipelineAutoStart();
+        this.referenceDbs = pipelineRequestParams.getReferenceDbs();
     }
 
     public String getId() {
@@ -94,6 +96,14 @@ public class PipelineEntity {
 
     public List<String> getJobIds() {
         return jobIds;
+    }
+
+    public List<ReferenceDb> getReferenceDbs() {
+        return referenceDbs;
+    }
+
+    public void setReferenceDbs(List<ReferenceDb> referenceDbs) {
+        this.referenceDbs = referenceDbs;
     }
 
     public String getReferenceNameList() {
