@@ -101,7 +101,7 @@ class Install:
 
     def enable_api(self, api_name):
         cmd = 'gcloud services enable %s' % api_name
-        log('Enable apis: %s' % cmd)
+        log('Enable api: %s' % cmd)
         subprocess.check_call(cmd, shell=True)
 
     def create_storage_buckets(self):
