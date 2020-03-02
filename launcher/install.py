@@ -75,6 +75,7 @@ class Install:
         self.write_config_files()
         self.deploy_start_pipeline_function()
         self.deploy_stop_pipeline_function()
+        self.add_object_viewer_permission_to_cloudbuild_service_account()
         self.deploy_app_engine_management_application()
 
     def get_google_cloud_env_var(self):
@@ -266,6 +267,32 @@ class Install:
         self._config_data['uploadPubSubTopic'] = self.upload_pub_sub_topic
         handler = ConfigHandler(self._config_data, self.dir_file)
         handler.write_configs()
+
+    def add_object_viewer_permission_to_cloudbuild_service_account(self):
+        project_number = self.get_project_number()
+        cloudbuild_email = self.get_cloudbuild_email(project_number)
+        self.add_object_viewer_permission(cloudbuild_email)
+
+    def get_project_number(self):
+        cmd = 'gcloud projects describe %s' % self.google_cloud_project
+        response = subprocess.check_output(cmd, shell=True).decode("utf-8")
+        match_obj = re.match( r".*projectNumber: '(\d+)'.*", response, re.S|re.I)
+        if match_obj:
+            project_number = match_obj.group(1)
+            log('Project number found:' + project_number)
+            return project_number
+        else:
+            raise Exception('Cannot find project number: ' + response)
+
+    def get_cloudbuild_email(self, project_number):
+        return '%s@cloudbuild.gserviceaccount.com' % project_number
+
+
+    def add_object_viewer_permission(self, cloudbuild_email):
+        cmd = 'gcloud projects add-iam-policy-binding %s --member serviceAccount:%s --role roles/storage.objectViewer' \
+              % (self.google_cloud_project, cloudbuild_email)
+        log('Add objectViewer permission to cloudbuild service account: %s' % cmd)
+        subprocess.check_call(cmd, shell=True)
 
     def deploy_app_engine_management_application(self):
         cmd = 'mvn clean package appengine:deploy -DskipTests=true -f NanostreamDataflowMain/webapp/pom.xml'
