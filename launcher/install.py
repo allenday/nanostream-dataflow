@@ -75,7 +75,7 @@ class Install:
         self.write_config_files()
         self.deploy_start_pipeline_function()
         self.deploy_stop_pipeline_function()
-        self.add_object_viewer_permission_to_cloudbuild_service_account()
+        # self.add_object_viewer_permission_to_cloudbuild_service_account()
         self.deploy_app_engine_management_application()
 
     def get_google_cloud_env_var(self):
