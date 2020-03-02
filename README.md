@@ -25,7 +25,10 @@ This source repo contains a prototype implementation of a scalable, reliable, an
 
 ### Setup
 
-Before run automatic setup scripts or perform manual steps make sure you created [Google Cloud Project](https://console.cloud.google.com) and bounded it to a payment account. 
+Before run automatic setup scripts or perform manual steps make sure you 
+- created [Google Cloud Project](https://console.cloud.google.com); 
+- bounded it to a payment account;
+- Firestore used in native mode.  
 
 #### Automatic Setup
 
