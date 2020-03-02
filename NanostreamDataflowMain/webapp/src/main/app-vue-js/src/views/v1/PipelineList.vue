@@ -108,7 +108,8 @@
 
                 return new Promise(function (resolve, reject) {
                     Promise.all([api.getPipelines(), api.getJobs()]).then(function (responses) {
-                        let pipelines, jobs;
+                        let pipelines;
+                        let jobs = [];
                         responses.forEach(function (data) {
                             console.log(data);
                             if (data && data.pipelines) {
@@ -120,9 +121,9 @@
                         });
                         if (pipelines && jobs) {
                             that.pipelines = PipelineUtil.preparePipelines(pipelines, jobs);
-                            // console.log(that.pipelines);
+                             console.log(that.pipelines);
                         }
-                        that.reloadPipelines();
+                        that.scheduleReloadPipelines();
                         resolve();
                     })
                     .catch(error => {
@@ -139,11 +140,11 @@
                     this.reloadPipelinesTaskId = null;
                 }
             },
-            reloadPipelines() {
+            scheduleReloadPipelines() {
                 this.clearScheduledReloadPipelinesTask();
                 if (this.$route.name === 'pipeline_list') { // reload only from pipeline list page
                     this.reloadPipelinesTaskId = setTimeout(() => {
-                        console.log('Call reloadPipelines after timeout')
+                        console.log('Call getPipelines after timeout')
                         this.getPipelines();
                     }, 30000);
                 }
