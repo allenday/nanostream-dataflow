@@ -73,10 +73,10 @@ class Install:
         self.initialize_app_engine_in_project()
         self.initialize_firebase_project()
         self.write_config_files()
-        self.deploy_start_pipeline_function()
-        self.deploy_stop_pipeline_function()
         # self.add_object_viewer_permission_to_cloudbuild_service_account()
         self.deploy_app_engine_management_application()
+        self.deploy_start_pipeline_function()
+        self.deploy_stop_pipeline_function()
 
     def get_google_cloud_env_var(self):
         google_cloud_project = self.try_get_google_cloud_project()
