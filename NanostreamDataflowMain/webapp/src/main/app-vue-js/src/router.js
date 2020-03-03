@@ -22,15 +22,17 @@ Vue.use(Router);
 export default new Router({
   linkExactActiveClass: "active",
   routes: [
-      {
-          path: "/",
-          name: "home",
-          components: {
-              header: AppHeader,
-              default: Home,
-              // footer: AppFooter
-          }
-      },
+      // {
+      //     path: "/",
+      //     name: "home",
+      //     components: {
+      //         header: AppHeader,
+      //         default: Home,
+      //         // footer: AppFooter
+      //     }
+      // },
+
+      { path: '/', redirect: '/list' },
 
       {
           path: "/list",
