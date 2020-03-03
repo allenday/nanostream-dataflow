@@ -68,16 +68,24 @@ class Install:
         self.create_storage_buckets()
         self.create_pub_sub_topics()
         self.create_bucket_notifications()
-        self.deploy_start_pipeline_function()
-        self.deploy_stop_pipeline_function()
         self.install_required_libs()
         self.deploy_dataflow_templates()
         self.initialize_app_engine_in_project()
         self.initialize_firebase_project()
-        self.write_config_file()
+        self.write_config_files()
+        self.deploy_start_pipeline_function()
+        self.deploy_stop_pipeline_function()
+        # self.add_object_viewer_permission_to_cloudbuild_service_account()
         self.deploy_app_engine_management_application()
 
     def get_google_cloud_env_var(self):
+        google_cloud_project = self.try_get_google_cloud_project()
+        if not google_cloud_project:
+            raise IllegalArgumentException('Cannot figure out project name. '
+                                           'Please define GOOGLE_CLOUD_PROJECT environment variable')
+        return google_cloud_project
+
+    def try_get_google_cloud_project(self):
         if 'GOOGLE_CLOUD_PROJECT' in os.environ:
             return os.environ['GOOGLE_CLOUD_PROJECT'].strip()
         else:
@@ -253,12 +261,38 @@ class Install:
         handler.add_firebase_to_project()
         self._config_data = handler.prepare_firebase_config_data()
 
-    def write_config_file(self):
+    def write_config_files(self):
         self._config_data['uploadBucketName'] = self.upload_bucket_name
         self._config_data['referenceNamesList'] = self.reference_name_list
         self._config_data['uploadPubSubTopic'] = self.upload_pub_sub_topic
         handler = ConfigHandler(self._config_data, self.dir_file)
         handler.write_configs()
+
+    def add_object_viewer_permission_to_cloudbuild_service_account(self):
+        project_number = self.get_project_number()
+        cloudbuild_email = self.get_cloudbuild_email(project_number)
+        self.add_object_viewer_permission(cloudbuild_email)
+
+    def get_project_number(self):
+        cmd = 'gcloud projects describe %s' % self.google_cloud_project
+        response = subprocess.check_output(cmd, shell=True).decode("utf-8")
+        match_obj = re.match( r".*projectNumber: '(\d+)'.*", response, re.S|re.I)
+        if match_obj:
+            project_number = match_obj.group(1)
+            log('Project number found:' + project_number)
+            return project_number
+        else:
+            raise Exception('Cannot find project number: ' + response)
+
+    def get_cloudbuild_email(self, project_number):
+        return '%s@cloudbuild.gserviceaccount.com' % project_number
+
+
+    def add_object_viewer_permission(self, cloudbuild_email):
+        cmd = 'gcloud projects add-iam-policy-binding %s --member serviceAccount:%s --role roles/storage.objectViewer' \
+              % (self.google_cloud_project, cloudbuild_email)
+        log('Add objectViewer permission to cloudbuild service account: %s' % cmd)
+        subprocess.check_call(cmd, shell=True)
 
     def deploy_app_engine_management_application(self):
         cmd = 'mvn clean package appengine:deploy -DskipTests=true -f NanostreamDataflowMain/webapp/pom.xml'
