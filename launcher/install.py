@@ -74,6 +74,7 @@ class Install:
         self.initialize_firebase_project()
         self.write_config_files()
         # self.add_object_viewer_permission_to_cloudbuild_service_account()
+        self.run_gcloud_diagnostics()
         self.deploy_app_engine_management_application()
         self.deploy_start_pipeline_function()
         self.deploy_stop_pipeline_function()
@@ -292,6 +293,11 @@ class Install:
         cmd = 'gcloud projects add-iam-policy-binding %s --member serviceAccount:%s --role roles/storage.objectViewer' \
               % (self.google_cloud_project, cloudbuild_email)
         log('Add objectViewer permission to cloudbuild service account: %s' % cmd)
+        subprocess.check_call(cmd, shell=True)
+
+    def run_gcloud_diagnostics(self):
+        cmd = 'gcloud info --run-diagnostics'
+        log('Run gcloud diagnostics: %s' % cmd)
         subprocess.check_call(cmd, shell=True)
 
     def deploy_app_engine_management_application(self):
