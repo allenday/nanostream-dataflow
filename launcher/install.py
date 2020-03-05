@@ -286,7 +286,7 @@ class Install:
         # This step required because appengine maven plugin for unknown reason cleans gcloud project settings
         self.set_default_project_for_gcloud()
 
-        cmd = 'gcloud app deploy NanostreamDataflowMain/webapp/target/appengine-staging/app.yaml '
+        cmd = 'gcloud --quiet app deploy NanostreamDataflowMain/webapp/target/appengine-staging/app.yaml '
         log('Deploy App Engine management application: %s' % cmd)
         subprocess.check_call(cmd, shell=True)
 
