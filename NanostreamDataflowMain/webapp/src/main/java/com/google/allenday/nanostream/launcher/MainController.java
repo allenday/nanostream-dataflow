@@ -80,7 +80,7 @@ public class MainController {
     @DeleteMapping(value = "/pipelines/{pipelineId}", produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<String> deletePipeline(@PathVariable("pipelineId") String pipelineId, @RequestBody PipelineRequestParams pipelineRequestParams) throws Exception {
         pipelineRemover.remove(pipelineId, pipelineRequestParams);
-        return ResponseEntity.ok(pipelineId);
+        return ResponseEntity.ok("{}");
     }
 
     @CrossOrigin
