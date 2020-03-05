@@ -10,17 +10,17 @@ This source repo contains a prototype implementation of a scalable, reliable, an
 
 ![architecture](doc/Taxonomy%20Counting.png)
 
+
 ### Project Structure
 - NanostreamDataflowMain - Apache Beam app that provides all data transformations:
     - pipleline - Apache Beam pipeline lib
     - main - Console app that runs Apache Beam pipeline
     - webapp - GCP appengine application 
-- aligner - scripts to provision auto-scaled HTTP service for alignment (based on `bwa`)
-- simulator - python script that can simulate file uploads to GCS
-- utilities - utils for preprocessing of FASTA and FASTQ files
-- visualization - module for the visualization of results
+    - libs - Additional libs required for pipeline 
 - launcher - installation scripts
-- doc - additional files for documentation
+- aligner - scripts to provision auto-scaled HTTP service for alignment (based on `bwa`)
+- simulator - python script that can simulate file uploads to GCS (for testing, or if you don't have a real dataset)
+- doc - additional documentation files 
 
 
 ### Setup
@@ -87,25 +87,6 @@ Make sure you have installed:
 3. Export GOOGLE_APPLICATION_CREDENTIALS environment var (https://cloud.google.com/docs/authentication/production#setting_the_environment_variable).
 4. Run `python3 launcher/install.py`  
  
-
-#### Manual Setup
-
-To run the pipeline take the following steps:
-
-1. Create a [Google Cloud Storage](https://cloud.google.com/storage/) `$UPLOAD_BUCKET` **upload_bucket for FastQ files**.
-2. You can use our [simulator](https://github.com/allenday/nanostream-dataflow/blob/master/simulator) to upload FastQ for testing, or if you don't have a real dataset. If your source data are stored in a large (>1 MB) multi-strand FastQ file you can use [FastQ Splitter](https://github.com/allenday/nanostream-dataflow/blob/master/utilities/fastq_splitter) utility. It converts large multi-strand FastQ file into a set of single strand FastQ files and tsv file with strand timings. This transformation makes possible to work with batch source data in a streaming mode.
-3. Configure [file upload notifications]((https://cloud.google.com/storage/docs/pubsub-notifications)). This creates PubSub messages when new files are uploaded. With our placeholder name `$UPLOAD_EVENTS`, set up PubSub notifications in the following way:
-```
-gsutil notification create -t $UPLOAD_EVENTS -f json -e OBJECT_FINALIZE $UPLOAD_BUCKET
-```
-4. Create a **PubSub subscription** for `$UPLOAD_EVENTS`. With our placeholder name `$UPLOAD_SUBSCRIPTION`, run following command:
-```
-gcloud pubsub subscriptions create $UPLOAD_SUBSCRIPTION --topic $UPLOAD_EVENTS
-```
-5. Create a **Cloud Firestore DB** ([See details in section Create a Cloud Firestore project](https://cloud.google.com/firestore/docs/quickstart-mobile-web#create_a_project)) for saving cache and result data.
-6. *optional* If you running the pipeline in `resistance_genes` mode you should provide "gene list" file stored in GCS.
-
-
 
 ### Available Reference databases
 For this project the bucket **nanostream-dataflow-demo-data** were created

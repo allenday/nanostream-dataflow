@@ -8,7 +8,8 @@
     <div class="col-md-6 text-right">
         <router-link :to="{name: 'pipeline_list'}">Pipelines</router-link>  |
         <router-link :to="{name: 'job_list'}">Jobs</router-link>  |
-        <router-link :to="{name: 'pipeline_new'}">New Pipeline</router-link>
+        <router-link :to="{name: 'pipeline_new'}">New Pipeline</router-link>  |
+        <a href="https://github.com/allenday/nanostream-dataflow" target="_blank">?</a>
     </div>
 </header>
 
