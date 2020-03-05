@@ -1,4 +1,4 @@
-package com.google.allenday.nanostream.geneinfo;
+package com.google.allenday.nanostream.taxonomy.resistant_genes;
 
 import org.apache.beam.sdk.coders.DefaultCoder;
 import org.apache.beam.sdk.coders.SerializableCoder;
@@ -11,7 +11,7 @@ import java.util.*;
  * Gene specification data class
  */
 @DefaultCoder(SerializableCoder.class)
-public class GeneInfo implements Serializable {
+public class ResistantGeneInfo implements Serializable {
     public String sequence;
     public Double score;
     public Long readCounts;
@@ -19,7 +19,7 @@ public class GeneInfo implements Serializable {
     private String names;
     private String groups;
 
-    public GeneInfo() {
+    public ResistantGeneInfo() {
         names = "";
         groups = "";
         sequence = "";
@@ -51,7 +51,7 @@ public class GeneInfo implements Serializable {
 
     @Override
     public String toString() {
-        return "GeneInfo{" +
+        return "ResistantGeneInfo{" +
                 "sequence=" + sequence +
                 ", score=" + score +
                 ", readCounts=" + readCounts +

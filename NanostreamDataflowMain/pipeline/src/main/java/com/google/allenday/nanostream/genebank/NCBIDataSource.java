@@ -34,39 +34,18 @@ public class NCBIDataSource implements Serializable {
     private final static String NUCLEOTIDE_DB_NAME = "Nucleotide";
     private final static String USE_HISTORY_YES_VALUE = "y";
     private final static String RETMODE_XML_VALUE = "xml";
-
-    @DefaultCoder(SerializableCoder.class)
-    private enum EUtilRequestParams implements Serializable {
-        DB("db"),
-        WEB_ENV("WebEnv"),
-        QUERY_KEY("query_key"),
-        RETMODE("retmode"),
-        USE_HISTORY("usehistory"),
-        TERM("term");
-
-        public final String key;
-
-        EUtilRequestParams(String key) {
-            this.key = key;
-        }
-    }
-
     private final static String E_SEARCH_WEB_ENV_RESPONSE_KEY = "WebEnv";
     private final static String E_SEARCH_QUERY_KEY_RESPONSE_KEY = "QueryKey";
     private final static String E_FETCH_TAXONOMY_RESPONSE_KEY = "GBSeq_taxonomy";
     private final static String E_FETCH_LOCUS_RESPONSE_KEY = "GBSeq_locus";
     private final static String E_FETCH_DEFINITION_RESPONSE_KEY = "GBSeq_definition";
-
     private final static String TAXONOMY_LIST_DIVIDER = ";";
-
     private final static List<String> OTHER_TAXONOMY_GROUP =
             Stream.of("Other").collect(Collectors.toList());
     private final static List<String> FAILED_SEARCH_TAXONOMY_GROUP =
             Stream.of("Failed search").collect(Collectors.toList());
-
     private HttpHelper httpHelper;
     private Logger LOG = LoggerFactory.getLogger(NCBIDataSource.class);
-
     public NCBIDataSource(HttpHelper httpHelper) {
         this.httpHelper = httpHelper;
     }
@@ -137,6 +116,22 @@ public class NCBIDataSource implements Serializable {
 
         String response = httpHelper.executeRequest(httpClient, httpRequest, new NanostreamResponseHandler());
         return XMLUtils.getDocumentFromXMLString(response);
+    }
+
+    @DefaultCoder(SerializableCoder.class)
+    private enum EUtilRequestParams implements Serializable {
+        DB("db"),
+        WEB_ENV("WebEnv"),
+        QUERY_KEY("query_key"),
+        RETMODE("retmode"),
+        USE_HISTORY("usehistory"),
+        TERM("term");
+
+        public final String key;
+
+        EUtilRequestParams(String key) {
+            this.key = key;
+        }
     }
 
     public class UnknownNameExeption extends IOException {

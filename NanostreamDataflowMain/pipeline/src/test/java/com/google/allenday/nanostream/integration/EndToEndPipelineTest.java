@@ -94,7 +94,7 @@ public class EndToEndPipelineTest {
                         ParDo.of(injector.getInstance(GetReferencesFromSamDataFn.class)))
                 .apply("Get Taxonomy data", ParDo.of(injector.getInstance(GetTaxonomyFromTree.class)))
                 .apply("Global Window with Repeatedly triggering" + OUTPUT_TRIGGERING_WINDOW_TIME_SEC,
-                        Window.<KV<KV<GCSSourceData, String>, GeneData>>into(new GlobalWindows())
+                        Window.<KV<KV<GCSSourceData, String>, TaxonData>>into(new GlobalWindows())
                                 .triggering(Repeatedly.forever(AfterProcessingTime
                                         .pastFirstElementInPane()
                                         .plusDelayOf(Duration.standardSeconds(OUTPUT_TRIGGERING_WINDOW_TIME_SEC))))

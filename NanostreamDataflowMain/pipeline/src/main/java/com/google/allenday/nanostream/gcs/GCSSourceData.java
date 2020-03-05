@@ -1,4 +1,4 @@
-package com.google.allenday.nanostream.pubsub;
+package com.google.allenday.nanostream.gcs;
 
 import org.apache.beam.sdk.coders.AvroCoder;
 import org.apache.beam.sdk.coders.DefaultCoder;
@@ -23,34 +23,42 @@ public class GCSSourceData implements Serializable {
     public GCSSourceData() {
     }
 
-    public void setBucket(String bucket) {
-        this.bucket = bucket;
-    }
-
-    public void setFolder(String folder) {
-        this.folder = folder;
-    }
-
     public GCSSourceData(@Nonnull String bucket, @Nonnull String folder) {
         this.bucket = bucket;
         this.folder = folder;
     }
 
-    public static GCSSourceData fromGCloudNotification(GCloudNotification gCloudNotification) {
+    public static GCSSourceData fromGCloudNotification(GCSNotification GCSNotification) {
         String folder = "/";
-        int index = gCloudNotification.getName().lastIndexOf("/");
+        int index = GCSNotification.getName().lastIndexOf("/");
         if (index >= 0) {
-            folder += gCloudNotification.getName().substring(0, index + 1);
+            folder += GCSNotification.getName().substring(0, index + 1);
         }
-        return new GCSSourceData(gCloudNotification.getBucket(), folder);
+        return new GCSSourceData(GCSNotification.getBucket(), folder);
+    }
+
+    public static GCSSourceData fromJsonString(String jsonString) {
+        JSONObject jsonObject = new JSONObject(jsonString);
+        GCSSourceData gcsSourceData = new GCSSourceData();
+        gcsSourceData.setBucket(jsonObject.getString(BUCKET_KEY));
+        gcsSourceData.setFolder(jsonObject.getString(FOLDER_KEY));
+        return gcsSourceData;
     }
 
     public String getBucket() {
         return bucket;
     }
 
+    public void setBucket(String bucket) {
+        this.bucket = bucket;
+    }
+
     public String getFolder() {
         return folder;
+    }
+
+    public void setFolder(String folder) {
+        this.folder = folder;
     }
 
     @Override
@@ -80,14 +88,6 @@ public class GCSSourceData implements Serializable {
         jsonObject.put(BUCKET_KEY, bucket);
         jsonObject.put(FOLDER_KEY, folder);
         return jsonObject.toString();
-    }
-
-    public static GCSSourceData fromJsonString(String jsonString) {
-        JSONObject jsonObject = new JSONObject(jsonString);
-        GCSSourceData gcsSourceData = new GCSSourceData();
-        gcsSourceData.setBucket(jsonObject.getString(BUCKET_KEY));
-        gcsSourceData.setFolder(jsonObject.getString(FOLDER_KEY));
-        return gcsSourceData;
     }
 }
 
