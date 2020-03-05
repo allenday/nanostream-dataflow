@@ -72,15 +72,50 @@ docker run -e GOOGLE_CLOUD_PROJECT=<your project id> launcher
 9. Start upload your data to upload bucket (`gs://<your project id>-upload-bucket/<your folder data>`)
  
 
+#### Setup using docker locally
+
+Make sure you have installed
+- [Docker](https://docs.docker.com/install) 
+- [Google Cloud SDK](https://cloud.google.com/sdk/install)
+ 
+1. Initialise Google Cloud SDK: https://cloud.google.com/sdk/docs/initializing
+```
+gcloud init
+
+```
+2. Get application-default credentials: https://cloud.google.com/sdk/gcloud/reference/auth/application-default/login
+```
+gcloud auth application-default login
+
+```
+3. Download a service account credentials to `~/.config/gcloud_keys/gcloud_credentials.json` JSON file: https://cloud.google.com/docs/authentication/production#obtaining_and_providing_service_account_credentials_manually
+ 
+4. Clone the project from Github
+
+5. Build docker launcher
+```
+docker build -t launcher .
+```     
+
+6. Run docker launcher
+```
+docker run \
+  -v ~/.config/gcloud_keys/:/root/.config/gcloud_keys/ \
+  -v ~/.config/gcloud/:/root/.config/gcloud/ \
+  -e GOOGLE_CLOUD_PROJECT=<your project id> \
+  -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud_keys/gcloud_credentials.json \
+  launcher
+``` 
+
 #### Setup by running install.py directly
 
 You can run installation script [install.py](launcher/install.py) directly.
  
 Make sure you have installed: 
-- Python3 (https://www.python.org/downloads/)
-- Maven (http://maven.apache.org/download.cgi)
-- Google Cloud Sdk (https://cloud.google.com/sdk/install)
-- Firebase Tools (https://firebase.google.com/docs/cli)
+- [Python3](https://www.python.org/downloads/)
+- [Maven](http://maven.apache.org/download.cgi)
+- [Google Cloud Sdk](https://cloud.google.com/sdk/install)
+- [Firebase Tools](https://firebase.google.com/docs/cli)
 
 1. Init your gcloud configuration: `gcloud init`
 2. Obtain a JSON file with a service account credentials (https://cloud.google.com/docs/authentication/production#obtaining_and_providing_service_account_credentials_manually).
