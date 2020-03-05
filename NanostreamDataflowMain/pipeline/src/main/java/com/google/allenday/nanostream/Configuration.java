@@ -1,4 +1,4 @@
-package com.google.allenday.nanostream.other;
+package com.google.allenday.nanostream;
 
 public class Configuration {
 

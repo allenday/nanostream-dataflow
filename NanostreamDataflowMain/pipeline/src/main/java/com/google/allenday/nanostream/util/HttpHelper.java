@@ -33,12 +33,10 @@ import java.util.concurrent.TimeUnit;
  */
 public class HttpHelper implements Serializable {
 
-    private static int TOO_MANY_REQUESTS_RESPONSE_CODE = 429;
-    private static int RETRY_MAX_INTERVAL = 30000;
-
     private final static long DEFAULT_REQUEST_TIMEOUT = TimeUnit.SECONDS.toMillis(10);
     private final static long DEFAULT_REQUEST_RETRY_COUNT = 5;
-
+    private static int TOO_MANY_REQUESTS_RESPONSE_CODE = 429;
+    private static int RETRY_MAX_INTERVAL = 30000;
     private Logger LOG = LoggerFactory.getLogger(HttpHelper.class);
 
     public CloseableHttpClient createHttpClient() {
@@ -92,7 +90,7 @@ public class HttpHelper implements Serializable {
     }
 
     public HttpUriRequest buildRequest(URI uri, HttpEntity httpEntity) {
-        RequestBuilder requestBuilder =  RequestBuilder
+        RequestBuilder requestBuilder = RequestBuilder
                 .post(uri);
         if (httpEntity != null) {
             requestBuilder = requestBuilder.setEntity(httpEntity);

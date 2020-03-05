@@ -1,6 +1,6 @@
 package com.google.allenday.nanostream.main.output;
 
-import com.google.allenday.nanostream.output.FirestoreService;
+import com.google.allenday.nanostream.db.FirestoreService;
 import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.Firestore;

@@ -1,4 +1,4 @@
-package com.google.allenday.nanostream.pubsub;
+package com.google.allenday.nanostream.gcs;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -12,7 +12,7 @@ import java.io.Serializable;
  * See <a href="https://cloud.google.com/storage/docs/object-change-notification">Object Change Notification</a>
  * documentation
  */
-public class GCloudNotification implements Serializable {
+public class GCSNotification implements Serializable {
 
     @SerializedName("kind")
     @Expose
@@ -148,8 +148,33 @@ public class GCloudNotification implements Serializable {
         return etag;
     }
 
+    @Override
+    public String toString() {
+        return "GCSNotification{" +
+                "kind='" + kind + '\'' +
+                ", id='" + id + '\'' +
+                ", selfLink='" + selfLink + '\'' +
+                ", name='" + name + '\'' +
+                ", bucket='" + bucket + '\'' +
+                ", generation='" + generation + '\'' +
+                ", metageneration='" + metageneration + '\'' +
+                ", contentType='" + contentType + '\'' +
+                ", timeCreated='" + timeCreated + '\'' +
+                ", updated='" + updated + '\'' +
+                ", storageClass='" + storageClass + '\'' +
+                ", timeStorageClassUpdated='" + timeStorageClassUpdated + '\'' +
+                ", size='" + size + '\'' +
+                ", md5Hash='" + md5Hash + '\'' +
+                ", mediaLink='" + mediaLink + '\'' +
+                ", contentLanguage='" + contentLanguage + '\'' +
+                ", metadata=" + metadata +
+                ", crc32c='" + crc32c + '\'' +
+                ", etag='" + etag + '\'' +
+                '}';
+    }
+
     @DefaultCoder(SerializableCoder.class)
-    public class Metadata implements Serializable{
+    public class Metadata implements Serializable {
 
         @SerializedName("goog-reserved-file-atime")
         @Expose
@@ -197,30 +222,5 @@ public class GCloudNotification implements Serializable {
                     ", googReservedPosixUid='" + googReservedPosixUid + '\'' +
                     '}';
         }
-    }
-
-    @Override
-    public String toString() {
-        return "GCloudNotification{" +
-                "kind='" + kind + '\'' +
-                ", id='" + id + '\'' +
-                ", selfLink='" + selfLink + '\'' +
-                ", name='" + name + '\'' +
-                ", bucket='" + bucket + '\'' +
-                ", generation='" + generation + '\'' +
-                ", metageneration='" + metageneration + '\'' +
-                ", contentType='" + contentType + '\'' +
-                ", timeCreated='" + timeCreated + '\'' +
-                ", updated='" + updated + '\'' +
-                ", storageClass='" + storageClass + '\'' +
-                ", timeStorageClassUpdated='" + timeStorageClassUpdated + '\'' +
-                ", size='" + size + '\'' +
-                ", md5Hash='" + md5Hash + '\'' +
-                ", mediaLink='" + mediaLink + '\'' +
-                ", contentLanguage='" + contentLanguage + '\'' +
-                ", metadata=" + metadata +
-                ", crc32c='" + crc32c + '\'' +
-                ", etag='" + etag + '\'' +
-                '}';
     }
 }

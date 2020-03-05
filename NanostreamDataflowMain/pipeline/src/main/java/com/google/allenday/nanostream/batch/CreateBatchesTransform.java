@@ -1,13 +1,11 @@
 package com.google.allenday.nanostream.batch;
 
-import com.google.allenday.genomics.core.io.FileUtils;
-import com.google.allenday.genomics.core.io.GCSService;
 import com.google.allenday.genomics.core.model.FileWrapper;
 import com.google.allenday.genomics.core.model.SampleMetaData;
 import com.google.allenday.genomics.core.processing.align.AlignService;
+import com.google.allenday.nanostream.fastq.GetDataFromFastQFileFn;
 import com.google.allenday.nanostream.fastq.ParseFastQFn;
-import com.google.allenday.nanostream.gcs.GetDataFromFastQFileFn;
-import com.google.allenday.nanostream.pubsub.GCSSourceData;
+import com.google.allenday.nanostream.gcs.GCSSourceData;
 import htsjdk.samtools.fastq.FastqRecord;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.GroupByKey;
@@ -20,7 +18,6 @@ import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

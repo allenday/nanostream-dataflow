@@ -15,11 +15,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class PipelineManagerService implements Serializable {
-    private Logger LOG = LoggerFactory.getLogger(PipelineManagerService.class);
-
     private static final String PROJECT_ID_KEY = "project_id";
     private static final String JOB_NAME_KEY = "job_name";
-
+    private Logger LOG = LoggerFactory.getLogger(PipelineManagerService.class);
     private String topicName;
 
     public PipelineManagerService(String topicName) {

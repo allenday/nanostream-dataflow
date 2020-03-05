@@ -1,4 +1,4 @@
-package com.google.allenday.nanostream.aligner;
+package com.google.allenday.nanostream.sam;
 
 import com.google.allenday.genomics.core.io.FileUtils;
 import com.google.allenday.genomics.core.io.GCSService;
@@ -7,7 +7,7 @@ import com.google.allenday.genomics.core.model.FileWrapper;
 import com.google.allenday.genomics.core.model.SampleMetaData;
 import com.google.allenday.genomics.core.processing.sam.SamBamManipulationService;
 import com.google.allenday.genomics.core.reference.ReferenceDatabaseSource;
-import com.google.allenday.nanostream.pubsub.GCSSourceData;
+import com.google.allenday.nanostream.gcs.GCSSourceData;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.ValidationStringency;
@@ -24,12 +24,11 @@ import java.io.IOException;
  */
 public class GetReferencesFromSamDataFn extends DoFn<KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>,
         KV<KV<GCSSourceData, String>, ReferenceDatabaseSource>> {
+    private final SamBamManipulationService samBamManipulationService;
     private Logger LOG = LoggerFactory.getLogger(GetReferencesFromSamDataFn.class);
-
     private FileUtils fileUtils;
     private TransformIoHandler ioHandler;
     private GCSService gcsService;
-    private final SamBamManipulationService samBamManipulationService;
 
     public GetReferencesFromSamDataFn(FileUtils fileUtils, TransformIoHandler ioHandler, SamBamManipulationService samBamManipulationService) {
         this.fileUtils = fileUtils;

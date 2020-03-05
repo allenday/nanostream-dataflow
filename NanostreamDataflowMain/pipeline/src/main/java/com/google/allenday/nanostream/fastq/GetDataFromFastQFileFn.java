@@ -1,9 +1,9 @@
-package com.google.allenday.nanostream.gcs;
+package com.google.allenday.nanostream.fastq;
 
 import com.google.allenday.genomics.core.io.FileUtils;
 import com.google.allenday.genomics.core.io.GCSService;
 import com.google.allenday.genomics.core.model.FileWrapper;
-import com.google.allenday.nanostream.pubsub.GCSSourceData;
+import com.google.allenday.nanostream.gcs.GCSSourceData;
 import com.google.allenday.nanostream.util.FastQUtils;
 import com.google.cloud.storage.BlobId;
 import org.apache.beam.sdk.transforms.DoFn;
@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 /**
- * Gets fastq filename from GCloudNotification and extracts data from this file
+ * Gets fastq filename from GCSNotification and extracts data from this file
  */
 public class GetDataFromFastQFileFn extends DoFn<KV<GCSSourceData, FileWrapper>, KV<GCSSourceData, String>> {
 

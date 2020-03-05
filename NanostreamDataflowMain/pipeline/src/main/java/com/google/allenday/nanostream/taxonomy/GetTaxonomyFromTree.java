@@ -3,8 +3,8 @@ package com.google.allenday.nanostream.taxonomy;
 import com.google.allenday.genomics.core.io.FileUtils;
 import com.google.allenday.genomics.core.io.GCSService;
 import com.google.allenday.genomics.core.reference.ReferenceDatabaseSource;
-import com.google.allenday.nanostream.geneinfo.GeneData;
-import com.google.allenday.nanostream.pubsub.GCSSourceData;
+import com.google.allenday.nanostream.gcs.GCSSourceData;
+import com.google.allenday.nanostream.geneinfo.TaxonData;
 import com.google.cloud.storage.Blob;
 import japsa.bio.phylo.NCBITree;
 import org.apache.beam.sdk.transforms.DoFn;
@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class GetTaxonomyFromTree extends DoFn<KV<KV<GCSSourceData, String>, ReferenceDatabaseSource>,
-        KV<KV<GCSSourceData, String>, KV<ReferenceDatabaseSource, GeneData>>> {
+        KV<KV<GCSSourceData, String>, KV<ReferenceDatabaseSource, TaxonData>>> {
     private Logger LOG = LoggerFactory.getLogger(GetTaxonomyFromTree.class);
 
     private TaxonomyProvider taxonomyProvider;
@@ -63,7 +63,7 @@ public class GetTaxonomyFromTree extends DoFn<KV<KV<GCSSourceData, String>, Refe
                 List<String> colors = Arrays.asList(taxonomyAndColor[1]);
                 Collections.reverse(colors);
 
-                c.output(KV.of(gcsSourceDataStringKV.getKey(), KV.of(referenceDatabaseSource, new GeneData(taxonomy, colors))));
+                c.output(KV.of(gcsSourceDataStringKV.getKey(), KV.of(referenceDatabaseSource, new TaxonData(taxonomy, colors))));
             } catch (IOException e) {
                 LOG.error(e.getMessage(), e);
             }

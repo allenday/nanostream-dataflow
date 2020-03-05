@@ -1,6 +1,6 @@
 package com.google.allenday.nanostream.main.util.transform;
 
-import com.google.allenday.nanostream.util.trasform.CombineIterableAccumulatorFn;
+import com.google.allenday.nanostream.pipeline.transform.CombineIterableAccumulatorFn;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.transforms.Combine;

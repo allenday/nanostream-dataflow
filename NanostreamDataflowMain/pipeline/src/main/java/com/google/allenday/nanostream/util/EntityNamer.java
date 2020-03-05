@@ -1,16 +1,15 @@
 package com.google.allenday.nanostream.util;
 
+import com.google.allenday.nanostream.Configuration;
 import com.google.allenday.nanostream.ProcessingMode;
-import com.google.allenday.nanostream.other.Configuration;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class EntityNamer {
 
-    private final long initialTimestamp;
-
     public static SimpleDateFormat JOB_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH-mm-ssz");
+    private final long initialTimestamp;
 
     private EntityNamer() {
         this.initialTimestamp = System.currentTimeMillis();
@@ -40,14 +39,6 @@ public class EntityNamer {
         return nameBuilder.toString();
     }
 
-    public String generateJobName(ProcessingMode processingMode, String prefix) {
-        return generateTimestampedName(addPrefix(processingMode.label, prefix));
-    }
-
-    public String generateTimestampedName(String str) {
-        return generateTimestampedName(str, new Date(initialTimestamp));
-    }
-
     public static String generateTimestampedName(String str, Date date) {
         return String.format("%s--%s", str, JOB_DATE_FORMAT.format(date)).replace("_", "-");
     }
@@ -63,6 +54,14 @@ public class EntityNamer {
         }
         nameBuilder.append(base);
         return nameBuilder.toString();
+    }
+
+    public String generateJobName(ProcessingMode processingMode, String prefix) {
+        return generateTimestampedName(addPrefix(processingMode.label, prefix));
+    }
+
+    public String generateTimestampedName(String str) {
+        return generateTimestampedName(str, new Date(initialTimestamp));
     }
 
     public long getInitialTimestamp() {

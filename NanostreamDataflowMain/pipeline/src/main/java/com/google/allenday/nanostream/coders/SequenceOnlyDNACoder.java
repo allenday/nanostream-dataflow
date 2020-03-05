@@ -1,8 +1,11 @@
-package com.google.allenday.nanostream.pipeline;
+package com.google.allenday.nanostream.coders;
 
 import japsa.seq.Alphabet;
 import japsa.seq.Sequence;
-import org.apache.beam.sdk.coders.*;
+import org.apache.beam.sdk.coders.ByteArrayCoder;
+import org.apache.beam.sdk.coders.Coder;
+import org.apache.beam.sdk.coders.CustomCoder;
+import org.apache.beam.sdk.coders.StringUtf8Coder;
 
 import java.io.IOException;
 import java.io.InputStream;

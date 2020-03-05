@@ -97,13 +97,13 @@ public class FastQUtils {
                     .filter(line -> !line.trim().isEmpty()).collect(Collectors.toList());
 
             String readName = linesList.get(0);
-            if (readName.charAt(0) == '@'){
+            if (readName.charAt(0) == '@') {
                 readName = readName.substring(1);
             }
 
             String readBases = linesList.get(1);
             String qualityHeader = linesList.get(2);
-            if (qualityHeader.charAt(0) == '+'){
+            if (qualityHeader.charAt(0) == '+') {
                 qualityHeader = qualityHeader.substring(1);
             }
             String baseQualities = linesList.get(3);

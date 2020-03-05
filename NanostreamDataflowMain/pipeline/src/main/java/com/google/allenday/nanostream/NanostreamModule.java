@@ -1,8 +1,6 @@
-package com.google.allenday.nanostream.injection;
+package com.google.allenday.nanostream;
 
 import com.google.allenday.genomics.core.pipeline.GenomicsOptions;
-import com.google.allenday.nanostream.NanostreamPipelineOptions;
-import com.google.allenday.nanostream.ProcessingMode;
 import com.google.allenday.nanostream.util.EntityNamer;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
@@ -38,6 +36,12 @@ public class NanostreamModule extends AbstractModule {
         this.autoStopDelay = builder.autoStopDelay;
     }
 
+    @Provides
+    @Singleton
+    public EntityNamer provideEntityNamer() {
+        return EntityNamer.initialize();
+    }
+
     public static class Builder {
 
         protected String projectId;
@@ -50,12 +54,6 @@ public class NanostreamModule extends AbstractModule {
         protected int alignmentWindow;
         protected String autoStopTopic;
         protected ValueProvider<Integer> autoStopDelay;
-
-
-        public Builder setProjectId(String projectId) {
-            this.projectId = projectId;
-            return this;
-        }
 
         public Builder setResistanceGenesList(String resistanceGenesList) {
             this.resistanceGenesList = resistanceGenesList;
@@ -96,6 +94,7 @@ public class NanostreamModule extends AbstractModule {
             this.autoStopTopic = autoStopTopic;
             return this;
         }
+
         private Builder setAutoStopDelay(ValueProvider<Integer> autoStopDelay) {
             this.autoStopDelay = autoStopDelay;
             return this;
@@ -105,6 +104,10 @@ public class NanostreamModule extends AbstractModule {
             return projectId;
         }
 
+        public Builder setProjectId(String projectId) {
+            this.projectId = projectId;
+            return this;
+        }
 
         public NanostreamModule.Builder fromOptions(NanostreamPipelineOptions nanostreamPipelineOptions) {
             setProjectId(nanostreamPipelineOptions.getProject());
@@ -124,11 +127,5 @@ public class NanostreamModule extends AbstractModule {
             return new NanostreamModule(this);
         }
 
-    }
-
-    @Provides
-    @Singleton
-    public EntityNamer provideEntityNamer() {
-        return EntityNamer.initialize();
     }
 }
