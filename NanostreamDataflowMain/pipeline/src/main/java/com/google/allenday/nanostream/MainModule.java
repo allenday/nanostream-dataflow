@@ -1,4 +1,4 @@
-package com.google.allenday.nanostream.injection;
+package com.google.allenday.nanostream;
 
 import com.google.allenday.genomics.core.cmd.CmdExecutor;
 import com.google.allenday.genomics.core.cmd.WorkerSetupService;
@@ -8,20 +8,19 @@ import com.google.allenday.genomics.core.processing.align.*;
 import com.google.allenday.genomics.core.processing.sam.SamBamManipulationService;
 import com.google.allenday.genomics.core.reference.ReferencesProvider;
 import com.google.allenday.genomics.core.utils.NameProvider;
-import com.google.allenday.nanostream.aligner.GetReferencesFromSamDataFn;
 import com.google.allenday.nanostream.batch.CreateBatchesTransform;
+import com.google.allenday.nanostream.fastq.GetDataFromFastQFileFn;
 import com.google.allenday.nanostream.fastq.ParseFastQFn;
-import com.google.allenday.nanostream.gcs.GetDataFromFastQFileFn;
 import com.google.allenday.nanostream.gcs.ParseGCloudNotification;
-import com.google.allenday.nanostream.geneinfo.LoadGeneInfoTransform;
-import com.google.allenday.nanostream.other.Configuration;
 import com.google.allenday.nanostream.output.PrepareSequencesStatisticToOutputDbFn;
 import com.google.allenday.nanostream.output.WriteDataToFirestoreDbFn;
 import com.google.allenday.nanostream.pipeline.PipelineManagerService;
-import com.google.allenday.nanostream.taxonomy.GetResistanceGenesTaxonomyDataFn;
+import com.google.allenday.nanostream.sam.GetReferencesFromSamDataFn;
 import com.google.allenday.nanostream.taxonomy.GetSpeciesTaxonomyDataFromGeneBankFn;
 import com.google.allenday.nanostream.taxonomy.GetTaxonomyFromTree;
 import com.google.allenday.nanostream.taxonomy.TaxonomyProvider;
+import com.google.allenday.nanostream.taxonomy.resistant_genes.GetResistanceGenesTaxonomyDataFn;
+import com.google.allenday.nanostream.taxonomy.resistant_genes.LoadResistantGeneInfoTransform;
 import com.google.allenday.nanostream.util.EntityNamer;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
@@ -33,15 +32,6 @@ public class MainModule extends NanostreamModule {
 
     public MainModule(Builder builder) {
         super(builder);
-    }
-
-
-    public static class Builder extends NanostreamModule.Builder {
-
-        @Override
-        public MainModule build() {
-            return new MainModule(this);
-        }
     }
 
     @Provides
@@ -67,8 +57,8 @@ public class MainModule extends NanostreamModule {
     }
 
     @Provides
-    public LoadGeneInfoTransform provideLoadGeneInfoTransform() {
-        return new LoadGeneInfoTransform(resistanceGenesList);
+    public LoadResistantGeneInfoTransform provideLoadGeneInfoTransform() {
+        return new LoadResistantGeneInfoTransform(resistanceGenesList);
     }
 
     @Provides
@@ -181,7 +171,6 @@ public class MainModule extends NanostreamModule {
         return new AlignTransform("Align reads transform", alignFn, addReferenceDataSourceFn);
     }
 
-
     @Provides
     @Singleton
     public CreateBatchesTransform provideCreateBatchesTransform(GetDataFromFastQFileFn getDataFromFastQFileFn,
@@ -207,5 +196,13 @@ public class MainModule extends NanostreamModule {
     @Singleton
     public PipelineManagerService providePipelineManagerService() {
         return new PipelineManagerService(autoStopTopic);
+    }
+
+    public static class Builder extends NanostreamModule.Builder {
+
+        @Override
+        public MainModule build() {
+            return new MainModule(this);
+        }
     }
 }

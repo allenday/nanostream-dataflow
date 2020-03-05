@@ -1,6 +1,6 @@
 package com.google.allenday.nanostream.fastq;
 
-import com.google.allenday.nanostream.pubsub.GCSSourceData;
+import com.google.allenday.nanostream.gcs.GCSSourceData;
 import com.google.allenday.nanostream.util.FastQUtils;
 import htsjdk.samtools.fastq.FastqRecord;
 import org.apache.beam.sdk.transforms.DoFn;

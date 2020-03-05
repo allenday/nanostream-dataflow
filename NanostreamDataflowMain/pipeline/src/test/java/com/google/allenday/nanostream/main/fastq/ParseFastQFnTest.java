@@ -2,7 +2,7 @@ package com.google.allenday.nanostream.main.fastq;
 
 import com.google.allenday.nanostream.fastq.ParseFastQFn;
 import com.google.allenday.nanostream.main.injection.TestModule;
-import com.google.allenday.nanostream.pubsub.GCSSourceData;
+import com.google.allenday.nanostream.gcs.GCSSourceData;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import htsjdk.samtools.fastq.FastqRecord;

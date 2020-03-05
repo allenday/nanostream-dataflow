@@ -1,11 +1,11 @@
-package com.google.allenday.nanostream.taxonomy;
+package com.google.allenday.nanostream.taxonomy.resistant_genes;
 
 import com.google.allenday.genomics.core.io.FileUtils;
 import com.google.allenday.genomics.core.io.GCSService;
 import com.google.allenday.genomics.core.reference.ReferenceDatabaseSource;
-import com.google.allenday.nanostream.geneinfo.GeneData;
-import com.google.allenday.nanostream.geneinfo.GeneInfo;
-import com.google.allenday.nanostream.pubsub.GCSSourceData;
+import com.google.allenday.nanostream.gcs.GCSSourceData;
+import com.google.allenday.nanostream.geneinfo.TaxonData;
+import com.google.allenday.nanostream.taxonomy.TaxonomyProvider;
 import com.google.cloud.storage.Blob;
 import japsa.bio.phylo.NCBITree;
 import org.apache.beam.sdk.transforms.DoFn;
@@ -21,24 +21,24 @@ import java.util.*;
  *
  */
 public class GetResistanceGenesTaxonomyDataFn extends DoFn<KV<KV<GCSSourceData, String>, ReferenceDatabaseSource>,
-        KV<KV<GCSSourceData, String>, KV<ReferenceDatabaseSource, GeneData>>> {
+        KV<KV<GCSSourceData, String>, KV<ReferenceDatabaseSource, TaxonData>>> {
     private Logger LOG = LoggerFactory.getLogger(GetResistanceGenesTaxonomyDataFn.class);
 
-    private PCollectionView<Map<String, GeneInfo>> geneInfoMapPCollectionView;
+    private PCollectionView<Map<String, ResistantGeneInfo>> geneInfoMapPCollectionView;
     private TaxonomyProvider taxonomyProvider;
     private FileUtils fileUtils;
 
     private GCSService gcsService;
 
-    public GetResistanceGenesTaxonomyDataFn setGeneInfoMapPCollectionView(
-            PCollectionView<Map<String, GeneInfo>> geneInfoMapPCollectionView) {
-        this.geneInfoMapPCollectionView = geneInfoMapPCollectionView;
-        return this;
-    }
-
     public GetResistanceGenesTaxonomyDataFn(TaxonomyProvider taxonomyProvider, FileUtils fileUtils) {
         this.taxonomyProvider = taxonomyProvider;
         this.fileUtils = fileUtils;
+    }
+
+    public GetResistanceGenesTaxonomyDataFn setGeneInfoMapPCollectionView(
+            PCollectionView<Map<String, ResistantGeneInfo>> geneInfoMapPCollectionView) {
+        this.geneInfoMapPCollectionView = geneInfoMapPCollectionView;
+        return this;
     }
 
     @Setup
@@ -50,7 +50,7 @@ public class GetResistanceGenesTaxonomyDataFn extends DoFn<KV<KV<GCSSourceData, 
     public void processElement(ProcessContext c) {
         KV<KV<GCSSourceData, String>, ReferenceDatabaseSource> input = c.element();
         String geneName = input.getKey().getValue();
-        Map<String, GeneInfo> geneInfoMap = c.sideInput(geneInfoMapPCollectionView);
+        Map<String, ResistantGeneInfo> geneInfoMap = c.sideInput(geneInfoMapPCollectionView);
 
         ReferenceDatabaseSource referenceDatabaseSource = input.getValue();
         Optional<Blob> ncbiTreeBlob = referenceDatabaseSource.getCustomDatabaseFileByKey(gcsService, TaxonomyProvider.NCBI_TREE_KEY);
@@ -58,12 +58,12 @@ public class GetResistanceGenesTaxonomyDataFn extends DoFn<KV<KV<GCSSourceData, 
         ncbiTreeBlob.ifPresent(blob -> {
             try {
                 NCBITree ncbiTree = taxonomyProvider.getNcbiTree(gcsService, fileUtils, blob);
-                GeneData geneData = new GeneData();
+                TaxonData taxonData = new TaxonData();
                 if (geneInfoMap.containsKey(geneName)) {
-                    GeneInfo geneInfo = geneInfoMap.get(geneName);
+                    ResistantGeneInfo geneInfo = geneInfoMap.get(geneName);
                     Set<String> names = geneInfo.getNames();
-                    geneData.setGeneNames(names);
-                    geneData.setTaxonomy(new ArrayList<>(geneInfo.getGroups()));
+                    taxonData.setGeneNames(names);
+                    taxonData.setTaxonomy(new ArrayList<>(geneInfo.getGroups()));
                     if (names.size() > 0) {
                         String name = names.iterator().next();
 
@@ -75,11 +75,11 @@ public class GetResistanceGenesTaxonomyDataFn extends DoFn<KV<KV<GCSSourceData, 
                         List<String> colors = Arrays.asList(taxonomyAndColor[1]);
                         Collections.reverse(colors);
 
-                        geneData.setColors(colors);
-                        geneData.setTaxonomy(taxonomy);
+                        taxonData.setColors(colors);
+                        taxonData.setTaxonomy(taxonomy);
                     }
                 }
-                c.output(KV.of(input.getKey(), KV.of(referenceDatabaseSource, geneData)));
+                c.output(KV.of(input.getKey(), KV.of(referenceDatabaseSource, taxonData)));
             } catch (IOException e) {
                 LOG.error(e.getMessage(), e);
             }

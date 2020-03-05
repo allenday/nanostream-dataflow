@@ -1,4 +1,4 @@
-package com.google.allenday.nanostream.util.trasform;
+package com.google.allenday.nanostream.pipeline.transform;
 
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.values.KV;
@@ -7,6 +7,7 @@ import java.util.Map;
 
 /**
  * Flatten PCollection<Map<K, V>> into PCollection<KV<K, V>>
+ *
  * @param <K>
  * @param <V>
  */

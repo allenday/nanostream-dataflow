@@ -1,4 +1,4 @@
-package com.google.allenday.nanostream.util.trasform;
+package com.google.allenday.nanostream.pipeline.transform;
 
 import com.google.allenday.nanostream.util.ObjectSizeFetcher;
 import org.apache.beam.sdk.transforms.Combine;
@@ -12,6 +12,7 @@ import java.util.stream.StreamSupport;
 
 /**
  * Combine collection of {@link T} objects into single {@link Iterable<T>}
+ *
  * @param <T> type of input values
  */
 public class CombineIterableAccumulatorFn<T> extends Combine.CombineFn<T, List<T>, Iterable<T>> {

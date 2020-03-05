@@ -6,7 +6,7 @@ import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.Validation;
 import org.apache.beam.sdk.options.ValueProvider;
 
-import static com.google.allenday.nanostream.other.Configuration.*;
+import static com.google.allenday.nanostream.Configuration.*;
 
 /**
  * Provides list of {@link org.apache.beam.sdk.Pipeline} options
@@ -83,7 +83,6 @@ public interface NanostreamPipelineOptions extends GenomicsPipelineOptions {
 
 
     @Description("JobName value provider to access from PTransforms")
-    @Validation.Required
     ValueProvider<String> getJobNameLabel();
 
     void setJobNameLabel(ValueProvider<String> value);

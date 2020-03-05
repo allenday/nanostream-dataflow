@@ -1,6 +1,6 @@
 package com.google.allenday.nanostream.genebank;
 
-import com.google.allenday.nanostream.output.FirestoreService;
+import com.google.allenday.nanostream.db.FirestoreService;
 import org.apache.beam.sdk.coders.DefaultCoder;
 import org.apache.beam.sdk.coders.SerializableCoder;
 

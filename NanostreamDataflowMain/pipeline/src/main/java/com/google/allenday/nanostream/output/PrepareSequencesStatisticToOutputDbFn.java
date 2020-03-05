@@ -1,7 +1,7 @@
 package com.google.allenday.nanostream.output;
 
+import com.google.allenday.nanostream.gcs.GCSSourceData;
 import com.google.allenday.nanostream.probecalculation.SequenceCountAndTaxonomyData;
-import com.google.allenday.nanostream.pubsub.GCSSourceData;
 import com.google.allenday.nanostream.util.EntityNamer;
 import org.apache.beam.sdk.options.ValueProvider;
 import org.apache.beam.sdk.transforms.DoFn;
@@ -40,7 +40,7 @@ public class PrepareSequencesStatisticToOutputDbFn extends DoFn<KV<KV<GCSSourceD
         GCSSourceData gcsSourceData = gcsSourceDataAndRef.getKey();
         String refName = gcsSourceDataAndRef.getValue();
         SequenceStatisticResult sequenceStatisticResult =
-                sequenceStatisticGenerator.genereteSequnceInfo(
+                sequenceStatisticGenerator.genereteSequenceInfo(
                         gcsSourceDataMapKV.getValue(),
                         gcsSourceData,
                         refName,

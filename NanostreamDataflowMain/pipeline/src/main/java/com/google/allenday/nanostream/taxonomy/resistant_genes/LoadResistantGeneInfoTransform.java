@@ -1,4 +1,4 @@
-package com.google.allenday.nanostream.geneinfo;
+package com.google.allenday.nanostream.taxonomy.resistant_genes;
 
 import org.apache.beam.sdk.io.TextIO;
 import org.apache.beam.sdk.transforms.DoFn;
@@ -17,18 +17,18 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Generate {@link GeneInfo} data collection from gene list files
+ * Generate {@link ResistantGeneInfo} data collection from gene list files
  */
-public class LoadGeneInfoTransform extends PTransform<PBegin, PCollection<KV<String, GeneInfo>>> {
+public class LoadResistantGeneInfoTransform extends PTransform<PBegin, PCollection<KV<String, ResistantGeneInfo>>> {
 
     private String genesListFilePath;
 
-    public LoadGeneInfoTransform(String genesListFilePath) {
+    public LoadResistantGeneInfoTransform(String genesListFilePath) {
         this.genesListFilePath = genesListFilePath;
     }
 
     @Override
-    public PCollection<KV<String, GeneInfo>> expand(PBegin input) {
+    public PCollection<KV<String, ResistantGeneInfo>> expand(PBegin input) {
 
         PCollection<String> geneListData = input.getPipeline()
                 .apply("Read gene list file", TextIO.read().from(genesListFilePath));
@@ -107,8 +107,8 @@ public class LoadGeneInfoTransform extends PTransform<PBegin, PCollection<KV<Str
                 .apply(CoGroupByKey.create());
 
         return kvCollection.apply(
-                "GeneId => GeneInfo",
-                ParDo.of(new DoFn<KV<String, CoGbkResult>, KV<String, GeneInfo>>() {
+                "GeneId => ResistantGeneInfo",
+                ParDo.of(new DoFn<KV<String, CoGbkResult>, KV<String, ResistantGeneInfo>>() {
                     @ProcessElement
                     public void processElement(ProcessContext c) {
                         String geneID = c.element().getKey();
@@ -121,7 +121,7 @@ public class LoadGeneInfoTransform extends PTransform<PBegin, PCollection<KV<Str
                         Set<String> gg = gbk.getOnly(geneGroupTag, new HashSet<>());
                         Set<String> gn = gbk.getOnly(geneNameTag, new HashSet<>());
 
-                        GeneInfo info = new GeneInfo();
+                        ResistantGeneInfo info = new ResistantGeneInfo();
                         info.setGroups(gg);
                         info.setNames(gn);
 
