@@ -26,7 +26,7 @@
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-storage</artifactId>
-      <version>1.103.1</version>
+      <version>1.105.0</version>
     </dependency>
 
     <dependency>
@@ -65,13 +65,13 @@
     <dependency>
       <groupId>com.google.appengine</groupId>
       <artifactId>appengine-api-1.0-sdk</artifactId>
-      <version>1.9.77</version>
+      <version>1.9.78</version>
     </dependency>
 
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-firestore</artifactId>
-      <version>1.32.3</version>
+      <version>1.32.4</version>
     </dependency>
 
     <!-- Include Servlet API -->
