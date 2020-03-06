@@ -1,5 +1,8 @@
 package com.google.allenday.nanostream.pipeline;
 
+import com.google.allenday.genomics.core.model.FileWrapper;
+import com.google.allenday.genomics.core.model.SampleMetaData;
+import com.google.allenday.genomics.core.reference.ReferenceDatabaseSource;
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.ValueProvider;
@@ -8,7 +11,6 @@ import org.apache.beam.sdk.state.Timer;
 import org.apache.beam.sdk.state.TimerSpec;
 import org.apache.beam.sdk.state.TimerSpecs;
 import org.apache.beam.sdk.transforms.*;
-import org.apache.beam.sdk.transforms.windowing.DefaultTrigger;
 import org.apache.beam.sdk.transforms.windowing.GlobalWindows;
 import org.apache.beam.sdk.transforms.windowing.Window;
 import org.apache.beam.sdk.values.KV;
@@ -23,49 +25,57 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-public class LoopingTimerTransform<KVKeyT, KVValueT> extends PTransform<PCollection<KV<KVKeyT, KVValueT>>, PCollection<KV<KVKeyT, KVValueT>>> {
+public class LoopingTimerTransform extends PTransform<PCollection<KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>>,
+        PCollection<KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>>> {
     private Logger LOG = LoggerFactory.getLogger(LoopingTimerTransform.class);
 
     private ValueProvider<Integer> maxDeltaSec;
     private ValueProvider<String> jobNameLabel;
+    private boolean initAutoStopOnlyIfDataPassed;
     private PipelineManagerService pipelineManagerService;
 
     public LoopingTimerTransform(ValueProvider<Integer> maxDeltaSec, ValueProvider<String> jobNameLabel,
-                                 PipelineManagerService pipelineManagerService) {
+                                 PipelineManagerService pipelineManagerService, boolean initAutoStopOnlyIfDataPassed) {
         this.maxDeltaSec = maxDeltaSec;
         this.pipelineManagerService = pipelineManagerService;
         this.jobNameLabel = jobNameLabel;
+        this.initAutoStopOnlyIfDataPassed = initAutoStopOnlyIfDataPassed;
     }
 
     @Override
-    public PCollection<KV<KVKeyT, KVValueT>> expand(PCollection<KV<KVKeyT, KVValueT>> input) {
-        Instant nowTime = Instant.now();
-        LOG.info("Starter time: {}", nowTime.toString());
-        PCollection<KV<Integer, KV<KVKeyT, KVValueT>>> starterCollection = input.getPipeline()
-                .apply(Create.<KV<KVKeyT, KVValueT>>timestamped(TimestampedValue.of(KV.of(null, null), nowTime)))
-                .apply(WithKeys.of(1));
+    public PCollection<KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>> expand(PCollection<KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>> input) {
+        PCollection<KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>> flattenedCollection;
+        if (initAutoStopOnlyIfDataPassed) {
+            flattenedCollection = input;
+        } else {
+            Instant nowTime = Instant.now();
+            LOG.info("Starter time: {}", nowTime.toString());
 
-        PCollection<KV<Integer, KV<KVKeyT, KVValueT>>> mainCollection = input
-                .apply(Window.<KV<KVKeyT, KVValueT>>into(new GlobalWindows())
-                        .triggering(DefaultTrigger.of()).withAllowedLateness(Duration.ZERO)
-                        .discardingFiredPanes())
-                .apply(WithKeys.of(0));
+            PCollection<KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>> starterCollection = input.getPipeline()
+                    .apply(Create.<KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>>timestamped(
+                            TimestampedValue.of(KV.of(SampleMetaData.createUnique("", "", ""),
+                                    KV.of(new ReferenceDatabaseSource.Explicit(), FileWrapper.empty())), nowTime)))
+                    .apply(Window.<KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>>into(new GlobalWindows())
+                            .triggering(input.getWindowingStrategy().getTrigger()).withAllowedLateness(Duration.ZERO).discardingFiredPanes());
 
-        return PCollectionList.of(starterCollection).and(mainCollection)
-                .apply(Flatten.pCollections())
-                .apply(ParDo.of(new LoopingTimer<>(
-                        pipelineManagerService,
-                        maxDeltaSec,
-                        jobNameLabel)))
-                .apply(MapElements.via(new SimpleFunction<KV<Integer, KV<KVKeyT, KVValueT>>, KV<KVKeyT, KVValueT>>() {
+            flattenedCollection = PCollectionList.of(starterCollection).and(input)
+                    .apply(Flatten.pCollections());
+        }
+
+        return flattenedCollection
+                .apply(WithKeys.of(0))
+                .apply(ParDo.of(new LoopingTimer(pipelineManagerService, maxDeltaSec, jobNameLabel)))
+                .apply(MapElements.via(new SimpleFunction<KV<Integer, KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>>, KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>>() {
                     @Override
-                    public KV<KVKeyT, KVValueT> apply(KV<Integer, KV<KVKeyT, KVValueT>> input) {
+                    public KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>> apply(KV<Integer, KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>> input) {
                         return input.getValue();
                     }
                 }));
     }
 
-    public static class LoopingTimer<KVValue> extends DoFn<KV<Integer, KVValue>, KV<Integer, KVValue>> {
+    public static class LoopingTimer extends DoFn<KV<Integer, KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>>,
+            KV<Integer, KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>>> {
+
         @TimerId("loopingTimer")
         private final TimerSpec loopingTimerSpec =
                 TimerSpecs.timer(TimeDomain.PROCESSING_TIME);
@@ -96,14 +106,9 @@ public class LoopingTimerTransform<KVKeyT, KVValueT> extends PTransform<PCollect
             LOG.info("Pass trough  LoopingTimer {}, {}, {}. Set timer: {}", c.element(), c.timestamp(), c.pane().toString(),
                     Instant.now().plus(Duration.standardSeconds(maxDeltaSec.get())).toString());
 
-            Duration timerOffset = null;
-            if (c.element().getKey().equals(0)) {
-                timerOffset = Duration.standardSeconds(maxDeltaSec.get());
+            Duration timerOffset = Duration.standardSeconds(maxDeltaSec.get());
+            if (c.element().getValue().getValue().getValue().getDataType() != FileWrapper.DataType.EMPTY) {
                 c.output(c.element());
-            } else {
-                Instant startTime = c.timestamp();
-                long diff = Instant.now().getMillis() - startTime.getMillis();
-                timerOffset = diff > 0 ? Duration.millis(diff) : Duration.ZERO;
             }
             loopingTimer.offset(timerOffset).setRelative();
         }
