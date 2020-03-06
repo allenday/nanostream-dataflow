@@ -75,7 +75,7 @@ docker run -e GOOGLE_CLOUD_PROJECT=<your project id> launcher
 #### Setup using docker locally
 
 Make sure you have installed
-- [Docker](https://docs.docker.com/install) 
+- [Docker](https://docs.docker.com/install/linux/docker-ce/ubuntu/) 
 - [Google Cloud SDK](https://cloud.google.com/sdk/install)
  
 1. Initialise Google Cloud SDK: https://cloud.google.com/sdk/docs/initializing
