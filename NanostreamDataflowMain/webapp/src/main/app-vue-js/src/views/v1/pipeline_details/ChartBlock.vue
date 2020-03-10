@@ -206,7 +206,7 @@
                 let currentNode,
                     record,
                     taxonomyItem,
-//        taxonomyColor,
+                    taxonomyColor,
                     taxonomyLevel;
 
                 const root = {
@@ -223,13 +223,13 @@
                     record.taxonomy.push(record.name);
                     for (j = 0; j < record.taxonomy.length; j++) {
                         taxonomyItem = record.taxonomy[j];
-//          taxonomyColor = record.colors[j];
+                        taxonomyColor = record.colors[j];
                         taxonomyLevel = this.findChild(currentNode, taxonomyItem);
                         if (!taxonomyLevel) {
                             taxonomyLevel = {
                                 name: taxonomyItem,
                                 id: (1000 + i) + '-' + taxonomyItem,
-//              color: taxonomyColor,
+                                color: taxonomyColor,
                                 size: 0,
                                 children: []
                             };
