@@ -15,17 +15,22 @@ def get_shortened_file_name(filename):
         return filename
 
 
-def upload_file(data, filename, content_type, destination_bucket_name):
+def upload_file(data, filename, content_type, destination_bucket_name, current_retry=0, max_retry=3):
     """
     Uploads a file to a given Cloud Storage bucket and returns the public url
     to the new object.
     """
-    bucket = storage.Client().get_bucket(destination_bucket_name)
-    blob = bucket.blob(filename)
+    try:
+        bucket = storage.Client().get_bucket(destination_bucket_name)
+        blob = bucket.blob(filename)
 
-    blob.upload_from_string(
-        data,
-        content_type=content_type)
+        blob.upload_from_string(
+            data,
+            content_type=content_type)
+    except Exception as e:
+        logging.info(str(e))
+        if current_retry < max_retry:
+            upload_file(data, filename, content_type, destination_bucket_name, current_retry=current_retry + 1)
 
 
 def parse_file_to_bucket_and_filename(file_path):
