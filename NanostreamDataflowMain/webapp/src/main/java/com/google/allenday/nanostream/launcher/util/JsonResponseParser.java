@@ -2,10 +2,18 @@ package com.google.allenday.nanostream.launcher.util;
 
 import com.google.allenday.nanostream.launcher.exception.BadRequestException;
 import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.PathNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import static com.jayway.jsonpath.Criteria.where;
+import static com.jayway.jsonpath.Filter.filter;
 import static com.jayway.jsonpath.JsonPath.parse;
+import static java.util.Collections.emptyList;
 
 public final class JsonResponseParser {
 
@@ -37,6 +45,48 @@ public final class JsonResponseParser {
         }
         logger.info("new job id: " + jobId);
         return jobId;
+    }
+
+
+    public static List<Map<String, Object>> parseRunningJobs(String json) {
+        // Json sample:
+//    {
+//      "jobs": [
+//        {
+//          "id": "2019-12-12_05_14_07-11307687861672664813",
+//          "projectId": "nanostream-test1",
+//          "name": "template-32a4ca21-24d5-41fe-b531-f551f5179cdf",
+//          "type": "JOB_TYPE_STREAMING",
+//          "currentState": "JOB_STATE_CANCELLING",
+//          "currentStateTime": "2019-12-12T13:19:24.867468Z",
+//          "requestedState": "JOB_STATE_CANCELLED",
+//          "createTime": "2019-12-12T13:14:08.566549Z",
+//          "location": "us-central1",
+//          "jobMetadata": {
+//            "sdkVersion": {
+//              "version": "2.16.0",
+//              "versionDisplayName": "Apache Beam SDK for Java",
+//              "sdkSupportStatus": "SUPPORTED"
+//            }
+//          },
+//          "startTime": "2019-12-12T13:14:08.566549Z"
+//        }
+//      ]
+//    }
+
+        // JsonPath docs: https://github.com/json-path/JsonPath
+        try {
+            return parse(json).read("$.jobs[?]", filter(
+                    where("currentState").in("JOB_STATE_RUNNING", "JOB_STATE_PENDING", "JOB_STATE_QUEUED")
+            ));
+        } catch (PathNotFoundException e) {
+            logger.warn("No jobs found: " + json);
+            return emptyList();
+        } catch (Exception e) {
+            String message = "Unexpected json response: " + json;
+            logger.error(message, e);
+            throw new BadRequestException("UNKNOWN_ERROR", message);
+        }
     }
 
 }

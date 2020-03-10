@@ -22,11 +22,9 @@ import java.util.concurrent.ExecutionException;
 
 import static com.google.allenday.nanostream.launcher.util.DateTimeUtil.makeTimestamp;
 import static com.google.allenday.nanostream.launcher.util.JsonResponseParser.extractJobId;
+import static com.google.allenday.nanostream.launcher.util.JsonResponseParser.parseRunningJobs;
 import static com.google.allenday.nanostream.launcher.util.PipelineUtil.*;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.jayway.jsonpath.Criteria.where;
-import static com.jayway.jsonpath.Filter.filter;
-import static com.jayway.jsonpath.JsonPath.parse;
 import static java.lang.String.format;
 
 /**
@@ -178,37 +176,7 @@ public class JobLauncher {
 
     private List<Map<String, Object>> getRunningJobs() throws IOException { // TODO: add local cache to not call it frequently
         String json = jobListFetcher.invoke();
-
-// Json sample:
-//    {
-//      "jobs": [
-//        {
-//          "id": "2019-12-12_05_14_07-11307687861672664813",
-//          "projectId": "nanostream-test1",
-//          "name": "template-32a4ca21-24d5-41fe-b531-f551f5179cdf",
-//          "type": "JOB_TYPE_STREAMING",
-//          "currentState": "JOB_STATE_CANCELLING",
-//          "currentStateTime": "2019-12-12T13:19:24.867468Z",
-//          "requestedState": "JOB_STATE_CANCELLED",
-//          "createTime": "2019-12-12T13:14:08.566549Z",
-//          "location": "us-central1",
-//          "jobMetadata": {
-//            "sdkVersion": {
-//              "version": "2.16.0",
-//              "versionDisplayName": "Apache Beam SDK for Java",
-//              "sdkSupportStatus": "SUPPORTED"
-//            }
-//          },
-//          "startTime": "2019-12-12T13:14:08.566549Z"
-//        }
-//      ]
-//    }
-
-        // JsonPath docs: https://github.com/json-path/JsonPath
-        // TODO: fix filter error when job list is empty; move to JsonResponseParser
-        return parse(json).read("$.jobs[?]", filter(
-                where("currentState").in("JOB_STATE_RUNNING", "JOB_STATE_PENDING", "JOB_STATE_QUEUED")
-        ));
+        return parseRunningJobs(json);
     }
 
     private class AlreadyLockedException extends RuntimeException {
