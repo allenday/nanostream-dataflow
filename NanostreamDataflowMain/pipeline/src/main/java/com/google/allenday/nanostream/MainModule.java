@@ -176,7 +176,7 @@ public class MainModule extends NanostreamModule {
     public CreateBatchesTransform provideCreateBatchesTransform(GetDataFromFastQFileFn getDataFromFastQFileFn,
                                                                 ParseFastQFn parseFastQFn,
                                                                 CreateBatchesTransform.SequenceBatchesToFastqFiles sequenceBatchesToFastqFiles) {
-        return new CreateBatchesTransform(getDataFromFastQFileFn, parseFastQFn, sequenceBatchesToFastqFiles,
+        return new CreateBatchesTransform(/*getDataFromFastQFileFn, parseFastQFn,*/ sequenceBatchesToFastqFiles,
                 batchSize, alignmentWindow);
     }
 
@@ -188,8 +188,10 @@ public class MainModule extends NanostreamModule {
 
     @Provides
     @Singleton
-    public CreateBatchesTransform.SequenceBatchesToFastqFiles provideCreateBatchesTransformSequenceBatchesToFastqFiles(AlignService.Instrument instrument) {
-        return new CreateBatchesTransform.SequenceBatchesToFastqFiles(batchSize, instrument);
+    public CreateBatchesTransform.SequenceBatchesToFastqFiles provideCreateBatchesTransformSequenceBatchesToFastqFiles(
+            FileUtils fileUtils,
+            AlignService.Instrument instrument) {
+        return new CreateBatchesTransform.SequenceBatchesToFastqFiles(fileUtils, batchSize, instrument);
     }
 
     @Provides

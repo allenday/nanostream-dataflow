@@ -86,4 +86,11 @@ public interface NanostreamPipelineOptions extends GenomicsPipelineOptions {
     ValueProvider<String> getJobNameLabel();
 
     void setJobNameLabel(ValueProvider<String> value);
+
+
+    @Description("Specifies if need to wait for data to init AutoStop timer")
+    @Default.Boolean(false)
+    Boolean getInitAutoStopOnlyIfDataPassed();
+
+    void setInitAutoStopOnlyIfDataPassed(Boolean value);
 }

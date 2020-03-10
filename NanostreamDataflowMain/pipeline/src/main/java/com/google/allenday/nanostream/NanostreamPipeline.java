@@ -1,7 +1,5 @@
 package com.google.allenday.nanostream;
 
-import com.google.allenday.genomics.core.model.FileWrapper;
-import com.google.allenday.genomics.core.model.SampleMetaData;
 import com.google.allenday.genomics.core.pipeline.PipelineSetupUtils;
 import com.google.allenday.genomics.core.processing.align.AlignTransform;
 import com.google.allenday.genomics.core.reference.ReferenceDatabaseSource;
@@ -75,10 +73,11 @@ public class NanostreamPipeline implements Serializable {
                 .apply("Parse GCloud notification", ParDo.of(injector.getInstance(ParseGCloudNotification.class)))
                 .apply("Create FastQ batches", injector.getInstance(CreateBatchesTransform.class))
                 .apply("Alignment", injector.getInstance(AlignTransform.class))
-                .apply("Looping timer", new LoopingTimerTransform<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>(
+                .apply("Looping timer", new LoopingTimerTransform(
                         options.getAutoStopDelay(),
                         options.getJobNameLabel(),
-                        injector.getInstance(PipelineManagerService.class)))
+                        injector.getInstance(PipelineManagerService.class),
+                        options.getInitAutoStopOnlyIfDataPassed()))
                 .apply("Extract reference name",
                         ParDo.of(injector.getInstance(GetReferencesFromSamDataFn.class)))
                 .apply("Get Taxonomy data", getTaxonomyData(pipeline))
