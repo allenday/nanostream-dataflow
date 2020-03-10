@@ -300,7 +300,7 @@ class Install:
         log('Compile App Engine management application: %s' % cmd)
         subprocess.check_call(cmd, shell=True)
 
-        cmd = 'mvn appengine:stage -DcloudSdkHome=/usr/lib/google-cloud-sdk/ -f NanostreamDataflowMain/webapp/pom.xml'
+        cmd = 'mvn appengine:stage -f NanostreamDataflowMain/webapp/pom.xml'
         log('Stage App Engine management application: %s' % cmd)
         subprocess.check_call(cmd, shell=True)
 
