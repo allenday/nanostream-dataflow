@@ -49,7 +49,7 @@
             inputFolder: '',
             processingMode: 'species',
             inputDataSubscription: '',
-            autoStopDelaySeconds: 300,
+            autoStopDelaySeconds: 900,
             pipelineAutoStart: true,
             pipelineStartImmediately: false,
             referenceNameList: _makeReferenceNameList(),
