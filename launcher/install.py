@@ -63,6 +63,7 @@ class Install:
         self._recreate_bucket_notifications = True
 
     def main(self):
+        self.authenticate_gcloud()
         self.set_default_project_for_gcloud()
         self.enable_apis()
         self.create_storage_buckets()
@@ -85,14 +86,33 @@ class Install:
         return google_cloud_project
 
     def try_get_google_cloud_project(self):
-        if 'GOOGLE_CLOUD_PROJECT' in os.environ:
-            return os.environ['GOOGLE_CLOUD_PROJECT'].strip()
+        var = 'GOOGLE_CLOUD_PROJECT'
+        if var in os.environ:
+            return os.environ[var].strip()
         else:
             try:
                 cmd = 'gcloud config get-value project'
                 return subprocess.check_output(cmd, shell=True).strip().decode("utf-8")
             except subprocess.CalledProcessError:
-                raise IllegalArgumentException('Please define GOOGLE_CLOUD_PROJECT environment variable')
+                raise IllegalArgumentException('Please define %s environment variable' % var)
+
+    def authenticate_gcloud(self):
+        var = 'GOOGLE_APPLICATION_CREDENTIALS'
+        if var in os.environ:
+            service_account_credentials_json = os.environ[var].strip()
+            if os.path.isfile(service_account_credentials_json):
+                self.do_authenticate_gcloud(service_account_credentials_json)
+            else:
+                log('Service account credentials file not found: %s' % service_account_credentials_json)
+
+    def do_authenticate_gcloud(self, service_account_credentials_json):
+        # Authenticate gcloud using "auth/credential_file_override" required because of issue#152
+        # See:
+        # https://hub.docker.com/r/google/cloud-sdk/
+        # https://github.com/GoogleCloudPlatform/cloud-sdk-docker/issues/152#issuecomment-433717308
+        cmd = 'gcloud config set auth/credential_file_override %s' % service_account_credentials_json
+        log('Authenticate gcloud: %s' % cmd)
+        subprocess.check_call(cmd, shell=True)
 
     def set_default_project_for_gcloud(self):
         cmd = "gcloud config set project %s" % self.google_cloud_project

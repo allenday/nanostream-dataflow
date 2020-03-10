@@ -28,4 +28,5 @@ RUN mvn install:install-file -Dfile=NanostreamDataflowMain/libs/japsa.jar -Dgrou
     mvn -B dependency:go-offline -f NanostreamDataflowMain/pipeline/pom.xml && \
     mvn -B dependency:go-offline -f NanostreamDataflowMain/webapp/pom.xml
 
+# Run python3 install script using 'unbuffered' flag
 CMD ["python3", "-u", "/application/launcher/install.py"]

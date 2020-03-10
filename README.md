@@ -53,23 +53,30 @@ Before run automatic setup scripts or perform manual steps make sure you
 3. Set your Cloud Platform project in your session:  
 ```gcloud config set project <your project id>```
 
-4. Build docker launcher
+4. Download a service account credentials to `~/.config/gcloud_keys/gcloud_credentials.json` JSON file: https://cloud.google.com/docs/authentication/production#obtaining_and_providing_service_account_credentials_manually
+ 
+5. Build docker launcher
 ```
 docker build -t launcher .
 ```
 
-5. Run docker launcher
+6. Run docker launcher
 ```
-docker run -e GOOGLE_CLOUD_PROJECT=<your project id> launcher
-```
+docker run \
+  -v ~/.config/gcloud_keys/:/root/.config/gcloud_keys/ \
+  -e GOOGLE_CLOUD_PROJECT=<your project id> \
+  -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud_keys/gcloud_credentials.json \
+  launcher
+``` 
 
-6. Create a Cloud Firestore database: https://firebase.google.com/docs/firestore/quickstart#create
 
-7. Upload Reference Databases to a place available to your project. You may use a bucket `gs://<your project id>-reference-db` created by [installation script](launcher/install.py). 
+7. Create a Cloud Firestore database: https://firebase.google.com/docs/firestore/quickstart#create
 
-8. Open [Nanostream management application](NanostreamDataflowMain/webapp/README.md), create New Pipeline.   
+8. Upload Reference Databases to a place available to your project. You may use a bucket `gs://<your project id>-reference-db` created by [installation script](launcher/install.py). 
 
-9. Start upload your data to upload bucket (`gs://<your project id>-upload-bucket/<your folder data>`)
+9. Open [Nanostream management application](NanostreamDataflowMain/webapp/README.md), create New Pipeline.   
+
+10. Start upload your data to upload bucket (`gs://<your project id>-upload-bucket/<your folder data>`)
  
 
 #### Setup using docker locally
