@@ -74,6 +74,7 @@ gcloud pubsub subscriptions create $UPLOAD_SUBSCRIPTION --topic $UPLOAD_EVENTS
 ```
 5. Create a **Cloud Firestore DB** ([See details in section Create a Cloud Firestore project](https://cloud.google.com/firestore/docs/quickstart-mobile-web#create_a_project)) for saving cache and result data.
 6. *optional* If you running the pipeline in `resistance_genes` mode you should provide "gene list" file stored in GCS.
+7. *optional* If you want to use auto stop functionality you should setup Google Cloud Function and PubSub (`$AUTO_STOP_TOPIC`) topic for it (details [here](launcher/stop_function/README.md))
 
 
 ### Running the Pipeline
@@ -86,6 +87,8 @@ To run the pipeline, first define variables for configuration:
 PROJECT=`gcloud config get-value project`
 # Apache Beam Runner (set org.apache.beam.runners.dataflow.DataflowRunner for running in a Google Cloud Dataflow or org.apache.beam.runners.direct.DirectRunner for running locally on your computer)
 RUNNER=org.apache.beam.runners.dataflow.DataflowRunner
+# Name for the Google Dataflow job
+JOB_NAME=nanostream--`date '+%F--%H-%M-%S'`
 
 # specify mode of data processing (species, resistance_genes)
 PROCESSING_MODE=resistance_genes
@@ -95,19 +98,22 @@ UPLOAD_SUBSCRIPTION=$UPLOAD_SUBSCRIPTION
 
 # size of the window (in wallclock seconds) in which FastQ records will be collected for alignment
 ALIGNMENT_WINDOW=20
+# max size of batch that will be generated before alignment
+$ALIGNMENT_BATCH_SIZE=1000
 # how frequently (in wallclock seconds) are statistics updated for dashboard visualizaiton?
 STATS_UPDATE_FREQUENCY=30
 
+# name for  Reference database 
+REF_NAME=bactrium_db
+# Reference database URI
+REF_URI=gs://$FILES_BUCKET/references/DB.fasta
+# URI of file with taxonomy and clolor scheme for ncbi taxons
+NCBI_TREE_URI=gs://$FILES_BUCKET/references/species_tree.txt
+# Rererence Json data  
+REF_DATA_JSON_STRING="[{\"name\":\"$REF_NAME\", \"fastaUri\":\"$REF_URI\", \\"ncbiTreeUri\":\"$NCBI_TREE_URI\"}]"
 
-# Reference database name
-REFERENCE_DATABASE=genomeDB
-# Bucket for storing aligned files
-ALIGN_RESULTS_BUCKET=$FILES_BUCKET
-# GCS path to directory which will be used for storing aligned files. "%s" will be replaces with job time
-ALIGNED_OUTPUT_DIR=clinic_processing_output/
-# GCS path to directory with references db. References should be stored as ${ALL_REFERENCES_DIR_GCS_URI}${REFERENCE_DATABASE}/(reference_files)
-ALL_REFERENCES_DIR_GCS_URI=gs://$FILES_BUCKET/references/
-
+# GCS URI to directory which will be used for storing aligned files. "%s" will be replaces with job time
+$OUTPUT_GCS_URI=gs://$FILES_BUCKET/references/clinic_processing_output/
 
 # Collections name prefix of the Firestore database that will be used for writing results
 FIRESTORE_COLLECTION_NAME_PREFIX=new_scanning
@@ -117,6 +123,18 @@ If you run the pipeline in the `resistance_genes` mode you should add additional
 # Path to text file with resistant genes references and groups
 RESISTANCE_GENES_LIST=gs://$FILES_BUCKET/gene-info/resistance_genes_list.txt
 ```
+Current pipeline provides AutoStop functionality. To use it you should specify following parameters:
+```
+# Time period in seconds after which pipeline will be automatically stopped
+AUTO_STOP_DELAY=3600 
+# PubSub topic for triggering autostop GCF
+AUTO_STOP_TOPIC=$AUTO_STOP_TOPIC
+# JobName value provider to access from PTransforms
+JOB_NAME_LABEL=$JOB_NAME
+# (OPTIONAL) Specifies if need to wait for data to init AutoStop timer
+INIT_AUTO_STOP_ONLY_IF_DATA_PASSED=false
+```
+
 **(Optional) Additional parameters**
 You can manually specify some parameters such as *Alignment batch size*, *Memory output limit*, *Firestore document name prefix*:
 ```
@@ -134,20 +152,24 @@ java -cp (path_to_nanostream_app_jar) \
   com.google.allenday.nanostream.NanostreamApp \
   --runner=$RUNNER \
   --project=$PROJECT \
+  --jobName=$JOB_NAME \
   --streaming=true \
+  --enableStreamingEngine \
   --processingMode=$PROCESSING_MODE \
   --inputDataSubscription=$UPLOAD_SUBSCRIPTION \
   --alignmentWindow=$ALIGNMENT_WINDOW \
+  --alignmentBatchSize=$ALIGNMENT_BATCH_SIZE \
   --statisticUpdatingDelay=$STATS_UPDATE_FREQUENCY \
-  --referenceNamesList=$REFERENCE_DATABASE \ 
+  --refDataJsonString=$REF_DATA_JSON_STRING \
   --outputCollectionNamePrefix=$FIRESTORE_COLLECTION_NAME_PREFIX \
-  --outputDocumentNamePrefix=$FIRESTORE_DOCUMENT_NAME_PREFIX \
-  --resistanceGenesList=$RESISTANCE_GENES_LIST \
-  --resultBucket=$ALIGN_RESULTS_BUCKET \
-  --outputDir=$ALIGNED_OUTPUT_DIR \
-  --allReferencesDirGcsUri=$ALL_REFERENCES_DIR_GCS_URI \
+  --outputGcsUri=$OUTPUT_GCS_URI \
+  --resistanceGenesList=$RESISTANCE_GENES_LIST `# (Required only for resitant_genes mode)` \
+  --autoStopDelay=$AUTO_STOP_DELAY `# (Required only if auto stop functionality needed)`\
+  --jobNameLabel=$JOB_NAME_LABEL `# (Required only if auto stop functionality needed)`\
+  --autoStopTopic=$AUTO_STOP_TOPIC `# (Required only if auto stop functionality needed)`\
+  --initAutoStopOnlyIfDataPassed=$INIT_AUTO_STOP_ONLY_IF_DATA_PASSED `# (Optional)`\
   --memoryOutputLimit=$MEMORY_OUTPUT_LIMIT `# (Optional)`\
-  --alignmentBatchSize=$ALIGNMENT_BATCH_SIZE `# (Optional)`\
+  --outputDocumentNamePrefix=$FIRESTORE_DOCUMENT_NAME_PREFIX `# (Optional)`
 ```
 
 ### Available databases
@@ -179,7 +201,6 @@ To build jar from source, follow next steps:
 3) Add required Maven dependecies to local Maven repository, such as [**Japsa 1.9-3c**](https://github.com/mdcao/japsa) package. To do this you should run following command from project root:
 ```
 mvn install:install-file -Dfile=NanostreamDataflowMain/libs/japsa.jar -DgroupId=coin -DartifactId=japsa -Dversion=1.9-3c -Dpackaging=jar
-mvn install:install-file -Dfile=NanostreamDataflowMain/libs/pal1.5.1.1.jar -DgroupId=nz.ac.auckland -DartifactId=pal -Dversion=1.5.1.1 -Dpackaging=jar
 ```
 4) Build uber-jar file
 ```
