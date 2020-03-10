@@ -114,7 +114,7 @@
         <dependency>
             <groupId>com.google.allenday</groupId>
             <artifactId>genomics-dataflow-core</artifactId>
-            <version>0.0.3-SNAPSHOT</version>
+            <version>0.0.3</version>
         </dependency>
         <!-- http services -->
         <dependency>

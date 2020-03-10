@@ -68,16 +68,16 @@ public class NanostreamPipeline implements Serializable {
 
 
         pipeline.apply("Reading PubSub", PubsubIO.readMessagesWithAttributes().fromSubscription(options.getInputDataSubscription()))
-                .apply("Filter only ADD FILE", ParDo.of(new FilterObjectFinalizeMessage()))
-                .apply("Deserialize messages", ParDo.of(new DecodeNotificationJsonMessage()))
-                .apply("Parse GCloud notification", ParDo.of(injector.getInstance(ParseGCloudNotification.class)))
-                .apply("Create FastQ batches", injector.getInstance(CreateBatchesTransform.class))
-                .apply("Alignment", injector.getInstance(AlignTransform.class))
                 .apply("Looping timer", new LoopingTimerTransform(
                         options.getAutoStopDelay(),
                         options.getJobNameLabel(),
                         injector.getInstance(PipelineManagerService.class),
                         options.getInitAutoStopOnlyIfDataPassed()))
+                .apply("Filter only ADD FILE", ParDo.of(new FilterObjectFinalizeMessage()))
+                .apply("Deserialize messages", ParDo.of(new DecodeNotificationJsonMessage()))
+                .apply("Parse GCloud notification", ParDo.of(injector.getInstance(ParseGCloudNotification.class)))
+                .apply("Create FastQ batches", injector.getInstance(CreateBatchesTransform.class))
+                .apply("Alignment", injector.getInstance(AlignTransform.class))
                 .apply("Extract reference name",
                         ParDo.of(injector.getInstance(GetReferencesFromSamDataFn.class)))
                 .apply("Get Taxonomy data", getTaxonomyData(pipeline))

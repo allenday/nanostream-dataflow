@@ -1,9 +1,7 @@
 package com.google.allenday.nanostream.pipeline;
 
-import com.google.allenday.genomics.core.model.FileWrapper;
-import com.google.allenday.genomics.core.model.SampleMetaData;
-import com.google.allenday.genomics.core.reference.ReferenceDatabaseSource;
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
+import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.ValueProvider;
 import org.apache.beam.sdk.state.TimeDomain;
@@ -11,8 +9,6 @@ import org.apache.beam.sdk.state.Timer;
 import org.apache.beam.sdk.state.TimerSpec;
 import org.apache.beam.sdk.state.TimerSpecs;
 import org.apache.beam.sdk.transforms.*;
-import org.apache.beam.sdk.transforms.windowing.GlobalWindows;
-import org.apache.beam.sdk.transforms.windowing.Window;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionList;
@@ -24,9 +20,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
 
-public class LoopingTimerTransform extends PTransform<PCollection<KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>>,
-        PCollection<KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>>> {
+public class LoopingTimerTransform extends PTransform<PCollection<PubsubMessage>,
+        PCollection<PubsubMessage>> {
     private Logger LOG = LoggerFactory.getLogger(LoopingTimerTransform.class);
 
     private ValueProvider<Integer> maxDeltaSec;
@@ -43,21 +40,17 @@ public class LoopingTimerTransform extends PTransform<PCollection<KV<SampleMetaD
     }
 
     @Override
-    public PCollection<KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>> expand(PCollection<KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>> input) {
-        PCollection<KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>> flattenedCollection;
+    public PCollection<PubsubMessage> expand(PCollection<PubsubMessage> input) {
+        PCollection<PubsubMessage> flattenedCollection;
         if (initAutoStopOnlyIfDataPassed) {
             flattenedCollection = input;
         } else {
             Instant nowTime = Instant.now();
             LOG.info("Starter time: {}", nowTime.toString());
 
-            PCollection<KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>> starterCollection = input.getPipeline()
-                    .apply(Create.<KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>>timestamped(
-                            TimestampedValue.of(KV.of(SampleMetaData.createUnique("", "", ""),
-                                    KV.of(new ReferenceDatabaseSource.Explicit(), FileWrapper.empty())), nowTime)))
-                    .apply(Window.<KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>>into(new GlobalWindows())
-                            .triggering(input.getWindowingStrategy().getTrigger()).withAllowedLateness(Duration.ZERO).discardingFiredPanes());
-
+            PCollection<PubsubMessage> starterCollection = input.getPipeline()
+                    .apply(Create.timestamped(
+                            TimestampedValue.of(new PubsubMessage(new byte[0], new HashMap<>()), nowTime)));
             flattenedCollection = PCollectionList.of(starterCollection).and(input)
                     .apply(Flatten.pCollections());
         }
@@ -65,16 +58,16 @@ public class LoopingTimerTransform extends PTransform<PCollection<KV<SampleMetaD
         return flattenedCollection
                 .apply(WithKeys.of(0))
                 .apply(ParDo.of(new LoopingTimer(pipelineManagerService, maxDeltaSec, jobNameLabel)))
-                .apply(MapElements.via(new SimpleFunction<KV<Integer, KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>>, KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>>() {
+                .apply(MapElements.via(new SimpleFunction<KV<Integer, PubsubMessage>, PubsubMessage>() {
                     @Override
-                    public KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>> apply(KV<Integer, KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>> input) {
+                    public PubsubMessage apply(KV<Integer, PubsubMessage> input) {
                         return input.getValue();
                     }
                 }));
     }
 
-    public static class LoopingTimer extends DoFn<KV<Integer, KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>>,
-            KV<Integer, KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>>> {
+    public static class LoopingTimer extends DoFn<KV<Integer, PubsubMessage>,
+            KV<Integer, PubsubMessage>> {
 
         @TimerId("loopingTimer")
         private final TimerSpec loopingTimerSpec =
@@ -107,7 +100,7 @@ public class LoopingTimerTransform extends PTransform<PCollection<KV<SampleMetaD
                     Instant.now().plus(Duration.standardSeconds(maxDeltaSec.get())).toString());
 
             Duration timerOffset = Duration.standardSeconds(maxDeltaSec.get());
-            if (c.element().getValue().getValue().getValue().getDataType() != FileWrapper.DataType.EMPTY) {
+            if (c.element().getValue().getAttributeMap().size() > 0) {
                 c.output(c.element());
             }
             loopingTimer.offset(timerOffset).setRelative();
