@@ -12,7 +12,8 @@
                     <th>Stop</th>
                     </thead>
                     <tr v-for="job in jobs">
-                        <td><router-link :to="{name: 'job_details', params: { job_id: job.id, location: job.location }}">{{ job.name }}</router-link></td>
+                        <!--<td><router-link :to="{name: 'job_details', params: { job_id: job.id, location: job.location }}">{{ job.name }}</router-link></td>-->
+                        <td><a :href="getGcpDataflowJobUrl(job)" target="_blank"><i class="fa fa-sign-in"></i>&nbsp;{{ job.name }}</a></td>
                         <td>{{ job.startTime }}</td>
                         <td>{{ job.stopTime }}</td>
                         <td>{{ job.currentState }}</td>
@@ -42,6 +43,7 @@
 <script>
 
     import api from '../../api.js';
+    import GcpUrl from '../../gcp_url.util.js';
     import JobUtil from '../../pipeline.util.js'
     import ErrorMessage from './ErrorMessage.vue'
 
@@ -88,6 +90,9 @@
             },
             async getJobsFirstTime() {
                 this.makeRequestUsingLoader(() => this.getJobs());
+            },
+            getGcpDataflowJobUrl(job) {
+                return GcpUrl.getGcpDataflowJobUrl(job);
             },
             getJobs() {
                 let that = this;

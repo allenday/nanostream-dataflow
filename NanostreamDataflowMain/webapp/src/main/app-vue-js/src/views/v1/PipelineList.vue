@@ -7,7 +7,7 @@
                     <thead>
                         <th>Name</th>
                         <th>Input folder</th>
-                        <th>Output collection name prefix</th>
+                        <th>Output firestore collection</th>
                         <th>Processing mode</th>
                         <th>Input data subscription</th>
                         <th>Jobs</th>
@@ -54,10 +54,11 @@
 <script>
 
     import config from '../../config.js';
+    import api from "../../api";
+    import GcpUrl from '../../gcp_url.util.js';
+    import PipelineUtil from "../../pipeline.util.js";
     import Jobs from './pipeline_list/Jobs.vue';
     import AutostartCheckbox from "./pipeline_list/AutostartCheckbox.vue"
-    import api from "../../api";
-    import PipelineUtil from "../../pipeline.util";
     import ErrorMessage from './ErrorMessage.vue'
 
 
@@ -154,16 +155,13 @@
                 this.errMsg.show = true;
             },
             getFirestoreCollectionUrl(pipeline) {
-                return "https://console.firebase.google.com/u/0/project/" + config.firebase.projectId + "/database/firestore/data~2F"
-                    + pipeline.outputCollectionNamePrefix + '__statistic__' + pipeline.uploadBucketName;
+                return GcpUrl.getFirestoreCollectionUrl(pipeline);
             },
             getInputDataSubscriptionUrl(pipeline) {
-                // projects/nanostream-test1/subscriptions/nanostream-20200212t161049707z => nanostream-20200212t161049707z
-                let subscription = pipeline.inputDataSubscription.replace(new RegExp("^.+\/(.*)"), '$1');  // get part after the last slash
-                return "https://console.cloud.google.com/cloudpubsub/subscription/detail/" + subscription + "?authuser=0&project=" + config.firebase.projectId;
+                return GcpUrl.getInputDataSubscriptionUrl(pipeline);
             },
             getBucketFolderUrl(pipeline) {
-                return "https://console.cloud.google.com/storage/browser/" + pipeline.uploadBucketName + "/" + pipeline.inputFolder + "/?authuser=0&project=" + config.firebase.projectId;
+                return GcpUrl.getBucketFolderUrl(pipeline);
             },
             subscriptionToShort(fullSubscripionName) {
                 return fullSubscripionName.replace(new RegExp('^.+/(.+)'), '$1')
