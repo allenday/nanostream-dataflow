@@ -63,6 +63,7 @@ class Install:
         self._recreate_bucket_notifications = True
 
     def main(self):
+        self.authenticate_gcloud()
         self.set_default_project_for_gcloud()
         self.enable_apis()
         self.create_storage_buckets()
@@ -73,8 +74,6 @@ class Install:
         self.initialize_app_engine_in_project()
         self.initialize_firebase_project()
         self.write_config_files()
-        # self.add_object_viewer_permission_to_cloudbuild_service_account()
-        self.run_gcloud_diagnostics()
         self.deploy_app_engine_management_application()
         self.deploy_start_pipeline_function()
         self.deploy_stop_pipeline_function()
@@ -87,14 +86,33 @@ class Install:
         return google_cloud_project
 
     def try_get_google_cloud_project(self):
-        if 'GOOGLE_CLOUD_PROJECT' in os.environ:
-            return os.environ['GOOGLE_CLOUD_PROJECT'].strip()
+        var = 'GOOGLE_CLOUD_PROJECT'
+        if var in os.environ:
+            return os.environ[var].strip()
         else:
             try:
                 cmd = 'gcloud config get-value project'
                 return subprocess.check_output(cmd, shell=True).strip().decode("utf-8")
             except subprocess.CalledProcessError:
-                raise IllegalArgumentException('Please define GOOGLE_CLOUD_PROJECT environment variable')
+                raise IllegalArgumentException('Please define %s environment variable' % var)
+
+    def authenticate_gcloud(self):
+        var = 'GOOGLE_APPLICATION_CREDENTIALS'
+        if var in os.environ:
+            service_account_credentials_json = os.environ[var].strip()
+            if os.path.isfile(service_account_credentials_json):
+                self.do_authenticate_gcloud(service_account_credentials_json)
+            else:
+                log('Service account credentials file not found: %s' % service_account_credentials_json)
+
+    def do_authenticate_gcloud(self, service_account_credentials_json):
+        # Authenticate gcloud using "auth/credential_file_override" required because of issue#152
+        # See:
+        # https://hub.docker.com/r/google/cloud-sdk/
+        # https://github.com/GoogleCloudPlatform/cloud-sdk-docker/issues/152#issuecomment-433717308
+        cmd = 'gcloud config set auth/credential_file_override %s' % service_account_credentials_json
+        log('Authenticate gcloud: %s' % cmd)
+        subprocess.check_call(cmd, shell=True)
 
     def set_default_project_for_gcloud(self):
         cmd = "gcloud config set project %s" % self.google_cloud_project
@@ -107,6 +125,7 @@ class Install:
         self.enable_api("firebase.googleapis.com")
         self.enable_api("firestore.googleapis.com")
         self.enable_api("cloudfunctions.googleapis.com")
+        self.enable_api("appengine.googleapis.com")
 
     def enable_api(self, api_name):
         cmd = 'gcloud services enable %s' % api_name
@@ -269,40 +288,27 @@ class Install:
         handler = ConfigHandler(self._config_data, self.dir_file)
         handler.write_configs()
 
-    def add_object_viewer_permission_to_cloudbuild_service_account(self):
-        project_number = self.get_project_number()
-        cloudbuild_email = self.get_cloudbuild_email(project_number)
-        self.add_object_viewer_permission(cloudbuild_email)
-
-    def get_project_number(self):
-        cmd = 'gcloud projects describe %s' % self.google_cloud_project
-        response = subprocess.check_output(cmd, shell=True).decode("utf-8")
-        match_obj = re.match( r".*projectNumber: '(\d+)'.*", response, re.S|re.I)
-        if match_obj:
-            project_number = match_obj.group(1)
-            log('Project number found:' + project_number)
-            return project_number
-        else:
-            raise Exception('Cannot find project number: ' + response)
-
-    def get_cloudbuild_email(self, project_number):
-        return '%s@cloudbuild.gserviceaccount.com' % project_number
-
-
-    def add_object_viewer_permission(self, cloudbuild_email):
-        cmd = 'gcloud projects add-iam-policy-binding %s --member serviceAccount:%s --role roles/storage.objectViewer' \
-              % (self.google_cloud_project, cloudbuild_email)
-        log('Add objectViewer permission to cloudbuild service account: %s' % cmd)
-        subprocess.check_call(cmd, shell=True)
-
-    def run_gcloud_diagnostics(self):
-        cmd = 'gcloud info --run-diagnostics'
-        log('Run gcloud diagnostics: %s' % cmd)
-        subprocess.check_call(cmd, shell=True)
-
     def deploy_app_engine_management_application(self):
-        cmd = 'mvn clean package appengine:deploy -DskipTests=true -f NanostreamDataflowMain/webapp/pom.xml'
-        log('Compile and deploy App Engine management application: %s' % cmd)
+        #     cmd = 'mvn clean package appengine:deploy \
+        #             -DskipTests=true \
+        #             -DcloudSdkHome=/usr/lib/google-cloud-sdk/ \
+        #             -f NanostreamDataflowMain/webapp/pom.xml'
+        #     log('Compile and deploy App Engine management application: %s' % cmd)
+        #     subprocess.check_call(cmd, shell=True)
+
+        cmd = 'mvn clean package -DskipTests=true -f NanostreamDataflowMain/webapp/pom.xml'
+        log('Compile App Engine management application: %s' % cmd)
+        subprocess.check_call(cmd, shell=True)
+
+        cmd = 'mvn appengine:stage -f NanostreamDataflowMain/webapp/pom.xml'
+        log('Stage App Engine management application: %s' % cmd)
+        subprocess.check_call(cmd, shell=True)
+
+        # This step required because appengine maven plugin for unknown reason cleans gcloud project settings
+        self.set_default_project_for_gcloud()
+
+        cmd = 'gcloud --quiet app deploy NanostreamDataflowMain/webapp/target/appengine-staging/app.yaml '
+        log('Deploy App Engine management application: %s' % cmd)
         subprocess.check_call(cmd, shell=True)
 
 
@@ -358,7 +364,7 @@ class FirebaseHandler:
         try:
             subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True).strip().decode("utf-8")
         except subprocess.CalledProcessError:
-            log("The project already added to firebase")
+            log("Firebase already added to the project ")
 
     def prepare_firebase_config_data(self):
         web_app_id = self._get_or_create_firebase_web_app()

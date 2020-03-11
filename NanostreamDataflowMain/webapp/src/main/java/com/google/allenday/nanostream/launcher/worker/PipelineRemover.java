@@ -37,7 +37,7 @@ public class PipelineRemover extends PipelineBase {
     }
 
     private void validateRemoveSubscriptionOutput(String removeSubscriptionOutput, String inputDataSubscription) {
-        if (!"{}".equals(removeSubscriptionOutput)) { // if success response contains an empty json
+        if (!"{}".equals(removeSubscriptionOutput.trim())) { // if success response contains an empty json
             String message = "Cannot remove pipeline subscription: " + inputDataSubscription;
             logger.error(message + ": " + removeSubscriptionOutput);
             throw new BadRequestException("REMOVE_PIPELINE_ERROR", message);

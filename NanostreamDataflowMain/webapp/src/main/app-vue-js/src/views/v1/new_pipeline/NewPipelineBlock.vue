@@ -14,6 +14,8 @@
             <div class="col-md-6">
                 <div class="form-group">
                     <label for="pipeline-name">Pipeline name:</label>
+                    <a class="tooltip-icon" data-toggle="tooltip" data-placement="top"
+                       title="An arbitrary name to identify your pipeline."><i class="fa fa-question-circle"></i></a>
                     <input v-model="pipeline.pipelineName" type="text" class="form-control" id="pipeline-name"
                            placeholder="Enter Pipeline Name" name="pipeline-name">
                 </div>

@@ -7,7 +7,10 @@
             </div>
             <div class="col-sm">
                 <div id="document-selector-area">
-                        <h4>Document :</h4>
+                        <h4>Document:
+                            <a class="tooltip-icon" data-toggle="tooltip" data-placement="top"
+                                title="Once pipeline processed some data it generates firestore documents"><i class="fa fa-question-circle"></i></a>
+                        </h4>
                     <div>
 
                         <select
