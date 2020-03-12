@@ -22,6 +22,9 @@ This source repo contains a prototype implementation of a scalable, reliable, an
 - simulator - python script that can simulate file uploads to GCS (for testing, or if you don't have a real dataset)
 - doc - additional documentation files 
 
+### Application structure
+![Application structure](doc/application_structure.png)
+
 
 ### Setup
 
