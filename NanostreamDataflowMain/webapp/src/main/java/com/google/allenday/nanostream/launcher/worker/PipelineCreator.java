@@ -3,6 +3,7 @@ package com.google.allenday.nanostream.launcher.worker;
 import com.google.allenday.nanostream.launcher.data.PipelineEntity;
 import com.google.allenday.nanostream.launcher.data.PipelineRequestParams;
 import com.google.allenday.nanostream.launcher.data.ReferenceDb;
+import com.google.allenday.nanostream.launcher.exception.BadRequestException;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.WriteResult;
 import org.slf4j.Logger;
@@ -13,14 +14,18 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
+import static com.google.allenday.nanostream.launcher.util.AssertUtil.assertEquals;
 import static com.google.allenday.nanostream.launcher.util.AssertUtil.assertNotEmpty;
 import static com.google.allenday.nanostream.launcher.util.DateTimeUtil.makeTimestamp;
 import static com.google.allenday.nanostream.launcher.util.PipelineUtil.FIRESTORE_PIPELINES_COLLECTION;
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toSet;
 
 
 @Service
@@ -68,12 +73,33 @@ public class PipelineCreator extends PipelineBase {
     }
 
     private void validateReferenceDbs(List<ReferenceDb> referenceDbs) {
-        assertNotEmpty(referenceDbs, "Empty reference db list allowed");
+        assertNotEmpty(referenceDbs, "Empty reference db list not allowed");
         for (ReferenceDb referenceDb : referenceDbs) {
             assertNotEmpty(referenceDb.getName(), "Empty reference db name not allowed");
             assertNotEmpty(referenceDb.getFastaUri(), "Empty reference db Fasta Uri not allowed");
             assertNotEmpty(referenceDb.getNcbiTreeUri(), "Empty reference db Ncbi Tree Uri not allowed");
         }
+        validateUniqueRefDbName(referenceDbs);
+        validateUniqueFastaUri(referenceDbs);
+        validateRefDbNameContainsValidChars(referenceDbs);
+    }
+
+    private void validateUniqueRefDbName(List<ReferenceDb> referenceDbs) {
+        Set<String> set = referenceDbs.stream().map(ReferenceDb::getName).collect(toSet());
+        assertEquals(set.size(), referenceDbs.size(), "Duplicated reference db name not allowed");
+    }
+
+    private void validateUniqueFastaUri(List<ReferenceDb> referenceDbs) {
+        Set<String> set = referenceDbs.stream().map(ReferenceDb::getFastaUri).collect(toSet());
+        assertEquals(set.size(), referenceDbs.size(), "Duplicated reference db url not allowed");
+    }
+
+    private void validateRefDbNameContainsValidChars(List<ReferenceDb> referenceDbs) {
+        referenceDbs.forEach(referenceDb -> {
+            if (!referenceDb.getName().matches("[a-zA-Z0-9_\\.-]+")) {
+                throw new BadRequestException("INVALID_CHARACTERS", "Reference db name contains not allowed chars. Please use alphanumeric only.");
+            }
+        });
     }
 
     private String makePipelineId() {
