@@ -44,7 +44,9 @@ There is an installation script [install.py](launcher/install.py) that
 Before run automatic setup scripts or perform manual steps make sure you 
 - created [Google Cloud Project](https://console.cloud.google.com); 
 - bounded it to a payment account;
-- Firestore used in native mode (use "nam5 (United States)" location).  
+- Firestore used in native mode (use "nam5 (United States)" location).
+- To run pipeline in `resistance_genes` mode you should provide "gene list" file stored in GCS. 
+Expected location is `gs://<your project id>-reference-db/gene_info/resistance_genes_list.txt`  
 
 
 #### Setup using docker on Google Cloud Console
