@@ -22,6 +22,9 @@ This source repo contains a prototype implementation of a scalable, reliable, an
 - simulator - python script that can simulate file uploads to GCS (for testing, or if you don't have a real dataset)
 - doc - additional documentation files 
 
+### Application structure
+![Application structure](doc/application_structure.png)
+
 
 ### Setup
 
@@ -53,34 +56,76 @@ Before run automatic setup scripts or perform manual steps make sure you
 3. Set your Cloud Platform project in your session:  
 ```gcloud config set project <your project id>```
 
-4. Build docker launcher
+4. Download a service account credentials to `~/.config/gcloud_keys/gcloud_credentials.json` JSON file: https://cloud.google.com/docs/authentication/production#obtaining_and_providing_service_account_credentials_manually
+ 
+5. Build docker launcher
 ```
 docker build -t launcher .
 ```
 
-5. Run docker launcher
+6. Run docker launcher
 ```
-docker run -e GOOGLE_CLOUD_PROJECT=<your project id> launcher
-```
+docker run \
+  -v ~/.config/gcloud_keys/:/root/.config/gcloud_keys/ \
+  -e GOOGLE_CLOUD_PROJECT=<your project id> \
+  -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud_keys/gcloud_credentials.json \
+  launcher
+``` 
 
-6. Create a Cloud Firestore database: https://firebase.google.com/docs/firestore/quickstart#create
 
-7. Upload Reference Databases to a place available to your project. You may use a bucket `gs://<your project id>-reference-db` created by [installation script](launcher/install.py). 
+7. Create a Cloud Firestore database: https://firebase.google.com/docs/firestore/quickstart#create
 
-8. Open [Nanostream management application](NanostreamDataflowMain/webapp/README.md), create New Pipeline.   
+8. Upload Reference Databases to a place available to your project. You may use a bucket `gs://<your project id>-reference-db` created by [installation script](launcher/install.py). 
 
-9. Start upload your data to upload bucket (`gs://<your project id>-upload-bucket/<your folder data>`)
+9. Open [Nanostream management application](NanostreamDataflowMain/webapp/README.md), create New Pipeline.   
+
+10. Start upload your data to upload bucket (`gs://<your project id>-upload-bucket/<your folder data>`)
  
+
+#### Setup using docker locally
+
+Make sure you have installed
+- [Docker](https://docs.docker.com/install/linux/docker-ce/ubuntu/) 
+- [Google Cloud SDK](https://cloud.google.com/sdk/install)
+ 
+1. Initialise Google Cloud SDK: https://cloud.google.com/sdk/docs/initializing
+```
+gcloud init
+
+```
+2. Get application-default credentials: https://cloud.google.com/sdk/gcloud/reference/auth/application-default/login
+```
+gcloud auth application-default login
+
+```
+3. Download a service account credentials to `~/.config/gcloud_keys/gcloud_credentials.json` JSON file: https://cloud.google.com/docs/authentication/production#obtaining_and_providing_service_account_credentials_manually
+ 
+4. Clone the project from Github
+
+5. Build docker launcher
+```
+docker build -t launcher .
+```     
+
+6. Run docker launcher
+```
+docker run \
+  -v ~/.config/gcloud_keys/:/root/.config/gcloud_keys/ \
+  -v ~/.config/gcloud/:/root/.config/gcloud/ \
+  -e GOOGLE_CLOUD_PROJECT=<your project id> \
+  -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud_keys/gcloud_credentials.json \
+  launcher
+``` 
 
 #### Setup by running install.py directly
 
 You can run installation script [install.py](launcher/install.py) directly.
  
 Make sure you have installed: 
-- Python3 (https://www.python.org/downloads/)
-- Maven (http://maven.apache.org/download.cgi)
-- Google Cloud Sdk (https://cloud.google.com/sdk/install)
-- Firebase Tools (https://firebase.google.com/docs/cli)
+- [Python3](https://www.python.org/downloads/)
+- [Maven](http://maven.apache.org/download.cgi)
+- [Google Cloud Sdk](https://cloud.google.com/sdk/install)
+- [Firebase Tools](https://firebase.google.com/docs/cli)
 
 1. Init your gcloud configuration: `gcloud init`
 2. Obtain a JSON file with a service account credentials (https://cloud.google.com/docs/authentication/production#obtaining_and_providing_service_account_credentials_manually).
