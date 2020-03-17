@@ -201,6 +201,10 @@ class Install:
         log('Add japsa dependency: %s' % cmd)
         subprocess.check_call(cmd, shell=True)
 
+        cmd = 'mvn install:install-file -Dfile=NanostreamDataflowMain/libs/pal1.5.1.1.jar -DgroupId=nz.ac.auckland -DartifactId=pal -Dversion=1.5.1.1 -Dpackaging=jar'
+        log('Add pal dependency: %s' % cmd)
+        subprocess.check_call(cmd, shell=True)
+
     def deploy_dataflow_templates(self):
         self.deploy_dataflow_template('species', self.ref_species_dir)
         self.deploy_dataflow_template('resistance_genes', self.ref_genes_dir)
