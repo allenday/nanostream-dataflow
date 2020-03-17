@@ -46,15 +46,9 @@ class Install:
             ))
 
         # reference database config:
-        self.reference_name_list = 'DB'  # how reference files are named: DB.fasta -> DB
-        self.ref_species_dir = self.reference_db_bucket_url + 'reference-sequences/species/'
-        self.ref_genes_dir = self.reference_db_bucket_url + 'reference-sequences/antibiotic-resistance-genes/'
         self.resistance_genes_list = self.reference_db_bucket_url + 'gene_info/resistance_genes_list.txt'
 
-        log("Reference db: \n  reference_name_list: %s\n  ref_species_dir: %s\n  ref_genes_dir: %s\n  resistance_genes_list: %s\n" % (
-            self.reference_name_list,
-            self.ref_species_dir,
-            self.ref_genes_dir,
+        log("Reference db: resistance_genes_list: %s\n" % (
             self.resistance_genes_list,
         ))
 
@@ -206,10 +200,10 @@ class Install:
         subprocess.check_call(cmd, shell=True)
 
     def deploy_dataflow_templates(self):
-        self.deploy_dataflow_template('species', self.ref_species_dir)
-        self.deploy_dataflow_template('resistance_genes', self.ref_genes_dir)
+        self.deploy_dataflow_template('species')
+        self.deploy_dataflow_template('resistance_genes')
 
-    def deploy_dataflow_template(self, processing_mode, all_references_dir_gcs_uri):
+    def deploy_dataflow_template(self, processing_mode):
         template_name = 'nanostream-' + processing_mode
         alignment_window = 20
         stats_update_frequency = 30
@@ -283,7 +277,6 @@ class Install:
 
     def write_config_files(self):
         self._config_data['uploadBucketName'] = self.upload_bucket_name
-        self._config_data['referenceNamesList'] = self.reference_name_list
         self._config_data['uploadPubSubTopic'] = self.upload_pub_sub_topic
         handler = ConfigHandler(self._config_data, self.dir_file)
         handler.write_configs()

@@ -52,7 +52,6 @@
             autoStopDelaySeconds: 900,
             pipelineAutoStart: true,
             pipelineStartImmediately: false,
-            referenceNameList: _makeReferenceNameList(),
             referenceDbs: [],
         };
         pipelines.push(pipeline);
@@ -60,22 +59,12 @@
 
 //        {"id":"pipeline-636e8807-158d-4fd8-b061-18864fbe35ab","name":"tets98","inputFolder":"hhh","outputCollectionNamePrefix":"",
 // "outputDocumentNamePrefix":"","processingMode":"species","inputDataSubscription":"projects/nanostream-test1/subscriptions/nanostream-20200217t131204214z",
-// "referenceNameList":"DB,DB1,DB2,DB3","pipelineAutoStart":true,"pipelineStartImmediately":false,
+// "pipelineAutoStart":true,"pipelineStartImmediately":false,
 // "uploadBucketName":"nanostream-test1-upload-bucket","createdAt":"2020-02-17T13:12:09.584Z","jobIds":[],"lockStatus":"UNLOCKED",
 // "version":"1"}
 
         return pipeline;
     }
-
-    function _makeReferenceNameList() {
-        let result = [];
-        let referenceNames = config.general.referenceNamesList.split(/\s*,\s*/);
-        referenceNames.forEach(function (referenceName) {
-            result.push({name: referenceName, selected: true })
-        });
-        return result;
-    }
-
 
     export default {
         name: 'NewPipeline',
