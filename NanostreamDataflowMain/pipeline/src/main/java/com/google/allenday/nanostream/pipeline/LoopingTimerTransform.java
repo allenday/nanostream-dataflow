@@ -1,8 +1,7 @@
 package com.google.allenday.nanostream.pipeline;
 
 import com.google.allenday.genomics.core.model.FileWrapper;
-import com.google.allenday.genomics.core.model.SampleMetaData;
-import com.google.allenday.genomics.core.reference.ReferenceDatabaseSource;
+import com.google.allenday.nanostream.gcs.GCSSourceData;
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.ValueProvider;
@@ -11,8 +10,7 @@ import org.apache.beam.sdk.state.Timer;
 import org.apache.beam.sdk.state.TimerSpec;
 import org.apache.beam.sdk.state.TimerSpecs;
 import org.apache.beam.sdk.transforms.*;
-import org.apache.beam.sdk.transforms.windowing.GlobalWindows;
-import org.apache.beam.sdk.transforms.windowing.Window;
+import org.apache.beam.sdk.transforms.windowing.*;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionList;
@@ -25,8 +23,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-public class LoopingTimerTransform extends PTransform<PCollection<KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>>,
-        PCollection<KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>>> {
+public class LoopingTimerTransform extends PTransform<PCollection<KV<GCSSourceData, FileWrapper>>,
+        PCollection<KV<GCSSourceData, FileWrapper>>> {
     private Logger LOG = LoggerFactory.getLogger(LoopingTimerTransform.class);
 
     private ValueProvider<Integer> maxDeltaSec;
@@ -43,38 +41,42 @@ public class LoopingTimerTransform extends PTransform<PCollection<KV<SampleMetaD
     }
 
     @Override
-    public PCollection<KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>> expand(PCollection<KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>> input) {
-        PCollection<KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>> flattenedCollection;
+    public PCollection<KV<GCSSourceData, FileWrapper>> expand(PCollection<KV<GCSSourceData, FileWrapper>> input) {
+        PCollection<KV<GCSSourceData, FileWrapper>> flattenedCollection;
         if (initAutoStopOnlyIfDataPassed) {
             flattenedCollection = input;
         } else {
             Instant nowTime = Instant.now();
             LOG.info("Starter time: {}", nowTime.toString());
 
-            PCollection<KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>> starterCollection = input.getPipeline()
-                    .apply(Create.<KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>>timestamped(
-                            TimestampedValue.of(KV.of(SampleMetaData.createUnique("", "", ""),
-                                    KV.of(new ReferenceDatabaseSource.Explicit(), FileWrapper.empty())), nowTime)))
-                    .apply(Window.<KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>>into(new GlobalWindows())
-                            .triggering(input.getWindowingStrategy().getTrigger()).withAllowedLateness(Duration.ZERO).discardingFiredPanes());
-
+            KV<GCSSourceData, FileWrapper> dummyInitialEventData = KV.of(new GCSSourceData("", ""), FileWrapper.empty());
+            PCollection<KV<GCSSourceData, FileWrapper>> starterCollection = input.getPipeline()
+                    .apply(Create.timestamped(
+                            TimestampedValue.of(dummyInitialEventData, nowTime)));
             flattenedCollection = PCollectionList.of(starterCollection).and(input)
                     .apply(Flatten.pCollections());
         }
 
         return flattenedCollection
                 .apply(WithKeys.of(0))
+                .apply(Window.<KV<Integer, KV<GCSSourceData, FileWrapper>>>into(new GlobalWindows()).triggering(Repeatedly.forever(AfterFirst.of(
+                        AfterPane.elementCountAtLeast(1),
+                        AfterProcessingTime
+                                .pastFirstElementInPane()
+                                .plusDelayOf(Duration.standardSeconds(1)))))
+                        .withAllowedLateness(Duration.ZERO)
+                        .accumulatingFiredPanes())
                 .apply(ParDo.of(new LoopingTimer(pipelineManagerService, maxDeltaSec, jobNameLabel)))
-                .apply(MapElements.via(new SimpleFunction<KV<Integer, KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>>, KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>>() {
+                .apply(MapElements.via(new SimpleFunction<KV<Integer, KV<GCSSourceData, FileWrapper>>, KV<GCSSourceData, FileWrapper>>() {
                     @Override
-                    public KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>> apply(KV<Integer, KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>> input) {
+                    public KV<GCSSourceData, FileWrapper> apply(KV<Integer, KV<GCSSourceData, FileWrapper>> input) {
                         return input.getValue();
                     }
                 }));
     }
 
-    public static class LoopingTimer extends DoFn<KV<Integer, KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>>,
-            KV<Integer, KV<SampleMetaData, KV<ReferenceDatabaseSource, FileWrapper>>>> {
+    public static class LoopingTimer extends DoFn<KV<Integer, KV<GCSSourceData, FileWrapper>>,
+            KV<Integer, KV<GCSSourceData, FileWrapper>>> {
 
         @TimerId("loopingTimer")
         private final TimerSpec loopingTimerSpec =
@@ -107,7 +109,7 @@ public class LoopingTimerTransform extends PTransform<PCollection<KV<SampleMetaD
                     Instant.now().plus(Duration.standardSeconds(maxDeltaSec.get())).toString());
 
             Duration timerOffset = Duration.standardSeconds(maxDeltaSec.get());
-            if (c.element().getValue().getValue().getValue().getDataType() != FileWrapper.DataType.EMPTY) {
+            if (c.element().getValue().getValue().getDataType() != FileWrapper.DataType.EMPTY) {
                 c.output(c.element());
             }
             loopingTimer.offset(timerOffset).setRelative();

@@ -5,6 +5,7 @@ import com.google.allenday.genomics.core.processing.align.AlignTransform;
 import com.google.allenday.genomics.core.reference.ReferenceDatabaseSource;
 import com.google.allenday.nanostream.batch.CreateBatchesTransform;
 import com.google.allenday.nanostream.coders.SequenceOnlyDNACoder;
+import com.google.allenday.nanostream.gcs.FilterGcsDirectoryTransform;
 import com.google.allenday.nanostream.gcs.GCSSourceData;
 import com.google.allenday.nanostream.gcs.ParseGCloudNotification;
 import com.google.allenday.nanostream.geneinfo.TaxonData;
@@ -71,13 +72,14 @@ public class NanostreamPipeline implements Serializable {
                 .apply("Filter only ADD FILE", ParDo.of(new FilterObjectFinalizeMessage()))
                 .apply("Deserialize messages", ParDo.of(new DecodeNotificationJsonMessage()))
                 .apply("Parse GCloud notification", ParDo.of(injector.getInstance(ParseGCloudNotification.class)))
-                .apply("Create FastQ batches", injector.getInstance(CreateBatchesTransform.class))
-                .apply("Alignment", injector.getInstance(AlignTransform.class))
+                .apply("Filter by input directory", injector.getInstance(FilterGcsDirectoryTransform.class))
                 .apply("Looping timer", new LoopingTimerTransform(
                         options.getAutoStopDelay(),
                         options.getJobNameLabel(),
                         injector.getInstance(PipelineManagerService.class),
                         options.getInitAutoStopOnlyIfDataPassed()))
+                .apply("Create FastQ batches", injector.getInstance(CreateBatchesTransform.class))
+                .apply("Alignment", injector.getInstance(AlignTransform.class))
                 .apply("Extract reference name",
                         ParDo.of(injector.getInstance(GetReferencesFromSamDataFn.class)))
                 .apply("Get Taxonomy data", getTaxonomyData(pipeline))
