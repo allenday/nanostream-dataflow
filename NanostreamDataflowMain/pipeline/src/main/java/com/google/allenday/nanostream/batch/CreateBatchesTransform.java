@@ -5,10 +5,9 @@ import com.google.allenday.genomics.core.io.GCSService;
 import com.google.allenday.genomics.core.model.FileWrapper;
 import com.google.allenday.genomics.core.model.SampleMetaData;
 import com.google.allenday.genomics.core.processing.align.AlignService;
-import com.google.allenday.nanostream.fastq.ParseFastQFn;
-import com.google.allenday.nanostream.gcs.GetDataFromFastQFileFn;
-import com.google.allenday.nanostream.pubsub.GCSSourceData;
-import htsjdk.samtools.fastq.FastqRecord;
+import com.google.allenday.nanostream.gcs.GCSSourceData;
+import com.google.allenday.nanostream.util.FastQUtils;
+import com.google.cloud.storage.BlobId;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.GroupByKey;
 import org.apache.beam.sdk.transforms.PTransform;
@@ -30,17 +29,12 @@ import java.util.stream.StreamSupport;
 public class CreateBatchesTransform extends PTransform<PCollection<KV<GCSSourceData, FileWrapper>>,
         PCollection<KV<SampleMetaData, List<FileWrapper>>>> {
 
-    private GetDataFromFastQFileFn getDataFromFastQFileFn;
-    private ParseFastQFn parseFastQFn;
     private SequenceBatchesToFastqFiles sequenceBatchesToFastqFiles;
 
     private int batchSize;
     private int maxBatchWindowSize;
 
-    public CreateBatchesTransform(GetDataFromFastQFileFn getDataFromFastQFileFn, ParseFastQFn parseFastQFn,
-                                  SequenceBatchesToFastqFiles sequenceBatchesToFastqFiles, int batchSize, int maxBatchWindowSize) {
-        this.getDataFromFastQFileFn = getDataFromFastQFileFn;
-        this.parseFastQFn = parseFastQFn;
+    public CreateBatchesTransform(SequenceBatchesToFastqFiles sequenceBatchesToFastqFiles, int batchSize, int maxBatchWindowSize) {
         this.sequenceBatchesToFastqFiles = sequenceBatchesToFastqFiles;
         this.batchSize = batchSize;
         this.maxBatchWindowSize = maxBatchWindowSize;
@@ -49,9 +43,7 @@ public class CreateBatchesTransform extends PTransform<PCollection<KV<GCSSourceD
     @Override
     public PCollection<KV<SampleMetaData, List<FileWrapper>>> expand(PCollection<KV<GCSSourceData, FileWrapper>> input) {
         return input
-                .apply(ParDo.of(getDataFromFastQFileFn))
-                .apply(ParDo.of(parseFastQFn))
-                .apply(Window.<KV<GCSSourceData, FastqRecord>>into(new GlobalWindows())
+                .apply(Window.<KV<GCSSourceData, FileWrapper>>into(new GlobalWindows())
                         .triggering(Repeatedly
                                 .forever(AfterFirst.of(
                                         AfterPane.elementCountAtLeast(batchSize),
@@ -62,46 +54,68 @@ public class CreateBatchesTransform extends PTransform<PCollection<KV<GCSSourceD
                 .apply(ParDo.of(sequenceBatchesToFastqFiles));
     }
 
-    public static class SequenceBatchesToFastqFiles extends DoFn<KV<GCSSourceData, Iterable<FastqRecord>>, KV<SampleMetaData, List<FileWrapper>>> {
+    public static class SequenceBatchesToFastqFiles extends DoFn<KV<GCSSourceData, Iterable<FileWrapper>>, KV<SampleMetaData, List<FileWrapper>>> {
 
         private final static Logger LOG = LoggerFactory.getLogger(CreateBatchesTransform.class);
         private int batchSize;
         private AlignService.Instrument instrument;
+        private GCSService gcsService;
+        private FileUtils fileUtils;
 
-        public SequenceBatchesToFastqFiles(int batchSize, AlignService.Instrument instrument) {
+
+        public SequenceBatchesToFastqFiles(FileUtils fileUtils, int batchSize, AlignService.Instrument instrument) {
             this.batchSize = batchSize;
             this.instrument = instrument;
+            this.fileUtils = fileUtils;
+        }
+
+        @Setup
+        public void setup() {
+            gcsService = GCSService.initialize(fileUtils);
+        }
+
+
+        private KV<SampleMetaData, List<FileWrapper>> buildOutputKV(GCSSourceData gcsSourceData, List<String> outputList) {
+            SampleMetaData metaData = SampleMetaData.createUnique(gcsSourceData.toJsonString(),
+                    SampleMetaData.LibraryLayout.SINGLE.name(), instrument.name());
+            String filename = metaData.getRunId() + ".fastq";
+            byte[] byteContent = String.join("", outputList).getBytes();
+            return KV.of(metaData, Collections.singletonList(FileWrapper.fromByteArrayContent(byteContent, filename)));
+
         }
 
         @ProcessElement
         public void processElement(ProcessContext c) {
-            KV<GCSSourceData, Iterable<FastqRecord>> element = c.element();
+            KV<GCSSourceData, Iterable<FileWrapper>> element = c.element();
+            GCSSourceData gcsSourceData = element.getKey();
 
-            List<FastqRecord> collect = StreamSupport.stream(element.getValue().spliterator(), false).collect(Collectors.toList());
-            LOG.info("Size of fastq batch before partition: {}", collect.size());
+            List<FileWrapper> collect = StreamSupport.stream(element.getValue().spliterator(), false).collect(Collectors.toList());
+            LOG.info("Size of fastq files batch before partition: {}", collect.size());
 
-            List<List<FastqRecord>> choppedList = chopped(collect, batchSize);
-            for (List<FastqRecord> list : choppedList) {
-                StringBuilder fastqDataBuilder = new StringBuilder();
-                for (FastqRecord fastqRecord : list) {
-                    fastqDataBuilder.append(fastqRecord.toFastQString()).append("\n");
+            final List<String> outputList = new ArrayList<>();
+            if (gcsSourceData != null) {
+                for (FileWrapper fileWrapper : collect) {
+                    BlobId blobId = gcsService.getBlobIdFromUri(fileWrapper.getBlobUri());
+                    try {
+                        FastQUtils.readFastqBlob(gcsService.getBlobReaderByGCloudNotificationData(blobId.getBucket(), blobId.getName()),
+                                fastqString -> {
+                                    FastQUtils.splitMultiStrandFastq(fastqString, fastqRecord -> {
+                                        outputList.add(fastqRecord.toFastQString() + "\n");
+                                        if (outputList.size() == batchSize) {
+                                            c.output(buildOutputKV(gcsSourceData, outputList));
+                                            outputList.clear();
+                                        }
+                                    });
+                                });
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        LOG.error(e.getMessage());
+                    }
                 }
-                SampleMetaData metaData = SampleMetaData.createUnique(element.getKey().toJsonString(),
-                        SampleMetaData.LibraryLayout.SINGLE.name(), instrument.name());
-
-                String filename = metaData.getRunId() + ".fastq";
-                c.output(KV.of(metaData, Collections.singletonList(FileWrapper.fromByteArrayContent(fastqDataBuilder.toString().getBytes(),
-                        filename))));
+                if (outputList.size() > 0) {
+                    c.output(buildOutputKV(gcsSourceData, outputList));
+                }
             }
-        }
-
-        private <T> List<List<T>> chopped(List<T> list, final int batchSize) {
-            List<List<T>> parts = new ArrayList<>();
-            final int totalSize = list.size();
-            for (int i = 0; i < totalSize; i += batchSize) {
-                parts.add(new ArrayList<T>(list.subList(i, Math.min(totalSize, i + batchSize))));
-            }
-            return parts;
         }
     }
 }

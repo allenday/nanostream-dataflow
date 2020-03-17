@@ -1,5 +1,6 @@
 package com.google.allenday.nanostream.output;
 
+import com.google.allenday.nanostream.db.FirestoreService;
 import com.google.cloud.firestore.WriteResult;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.values.KV;
@@ -13,7 +14,6 @@ import java.util.concurrent.Future;
  * Writes data to Firestore Database
  */
 public class WriteDataToFirestoreDbFn extends DoFn<KV<KV<String, String>, SequenceStatisticResult>, String> {
-
 
     private Logger LOG = LoggerFactory.getLogger(WriteDataToFirestoreDbFn.class);
 

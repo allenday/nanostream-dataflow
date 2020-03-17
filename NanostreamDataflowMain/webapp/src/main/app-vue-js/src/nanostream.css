@@ -1,15 +1,16 @@
-	body { 
-  
-		font-family: Roboto, "Open Sans";
-		font-size: 1rem;
-		line-height: 1.5;
-		color: #525f7f;
-		background-color: #eee;
-	}
+	/*body { */
+
+	/*	font-family: Roboto, "Open Sans";*/
+	/*	font-size: 1rem;*/
+	/*	line-height: 1.5;*/
+	/*	color: #525f7f;*/
+	/*	background-color: #eee;*/
+	/*}*/
 
   	header{
   		margin-bottom: 20px;
-  		padding: 25px;
+		/*background-color: #dee5f1;*/
+  		/*padding: 25px;*/
     }
     
 
@@ -37,7 +38,7 @@
 
 	img.logo{
   		width: 100px;
-  		height: 100px;
+  		height: 30px;
   		margin-right: 25px;
   		
   	}	
@@ -58,27 +59,30 @@
   	}
 
 
-  	form {  		
-	  	width: auto;
-	  	max-width: 954px;
-	}
+  	/*form {  		*/
+	  	/*width: auto;*/
+	  	/*max-width: 954px;*/
+	/*}*/
 
 	div.topfields{
-		padding-top: 45px;
-  		padding-bottom: 45px;
+		padding-top: 10px;
+		padding-left: 10px;
+		padding-right: 10px;
+  		padding-bottom: 20px;
+  		margin-bottom: 20px;
   		/*max-width: 541px;*/
   		background-color: #FFFFFF;
-    	border: 1px solid #8492A6; 
+    	border: 1px solid #8492A6;
 	}
 
-	.topfields-inner{
-		max-width: 541px;
-	}
+	/*.topfields-inner{*/
+		/*max-width: 541px;*/
+	/*}*/
 
 	.form-title, label, legend, .form-inner-title{
 		color: #47525E;
 	  font-family: Roboto;
-	  font-size: 14px;
+	  font-size: 16px;
 	  font-weight: 400;
 	  line-height: 18px;
 	}
@@ -110,7 +114,7 @@
 	input[type="text"],#processing_mode{
 		border: 1px solid #8492A6;
 	  border-radius: 5px;
-	  max-width: 332px;
+	  /*max-width: 332px;*/
 	  width: 100%;
 	  height: auto;
 	}
@@ -158,7 +162,8 @@
 	}
 
 	.diagram-title {
-		margin-top:15px;
+		padding-top:15px;
+		padding-bottom:15px;
 	}
 
 
@@ -198,7 +203,7 @@
 
 
 	.submit-block.text-center {
-    	margin-top: 50px;
+    	margin-top: 25px;
 	}
 
 	button[type="submit"]{
@@ -219,10 +224,10 @@
   }
   
 
-    .main{
-      border: #8492A6 1px solid;
-      max-width: 1440px;
-    }
+    /*.main{*/
+    /*  border: #8492A6 1px solid;*/
+    /*  max-width: 1440px;*/
+    /*}*/
 
     main .row>.col>.row {
       margin-bottom: 0px;
@@ -238,16 +243,16 @@
 		padding:25px;
 	}
 	
-    main .row{
-      margin-bottom: 25px;
-      border: 1px solid #8492A6;
-	}
+    /*main .row{*/
+      /*margin-bottom: 25px;*/
+      /*border: 1px solid #8492A6;*/
+	/*}*/
 	
 
-	.row {
-		margin-left: 0px;
-		margin-right: 0px;	
-	}
+	/*.row {*/
+	/*	margin-left: 0px;*/
+	/*	margin-right: 0px;	*/
+	/*}*/
 
 	.row.message {
 		margin-top:25px;
@@ -273,9 +278,9 @@
 
 
       
-   .row{
-    background-color: #ffffff;
-   }
+   /*.row{*/
+   /* background-color: #ffffff;*/
+   /*}*/
 
 
    .row-default-bg {

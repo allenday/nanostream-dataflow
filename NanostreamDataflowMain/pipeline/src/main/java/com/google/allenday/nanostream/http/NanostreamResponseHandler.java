@@ -25,7 +25,7 @@ public class NanostreamResponseHandler implements ResponseHandler<String> {
         logMsg.append(String.format("Status: %d", status));
         if (status >= 200 && status < 300) {
             HttpEntity responseEntity = response.getEntity();
-            if (responseEntity != null){
+            if (responseEntity != null) {
                 String respEntityString = EntityUtils.toString(responseEntity);
                 logMsg.append(String.format(", response length: %d", respEntityString.length()));
                 log(logMsg.toString());
@@ -40,7 +40,7 @@ public class NanostreamResponseHandler implements ResponseHandler<String> {
         }
     }
 
-    private void log(String logMsg){
+    private void log(String logMsg) {
         LOG.info(logMsg);
     }
 }

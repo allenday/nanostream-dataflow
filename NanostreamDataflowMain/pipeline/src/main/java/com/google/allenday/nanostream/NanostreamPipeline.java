@@ -3,26 +3,26 @@ package com.google.allenday.nanostream;
 import com.google.allenday.genomics.core.pipeline.PipelineSetupUtils;
 import com.google.allenday.genomics.core.processing.align.AlignTransform;
 import com.google.allenday.genomics.core.reference.ReferenceDatabaseSource;
-import com.google.allenday.nanostream.aligner.GetReferencesFromSamDataFn;
 import com.google.allenday.nanostream.batch.CreateBatchesTransform;
+import com.google.allenday.nanostream.coders.SequenceOnlyDNACoder;
+import com.google.allenday.nanostream.gcs.FilterGcsDirectoryTransform;
+import com.google.allenday.nanostream.gcs.GCSSourceData;
 import com.google.allenday.nanostream.gcs.ParseGCloudNotification;
-import com.google.allenday.nanostream.geneinfo.GeneData;
-import com.google.allenday.nanostream.geneinfo.GeneInfo;
-import com.google.allenday.nanostream.geneinfo.LoadGeneInfoTransform;
-import com.google.allenday.nanostream.injection.MainModule;
+import com.google.allenday.nanostream.geneinfo.TaxonData;
 import com.google.allenday.nanostream.output.PrepareSequencesStatisticToOutputDbFn;
 import com.google.allenday.nanostream.output.WriteDataToFirestoreDbFn;
 import com.google.allenday.nanostream.pipeline.LoopingTimerTransform;
 import com.google.allenday.nanostream.pipeline.PipelineManagerService;
-import com.google.allenday.nanostream.pipeline.SequenceOnlyDNACoder;
+import com.google.allenday.nanostream.pipeline.transform.FlattenMapToKV;
 import com.google.allenday.nanostream.probecalculation.KVCalculationAccumulatorFn;
 import com.google.allenday.nanostream.pubsub.DecodeNotificationJsonMessage;
 import com.google.allenday.nanostream.pubsub.FilterObjectFinalizeMessage;
-import com.google.allenday.nanostream.pubsub.GCSSourceData;
-import com.google.allenday.nanostream.taxonomy.GetResistanceGenesTaxonomyDataFn;
+import com.google.allenday.nanostream.sam.GetReferencesFromSamDataFn;
 import com.google.allenday.nanostream.taxonomy.GetTaxonomyFromTree;
+import com.google.allenday.nanostream.taxonomy.resistant_genes.GetResistanceGenesTaxonomyDataFn;
+import com.google.allenday.nanostream.taxonomy.resistant_genes.LoadResistantGeneInfoTransform;
+import com.google.allenday.nanostream.taxonomy.resistant_genes.ResistantGeneInfo;
 import com.google.allenday.nanostream.util.CoderUtils;
-import com.google.allenday.nanostream.util.trasform.FlattenMapToKV;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.apache.beam.sdk.Pipeline;
@@ -57,26 +57,29 @@ public class NanostreamPipeline implements Serializable {
         Pipeline pipeline = Pipeline.create(options);
         CoderUtils.setupCoders(pipeline, new SequenceOnlyDNACoder());
 
-        Window<KV<KV<GCSSourceData, String>, KV<ReferenceDatabaseSource, GeneData>>> globalWindowWithTriggering = Window
-                .<KV<KV<GCSSourceData, String>, KV<ReferenceDatabaseSource, GeneData>>>into(new GlobalWindows())
+        Window<KV<KV<GCSSourceData, String>, KV<ReferenceDatabaseSource, TaxonData>>> globalWindowWithTriggering = Window
+                .<KV<KV<GCSSourceData, String>, KV<ReferenceDatabaseSource, TaxonData>>>into(new GlobalWindows())
                 .triggering(Repeatedly.forever(AfterFirst.of(
-                        AfterPane.elementCountAtLeast(options.getStatisticOutputCountTriigerSize()),
+                        AfterPane.elementCountAtLeast(options.getStatisticOutputCountTriggerSize()),
                         AfterProcessingTime
                                 .pastFirstElementInPane()
                                 .plusDelayOf(Duration.standardSeconds(options.getStatisticUpdatingDelay())))))
                 .withAllowedLateness(Duration.ZERO)
                 .accumulatingFiredPanes();
 
+
         pipeline.apply("Reading PubSub", PubsubIO.readMessagesWithAttributes().fromSubscription(options.getInputDataSubscription()))
                 .apply("Filter only ADD FILE", ParDo.of(new FilterObjectFinalizeMessage()))
                 .apply("Deserialize messages", ParDo.of(new DecodeNotificationJsonMessage()))
                 .apply("Parse GCloud notification", ParDo.of(injector.getInstance(ParseGCloudNotification.class)))
-                .apply("Create FastQ batches", injector.getInstance(CreateBatchesTransform.class))
-                .apply("Alignment", injector.getInstance(AlignTransform.class))
-                .apply("Looping timer", new LoopingTimerTransform<>(
+                .apply("Filter by input directory", injector.getInstance(FilterGcsDirectoryTransform.class))
+                .apply("Looping timer", new LoopingTimerTransform(
                         options.getAutoStopDelay(),
                         options.getJobNameLabel(),
-                        injector.getInstance(PipelineManagerService.class)))
+                        injector.getInstance(PipelineManagerService.class),
+                        options.getInitAutoStopOnlyIfDataPassed()))
+                .apply("Create FastQ batches", injector.getInstance(CreateBatchesTransform.class))
+                .apply("Alignment", injector.getInstance(AlignTransform.class))
                 .apply("Extract reference name",
                         ParDo.of(injector.getInstance(GetReferencesFromSamDataFn.class)))
                 .apply("Get Taxonomy data", getTaxonomyData(pipeline))
@@ -92,9 +95,9 @@ public class NanostreamPipeline implements Serializable {
         pipeline.run();
     }
 
-    private ParDo.SingleOutput<KV<KV<GCSSourceData, String>, ReferenceDatabaseSource>, KV<KV<GCSSourceData, String>, KV<ReferenceDatabaseSource, GeneData>>> getTaxonomyData(Pipeline pipeline) {
+    private ParDo.SingleOutput<KV<KV<GCSSourceData, String>, ReferenceDatabaseSource>, KV<KV<GCSSourceData, String>, KV<ReferenceDatabaseSource, TaxonData>>> getTaxonomyData(Pipeline pipeline) {
         if (processingMode == RESISTANT_GENES) {
-            PCollectionView<Map<String, GeneInfo>> geneInfoMapPCollectionView = pipeline.apply(injector.getInstance(LoadGeneInfoTransform.class))
+            PCollectionView<Map<String, ResistantGeneInfo>> geneInfoMapPCollectionView = pipeline.apply(injector.getInstance(LoadResistantGeneInfoTransform.class))
                     .apply(View.asMap());
             return ParDo.of(injector.getInstance(GetResistanceGenesTaxonomyDataFn.class)
                     .setGeneInfoMapPCollectionView(geneInfoMapPCollectionView))

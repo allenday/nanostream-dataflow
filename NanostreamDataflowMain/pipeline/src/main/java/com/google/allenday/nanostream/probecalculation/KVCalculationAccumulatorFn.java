@@ -1,8 +1,8 @@
 package com.google.allenday.nanostream.probecalculation;
 
 import com.google.allenday.genomics.core.reference.ReferenceDatabaseSource;
-import com.google.allenday.nanostream.geneinfo.GeneData;
-import com.google.allenday.nanostream.pubsub.GCSSourceData;
+import com.google.allenday.nanostream.gcs.GCSSourceData;
+import com.google.allenday.nanostream.geneinfo.TaxonData;
 import org.apache.beam.sdk.transforms.Combine;
 import org.apache.beam.sdk.values.KV;
 
@@ -18,7 +18,7 @@ import java.util.stream.StreamSupport;
  *
  */
 public class KVCalculationAccumulatorFn extends Combine.CombineFn<
-        KV<KV<GCSSourceData, String>, KV<ReferenceDatabaseSource, GeneData>>,
+        KV<KV<GCSSourceData, String>, KV<ReferenceDatabaseSource, TaxonData>>,
         Map<KV<GCSSourceData, String>, Map<String, SequenceCountAndTaxonomyData>>,
         Map<KV<GCSSourceData, String>, Map<String, SequenceCountAndTaxonomyData>>> {
 
@@ -31,11 +31,11 @@ public class KVCalculationAccumulatorFn extends Combine.CombineFn<
     @Override
     public Map<KV<GCSSourceData, String>, Map<String, SequenceCountAndTaxonomyData>> addInput(
             Map<KV<GCSSourceData, String>, Map<String, SequenceCountAndTaxonomyData>> accumulator,
-            KV<KV<GCSSourceData, String>, KV<ReferenceDatabaseSource, GeneData>> input) {
+            KV<KV<GCSSourceData, String>, KV<ReferenceDatabaseSource, TaxonData>> input) {
         @Nonnull
         KV<GCSSourceData, String> gcsSourceDataStringKV = input.getKey();
         @Nonnull
-        KV<ReferenceDatabaseSource, GeneData> refAndGeneData = input.getValue();
+        KV<ReferenceDatabaseSource, TaxonData> refAndGeneData = input.getValue();
 
         KV<GCSSourceData, String> accumKey = KV.of(gcsSourceDataStringKV.getKey(), refAndGeneData.getKey().getName());
         if (!accumulator.containsKey(accumKey) || accumulator.get(accumKey) == null) {

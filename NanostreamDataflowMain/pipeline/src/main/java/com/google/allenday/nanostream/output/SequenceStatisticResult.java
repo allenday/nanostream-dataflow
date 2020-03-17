@@ -1,7 +1,7 @@
 package com.google.allenday.nanostream.output;
 
+import com.google.allenday.nanostream.gcs.GCSSourceData;
 import com.google.allenday.nanostream.probecalculation.SequenceCountAndTaxonomyData;
-import com.google.allenday.nanostream.pubsub.GCSSourceData;
 import org.apache.beam.sdk.coders.DefaultCoder;
 import org.apache.beam.sdk.coders.SerializableCoder;
 
@@ -29,6 +29,7 @@ public class SequenceStatisticResult implements Serializable {
         this.folder = folder;
         this.sequenceRecords = sequenceRecords;
         this.calculationTime = calculationTime;
+        this.refName = refName;
     }
 
     public Date getStartDate() {
@@ -105,8 +106,8 @@ public class SequenceStatisticResult implements Serializable {
 
     public static class Generator {
 
-        public SequenceStatisticResult genereteSequnceInfo(Map<String, SequenceCountAndTaxonomyData> sequenceSourceData,
-                                                           GCSSourceData gcsSourceData, String refName, long startTimestamp) {
+        public SequenceStatisticResult genereteSequenceInfo(Map<String, SequenceCountAndTaxonomyData> sequenceSourceData,
+                                                            GCSSourceData gcsSourceData, String refName, long startTimestamp) {
             Date date = new Date();
             long startTime = System.currentTimeMillis();
 
@@ -115,7 +116,7 @@ public class SequenceStatisticResult implements Serializable {
             List<SequenceStatisticResult.SequenceRecord> sequenceRecords = new LinkedList<>();
 
             sequenceSourceData.forEach((id, value) -> {
-                Set<String> resistantGenesNamesMap = value.getGeneData().getGeneNames();
+                Set<String> resistantGenesNamesMap = value.getTaxonData().getGeneNames();
                 String localName;
                 if (resistantGenesNamesMap != null && resistantGenesNamesMap.size() > 0) {
                     localName = resistantGenesNamesMap.iterator().next();
@@ -123,7 +124,7 @@ public class SequenceStatisticResult implements Serializable {
                     localName = id;
                 }
                 SequenceRecord sequenceRecord = new SequenceRecord(UUID.randomUUID().toString(),
-                        localName, id, value.getGeneData().getTaxonomy(), value.getGeneData().getColors(),
+                        localName, id, value.getTaxonData().getTaxonomy(), value.getTaxonData().getColors(),
                         value.getCount() / totalDataListSize);
                 sequenceRecords.add(sequenceRecord);
 
