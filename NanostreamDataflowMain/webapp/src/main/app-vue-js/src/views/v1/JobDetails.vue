@@ -23,13 +23,7 @@
                 },
             }
         },
-//        computed: {
-//
-//            gcp_bucket_url: function () {
-//                return "https://console.cloud.google.com/storage/browser/" + config.general.uploadBucketName + '?authuser=2&project=' + config.firebase.projectId;
-//            },
-//
-//        },
+
         components: {
             PrintObject,
             ErrorMessage,

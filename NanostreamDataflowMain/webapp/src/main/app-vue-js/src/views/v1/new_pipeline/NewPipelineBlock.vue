@@ -13,7 +13,7 @@
 
             <div class="col-md-6">
                 <div class="form-group">
-                    <label for="pipeline-name">Pipeline name:</label>
+                    <label for="pipeline-name">Pipeline name:</label>&nbsp;
                     <a class="tooltip-icon" data-toggle="tooltip" data-placement="top"
                        title="An arbitrary name to identify your pipeline."><i class="fa fa-question-circle"></i></a>
                     <input v-model="pipeline.pipelineName" type="text" class="form-control" id="pipeline-name"
@@ -23,7 +23,7 @@
                 <div class="form-group">
                     <label for="input-folder">Input folder:</label>&nbsp;
                     <a class="tooltip-icon" data-toggle="tooltip" data-placement="top"
-                       title="Enter Input folder to process inside upload bucket."><i class="fa fa-question-circle"></i></a>
+                       title="Input folder is a folder inside your upload bucket. Example: your upload files to &quot;gs://<your project id>-upload-bucket/folder123/&quot;, then your input folder is &quot;folder123&quot; (without slashes)"><i class="fa fa-question-circle"></i></a>
                     <br>
                     <input v-model="pipeline.inputFolder" type="text" class="form-control" id="input-folder"
                            placeholder="Enter Input folder" name="input-folder">

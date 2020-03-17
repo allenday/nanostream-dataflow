@@ -212,6 +212,7 @@ public class JobLauncher {
                 JSONObject parameters = new JSONObject();
                 parameters.put("outputCollectionNamePrefix", pipelineEntity.getOutputCollectionNamePrefix());
                 parameters.put("inputDataSubscription", pipelineEntity.getInputDataSubscription());
+                parameters.put("inputDir", pipelineEntity.getInputFolder());
                 parameters.put("autoStopDelay", pipelineEntity.getAutoStopDelaySeconds().toString());
                 parameters.put("refDataJsonString", makeRefDataJsonString(pipelineEntity.getReferenceDbs()));
                 parameters.put("jobNameLabel", jobName);  // This parameter used in autostop logic to identify currently running pipeline. For unknown reason jobName not available in pipeline itself

@@ -15,7 +15,7 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <spring.boot.version>2.2.4.RELEASE</spring.boot.version> <!-- DO NOT UPDATE w/o MANUAL TESTING -->
+    <spring.boot.version>2.2.5.RELEASE</spring.boot.version> <!-- DO NOT UPDATE w/o MANUAL TESTING -->
     <!-- REQUIRED by appengine-maven-plugin plugin, if web.xml does not exist for your application -->
     <failOnMissingWebXml>false</failOnMissingWebXml>
 
@@ -26,13 +26,13 @@
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-storage</artifactId>
-      <version>1.105.0</version>
+      <version>1.105.1</version>
     </dependency>
 
     <dependency>
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
-      <version>20180813</version>
+      <version>20190722</version>
     </dependency>
 
     <dependency>
@@ -71,7 +71,7 @@
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-firestore</artifactId>
-      <version>1.32.4</version>
+      <version>1.32.5</version>
     </dependency>
 
     <!-- Include Servlet API -->
@@ -141,12 +141,12 @@
             </configuration>
           </execution>
           <execution>
-            <id>npm install</id>
+            <id>npm install --no-fund</id>
             <goals>
               <goal>npm</goal>
             </goals>
             <configuration>
-              <arguments>install</arguments>
+              <arguments>install --no-fund</arguments>
             </configuration>
           </execution>
           <execution>
@@ -156,6 +156,26 @@
             </goals>
             <configuration>
               <arguments>run-script build</arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>3.0.0-M3</version>
+        <executions>
+          <execution>
+            <id>enforce-maven</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireMavenVersion>
+                  <version>[3.1.0,)</version>
+                </requireMavenVersion>
+              </rules>
             </configuration>
           </execution>
         </executions>
