@@ -11,6 +11,7 @@ import com.google.allenday.genomics.core.utils.NameProvider;
 import com.google.allenday.nanostream.batch.CreateBatchesTransform;
 import com.google.allenday.nanostream.fastq.GetDataFromFastQFileFn;
 import com.google.allenday.nanostream.fastq.ParseFastQFn;
+import com.google.allenday.nanostream.gcs.FilterGcsDirectoryTransform;
 import com.google.allenday.nanostream.gcs.ParseGCloudNotification;
 import com.google.allenday.nanostream.output.PrepareSequencesStatisticToOutputDbFn;
 import com.google.allenday.nanostream.output.WriteDataToFirestoreDbFn;
@@ -29,6 +30,7 @@ import com.google.inject.Singleton;
  * App dependency injection module, that provide graph of main dependencies in app
  */
 public class MainModule extends NanostreamModule {
+
 
     public MainModule(Builder builder) {
         super(builder);
@@ -198,6 +200,13 @@ public class MainModule extends NanostreamModule {
     @Singleton
     public PipelineManagerService providePipelineManagerService() {
         return new PipelineManagerService(autoStopTopic);
+    }
+
+
+    @Provides
+    @Singleton
+    public FilterGcsDirectoryTransform provideFilterGcsDirectoryTransform() {
+        return new FilterGcsDirectoryTransform(inputDir);
     }
 
     public static class Builder extends NanostreamModule.Builder {

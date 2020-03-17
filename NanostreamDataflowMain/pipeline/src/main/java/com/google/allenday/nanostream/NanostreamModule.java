@@ -22,6 +22,7 @@ public class NanostreamModule extends AbstractModule {
     protected int alignmentWindow;
     protected ValueProvider<Integer> autoStopDelay;
     protected String autoStopTopic;
+    protected ValueProvider<String> inputDir;
 
     public NanostreamModule(Builder builder) {
         this.projectId = builder.projectId;
@@ -34,6 +35,7 @@ public class NanostreamModule extends AbstractModule {
         this.alignmentWindow = builder.alignmentWindow;
         this.autoStopTopic = builder.autoStopTopic;
         this.autoStopDelay = builder.autoStopDelay;
+        this.inputDir = builder.inputDir;
     }
 
     @Provides
@@ -54,6 +56,7 @@ public class NanostreamModule extends AbstractModule {
         protected int alignmentWindow;
         protected String autoStopTopic;
         protected ValueProvider<Integer> autoStopDelay;
+        protected ValueProvider<String> inputDir;
 
         public Builder setResistanceGenesList(String resistanceGenesList) {
             this.resistanceGenesList = resistanceGenesList;
@@ -100,6 +103,11 @@ public class NanostreamModule extends AbstractModule {
             return this;
         }
 
+        public Builder setInputDir(ValueProvider<String> inputDir) {
+            this.inputDir = inputDir;
+            return this;
+        }
+
         public String getProjectId() {
             return projectId;
         }
@@ -120,6 +128,7 @@ public class NanostreamModule extends AbstractModule {
             setAlignmentWindow(nanostreamPipelineOptions.getAlignmentWindow());
             setAutoStopTopic(nanostreamPipelineOptions.getAutoStopTopic());
             setAutoStopDelay(nanostreamPipelineOptions.getAutoStopDelay());
+            setInputDir(nanostreamPipelineOptions.getInputDir());
             return this;
         }
 

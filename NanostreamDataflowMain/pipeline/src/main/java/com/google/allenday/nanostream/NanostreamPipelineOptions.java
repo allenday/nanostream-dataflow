@@ -93,4 +93,11 @@ public interface NanostreamPipelineOptions extends GenomicsPipelineOptions {
     Boolean getInitAutoStopOnlyIfDataPassed();
 
     void setInitAutoStopOnlyIfDataPassed(Boolean value);
+
+
+    @Description("GCS directory to process")
+    @Validation.Required
+    ValueProvider<String> getInputDir();
+
+    void setInputDir(ValueProvider<String> value);
 }
