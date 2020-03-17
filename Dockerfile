@@ -13,6 +13,7 @@ COPY ./ /application
 
 # Pre-fetch maven dependencies
 RUN mvn install:install-file -Dfile=NanostreamDataflowMain/libs/japsa.jar -DgroupId=coin -DartifactId=japsa -Dversion=1.9-3c -Dpackaging=jar && \
+    mvn install:install-file -Dfile=NanostreamDataflowMain/libs/pal1.5.1.1.jar -DgroupId=nz.ac.auckland -DartifactId=pal -Dversion=1.5.1.1 -Dpackaging=jar  && \
     mvn -B dependency:get -Dartifact=org.apache.maven:maven-core:2.2.1 && \
     mvn -B dependency:get -Dartifact=org.apache.maven.plugins:maven-clean-plugin:3.1.0 && \
     mvn -B dependency:get -Dartifact=org.apache.maven.plugins:maven-release-plugin:2.3.2 && \
