@@ -43,8 +43,8 @@ There is an installation script [install.py](launcher/install.py) that
 
 Before run automatic setup scripts or perform manual steps make sure you 
 - created [Google Cloud Project](https://console.cloud.google.com); 
-- bounded it to a payment account;
-- Firestore used in native mode (use "nam5 (United States)" location).
+- linked billing account;
+- Firestore used in [native mode](https://cloud.google.com/firestore/docs/firestore-or-datastore#in_native_mode) (use "nam5 (United States)" location).
 - To run pipeline in `resistance_genes` mode you should provide "gene list" file stored in GCS. 
 Expected location is `gs://<your project id>-reference-db/gene_info/resistance_genes_list.txt`  
 
@@ -56,9 +56,20 @@ Expected location is `gs://<your project id>-reference-db/gene_info/resistance_g
 2. Clone the project from Github
 
 3. Set your Cloud Platform project in your session:  
-```gcloud config set project <your project id>```
+```
+gcloud config set project <your project id>
+PROJECT_ID=`gcloud config get-value project`
+```
 
-4. Download a service account credentials to `~/.config/gcloud_keys/gcloud_credentials.json` JSON file: https://cloud.google.com/docs/authentication/production#obtaining_and_providing_service_account_credentials_manually
+4. Download a service account credentials to `~/.config/gcloud_keys/gcloud_credentials.json` JSON file: https://cloud.google.com/docs/authentication/production#obtaining_and_providing_service_account_credentials_manually.
+You can do it from the shell as well:
+```
+gcloud iam service-accounts create nanostream
+gcloud projects add-iam-policy-binding ${PROJECT_ID} --member "serviceAccount:nanostream@${PROJECT_ID}.iam.gserviceaccount.com" --role "roles/owner"
+gcloud iam service-accounts keys create gcloud_credentials.json --iam-account nanostream@${PROJECT_ID}.iam.gserviceaccount.com
+mkdir -p ~/.config/gcloud_keys/
+mv gcloud_credentials.json ~/.config/gcloud_keys/gcloud_credentials.json
+```
  
 5. Build docker launcher
 ```
@@ -69,7 +80,7 @@ docker build -t launcher .
 ```
 docker run \
   -v ~/.config/gcloud_keys/:/root/.config/gcloud_keys/ \
-  -e GOOGLE_CLOUD_PROJECT=<your project id> \
+  -e GOOGLE_CLOUD_PROJECT=${PROJECT_ID} \
   -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud_keys/gcloud_credentials.json \
   launcher
 ``` 
@@ -156,6 +167,10 @@ where:
 
 **nanostream-dataflow-demo-data** - is a public bucket with [requester pays](https://cloud.google.com/storage/docs/requester-pays) option enabled.
 
+You can copy these references to your project with:
+```
+gsutil -u $PROJECT_ID cp -r gs://nanostream-dataflow-demo-data/reference-sequences gs://${PROJECT_ID}-reference-db/
+```
 
 ### Pipeline template description
 [Pipeline](NanostreamDataflowMain/pipeline/README.md)
