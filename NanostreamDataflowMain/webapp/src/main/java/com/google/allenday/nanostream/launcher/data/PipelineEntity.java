@@ -10,7 +10,6 @@ public class PipelineEntity {
     private String outputCollectionNamePrefix;
     private String processingMode;
     private String inputDataSubscription;
-    private String referenceNameList;
     private Integer autoStopDelaySeconds;
     private Boolean pipelineAutoStart;
     private String uploadBucketName;
@@ -19,7 +18,7 @@ public class PipelineEntity {
     private List<String> jobIds = new ArrayList<>();
     private List<ReferenceDb> referenceDbs;
     private String lockStatus = "UNLOCKED";  // Possible values: LOCKED, UNLOCKED
-    private String version = "1";  // use a version or github commit to identify pipeline version
+    private String version = "1";  // TODO: use a version or github commit to identify pipeline version
 
 
     public PipelineEntity() {
@@ -32,7 +31,6 @@ public class PipelineEntity {
         this.processingMode = pipelineRequestParams.getProcessingMode();
         this.inputDataSubscription = pipelineRequestParams.getInputDataSubscription();
         this.uploadBucketName = pipelineRequestParams.getUploadBucketName();
-        this.referenceNameList = pipelineRequestParams.getReferenceNameList();
         this.autoStopDelaySeconds = pipelineRequestParams.getAutoStopDelaySeconds();
         this.pipelineAutoStart = pipelineRequestParams.getPipelineAutoStart();
         this.referenceDbs = pipelineRequestParams.getReferenceDbs();
@@ -104,10 +102,6 @@ public class PipelineEntity {
 
     public void setReferenceDbs(List<ReferenceDb> referenceDbs) {
         this.referenceDbs = referenceDbs;
-    }
-
-    public String getReferenceNameList() {
-        return referenceNameList;
     }
 
     public Integer getAutoStopDelaySeconds() {

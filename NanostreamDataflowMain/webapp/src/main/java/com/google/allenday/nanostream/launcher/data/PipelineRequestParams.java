@@ -11,7 +11,6 @@ public class PipelineRequestParams {
     private String processingMode;
     private String inputDataSubscription;
     private String inputFolder;
-    private String referenceNameList;
     private Integer autoStopDelaySeconds;
     private Boolean pipelineAutoStart;
     private Boolean pipelineStartImmediately;
@@ -72,14 +71,6 @@ public class PipelineRequestParams {
 
     public void setInputFolder(String inputFolder) {
         this.inputFolder = inputFolder;
-    }
-
-    public String getReferenceNameList() {
-        return referenceNameList;
-    }
-
-    public void setReferenceNameList(String referenceNameList) {
-        this.referenceNameList = referenceNameList;
     }
 
     public Integer getAutoStopDelaySeconds() {

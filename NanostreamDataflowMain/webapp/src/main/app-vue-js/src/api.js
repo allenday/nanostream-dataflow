@@ -39,17 +39,10 @@ export default {
             .then((response) => response.json())
             // .catch(error => console.error('get piplines error', error));
     },
-    _selectedReferencesToCsvString: function (referenceNameList) {
-        let selectedItems = referenceNameList
-            .filter(reference => reference.selected)
-            .map(reference => reference.name);
-        return selectedItems.join(',');
-    },
     createNewPipeline(pipeline) {
         console.log('createNewPipeline called', pipeline)
 
         let reqData = Object.assign({}, pipeline); // clone
-        reqData.referenceNameList = this._selectedReferencesToCsvString(pipeline.referenceNameList);
         reqData.uploadBucketName = config.general.uploadBucketName;
 
         console.log('createNewPipeline params: ', reqData)
