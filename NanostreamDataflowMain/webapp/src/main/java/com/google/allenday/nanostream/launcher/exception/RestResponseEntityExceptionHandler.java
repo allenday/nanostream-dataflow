@@ -12,6 +12,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.util.Date;
+import java.util.concurrent.ExecutionException;
 
 @ControllerAdvice
 public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
@@ -19,9 +20,15 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     private static final Logger logger = LoggerFactory.getLogger(RestResponseEntityExceptionHandler.class);
 
     @ExceptionHandler(value = {BadRequestException.class})
-    protected ResponseEntity<Object> handleException(BadRequestException ex, WebRequest request) {
+    protected ResponseEntity<Object> handleBadRequestException(BadRequestException ex, WebRequest request) {
         ErrorMessage body = new ErrorMessage(ex.getError(), ex.getMessage());
         return handleExceptionInternal(ex, body, new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+    }
+
+    @ExceptionHandler(value = {ExecutionException.class})
+    protected ResponseEntity<Object> handleExecutionException(ExecutionException ex, WebRequest request) {
+        ErrorMessage body = new ErrorMessage(ex.getMessage(), ex.getMessage());
+        return handleExceptionInternal(ex, body, new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
 
     private static class ErrorMessage {

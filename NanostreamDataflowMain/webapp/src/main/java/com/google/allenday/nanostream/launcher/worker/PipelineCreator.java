@@ -66,7 +66,6 @@ public class PipelineCreator extends PipelineBase {
         assertNotEmpty(pipelineRequestParams.getPipelineName(), "Empty pipeline name not allowed");
         assertNotEmpty(pipelineRequestParams.getInputFolder(), "Empty input folder not allowed");
         assertNotEmpty(pipelineRequestParams.getUploadBucketName(), "Empty upload bucket name not allowed");
-        assertNotEmpty(pipelineRequestParams.getReferenceNameList(), "Empty reference name list not allowed");
         assertNotEmpty(pipelineRequestParams.getProcessingMode(), "Empty processing mode not allowed");
         assertNotEmpty(pipelineRequestParams.getInputDataSubscription(), "Empty input data subscription not allowed");
         validateReferenceDbs(pipelineRequestParams.getReferenceDbs());
