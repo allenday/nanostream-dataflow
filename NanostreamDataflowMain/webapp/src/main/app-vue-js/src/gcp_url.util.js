@@ -1,8 +1,12 @@
 import config from './config.js';
 
 function _getSubscriptionShortName(pipeline) {
-    // projects/nanostream-test1/subscriptions/nanostream-20200212t161049707z => nanostream-20200212t161049707z
-    return pipeline.inputDataSubscription.replace(new RegExp("^.+\/(.*)"), '$1'); // get part after the last slash
+    if (pipeline && pipeline.inputDataSubscription) {
+        // projects/nanostream-test1/subscriptions/nanostream-20200212t161049707z => nanostream-20200212t161049707z
+        return pipeline.inputDataSubscription.replace(new RegExp("^.+\/(.*)"), '$1'); // get part after the last slash
+    } else {
+        return '';
+    }
 }
 
 export default {

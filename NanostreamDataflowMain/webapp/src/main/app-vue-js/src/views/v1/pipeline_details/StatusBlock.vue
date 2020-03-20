@@ -9,24 +9,20 @@
             <div class="col-sm">
                 <div>
                     <a :href="getFirestoreCollectionUrl" target="_blank"><i class="fa fa-sign-in"></i>&nbsp;Firestore Collection&nbsp;</a>
-                    <a class="tooltip-icon" data-toggle="tooltip" data-placement="top"
-                       title="External link to Firestore collection with your output data"><i class="fa fa-question-circle"></i></a>
+                    <TooltipQuestionCircle title="External link to Firestore collection with your output data"/>
                 </div>
 
                 <div>
                     <a :href="getBucketFolderUrl" target="_blank"><i class="fa fa-sign-in"></i>&nbsp;GCP Upload Bucket&nbsp;</a>
-                    <a class="tooltip-icon" data-toggle="tooltip" data-placement="top"
-                       title="External link to GCP Upload Bucket with your input data"><i class="fa fa-question-circle"></i></a>
+                    <TooltipQuestionCircle title="External link to GCP Upload Bucket with your input data"/>
                 </div>
 
                 <div>
                     <a :href="getInputDataSubscriptionUrl" target="_blank"><i class="fa fa-sign-in"></i>&nbsp;GCP Subscription&nbsp;</a>
-                    <a class="tooltip-icon" data-toggle="tooltip" data-placement="top"
-                       title="External link to GCP Subscription"><i class="fa fa-question-circle"></i></a>
+                    <TooltipQuestionCircle title="External link to GCP Subscription" />
                 </div>
                 <div>Reference databases:
-                    <a class="tooltip-icon" data-toggle="tooltip" data-placement="top"
-                       title="Reference databases used in this pipeline"><i class="fa fa-question-circle"></i></a>
+                    <TooltipQuestionCircle title="Reference databases used in this pipeline" />
                     <dl>
                         <li v-for="referenceDb in pipelineDetails.referenceDbs">
                             <a :href="getRefDbUrl(referenceDb)" target="_blank"><i class="fa fa-sign-in"></i>&nbsp;{{ referenceDb.name }}&nbsp;</a>
@@ -49,12 +45,17 @@
 <script>
     import config from '../../../config.js';
     import GcpUrl from '../../../gcp_url.util.js';
+    import TooltipQuestionCircle from "../../components/TooltipQuestionCircle";
 
     export default {
 
         name: 'PipelineDetailsStatusBlock',
-
+        components: {TooltipQuestionCircle},
         props: ["pipelineDetails"],
+
+        comments: {
+            TooltipQuestionCircle,
+        },
 
         computed: {
 

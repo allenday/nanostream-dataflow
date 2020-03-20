@@ -8,8 +8,7 @@
             <div class="col-sm">
                 <div id="document-selector-area">
                         <h4>Document:
-                            <a class="tooltip-icon" data-toggle="tooltip" data-placement="top"
-                                title="Once pipeline processed some data it generates firestore documents"><i class="fa fa-question-circle"></i></a>
+                            <TooltipQuestionCircle title="Once pipeline processed some data it generates firestore documents"/>
                         </h4>
                     <div>
 
@@ -50,6 +49,7 @@
 <script>
     import Chart from './Chart.vue'
     import VisTable from './VisTable.vue'
+    import TooltipQuestionCircle from "../../components/TooltipQuestionCircle";
     import firebase from 'firebase/app';
     import 'firebase/firestore';
 
@@ -88,6 +88,7 @@
         components: {
             Chart,
             VisTable,
+            TooltipQuestionCircle,
         },
 
         mounted() {
