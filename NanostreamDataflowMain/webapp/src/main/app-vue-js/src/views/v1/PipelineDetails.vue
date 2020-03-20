@@ -22,6 +22,7 @@
         data() {
             return {
                 pipelineDetails: {},
+                reloadPipelineDetailsTaskId: null,
                 errMsg: {
                     show: false,
                     message: ''
@@ -57,13 +58,29 @@
                     if (pipelines && jobs) {
                         that.pipelineDetails = PipelineUtil.preparePipelines(pipelines, jobs)[0];
                     } else {
-                        console.error('Cannot load pipelines or jobs', pipelines, jobs);
-                        that.showError('Cannot load pipelines or jobs');
+                        console.log('Cannot load pipelines or jobs', pipelines, jobs);
+                        that.scheduleGetPipelineDetails();
                     }
 
                 }).catch(error => {
                     that.showError(error);
                 });
+            },
+            clearScheduledReloadPipelineDetailsTask() {
+                if (this.reloadPipelineDetailsTaskId) {
+                    console.log('clearScheduledReloadPipelineDetailsTask called')
+                    clearTimeout(this.reloadPipelineDetailsTaskId); // cancel previous timeout request
+                    this.reloadPipelineDetailsTaskId = null;
+                }
+            },
+            scheduleGetPipelineDetails() {
+                this.clearScheduledReloadPipelineDetailsTask();
+                if (this.$route.name === 'pipeline_details') { // reload only current page
+                    this.reloadPipelineDetailsTaskId = setTimeout(() => {
+                        console.log('Call getPipelineDetails after timeout')
+                        this.getPipelineDetails();
+                    }, 30000);
+                }
             },
             showError(message) {
                 this.errMsg.message = message;
