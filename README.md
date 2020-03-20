@@ -46,7 +46,7 @@ Before run automatic setup scripts or perform manual steps make sure you
 - linked billing account;
 - Firestore used in [native mode](https://cloud.google.com/firestore/docs/firestore-or-datastore#in_native_mode) (use "nam5 (United States)" location).
 - To run pipeline in `resistance_genes` mode you should provide "gene list" file stored in GCS. 
-Expected location is `gs://<your project id>-reference-db/gene_info/resistance_genes_list.txt`  
+You can find sample file in `nanostream-dataflow-demo-data` bucket. See "Available Reference databases" section below.  
 
 
 #### Setup using docker on Google Cloud Console
@@ -147,7 +147,7 @@ Make sure you have installed:
  
 
 ### Available Reference databases
-For this project the bucket **nanostream-dataflow-demo-data** were created
+For this project the bucket `nanostream-dataflow-demo-data` was created
 with reference databases of species and antibiotic resistance genes.
 
 The bucket has a structure like:
@@ -160,6 +160,11 @@ gs://nanostream-dataflow-demo-data/
 |-- species/
 |--- DB.fasta
 |--- DB.fasta.[amb,ann,bwt,pac,sa]
+|-- taxonomy
+|--- resistance_genes_tree.txt
+|--- species_tree.txt
+|-- gene-info
+|--- resistance_genes_list.txt
 ```
 where:
 - DB.fasta - FASTA file with reference sequences
@@ -169,7 +174,20 @@ where:
 
 You can copy these references to your project with:
 ```
-gsutil -u $PROJECT_ID cp -r gs://nanostream-dataflow-demo-data/reference-sequences gs://${PROJECT_ID}-reference-db/
+gsutil -u <your project id> cp -r gs://nanostream-dataflow-demo-data/reference-sequences gs://<your project id>-reference-db/reference-sequences
+```
+
+Taxonomy files samples required to process data are in `taxonomy` folder:  
+```
+gsutil -u <your project id> cp -r gs://nanostream-dataflow-demo-data/taxonomy gs://<your project id>-reference-db/taxonomy
+```
+
+Resistance gene list required to run process data in `resistance_gene` mode.
+Expected location is `gs://<your project id>-reference-db/gene_info/resistance_genes_list.txt`.
+You can find a sample in `gene-info` folder:
+ 
+```
+gsutil -u <your project id> cp -r gs://nanostream-dataflow-demo-data/gene-info/resistance_genes_list.txt gs://<your project id>-reference-db/gene_info/resistance_genes_list.txt
 ```
 
 ### Pipeline template description
