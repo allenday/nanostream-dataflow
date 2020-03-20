@@ -60,6 +60,7 @@ class Install:
         self.authenticate_gcloud()
         self.set_default_project_for_gcloud()
         self.enable_apis()
+        self.check_firestore_in_native_mode()
         self.create_storage_buckets()
         self.create_pub_sub_topics()
         self.create_bucket_notifications()
@@ -125,6 +126,14 @@ class Install:
         cmd = 'gcloud services enable %s' % api_name
         log('Enable api: %s' % cmd)
         subprocess.check_call(cmd, shell=True)
+
+    def check_firestore_in_native_mode(self):
+        try:
+            cmd = 'gcloud firestore indexes fields list'
+            subprocess.check_output(cmd, shell=True)
+        except subprocess.CalledProcessError:
+            console_url = 'https://console.cloud.google.com/firestore/data?authuser=2&project=%s' % self.google_cloud_project
+            raise IllegalArgumentException('Please make sure your project is in Firestore native mode: %s' % console_url)
 
     def create_storage_buckets(self):
         cmd = 'gsutil ls'
