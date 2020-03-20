@@ -2,20 +2,17 @@
     <div>
         <div class="form-row">
             <div class="col-md-2">
-                <a class="tooltip-icon" data-toggle="tooltip" data-placement="top"
-                   title="Reference database name. A name to identify your database"><i class="fa fa-question-circle"></i></a>
+                <TooltipQuestionCircle title="Reference database name. A name to identify your database"/>
                 <input v-model="refDb.name" type="text" class="form-control" placeholder="Enter ref db name" />
             </div>
 
             <div class="col-md-5">
-                <a class="tooltip-icon" data-toggle="tooltip" data-placement="top"
-                   title="Reference database path to your FASTA file. Example: gs://<your project id>-reference-db/db1/DB_viruses_12345678.fasta"><i class="fa fa-question-circle"></i></a>
+                <TooltipQuestionCircle title="Reference database path to your FASTA file. Example: gs://<your project id>-reference-db/db1/DB_viruses_12345678.fasta"/>
                 <input v-model="refDb.fastaUri" type="text" class="form-control" placeholder="Enter ref db fasta uri" />
             </div>
 
             <div class="col-md-4">
-                <a class="tooltip-icon" data-toggle="tooltip" data-placement="top"
-                   title="Path to your taxonomy file. Example: gs://<your project id>-reference-db/taxonomy/species_tree.txt"><i class="fa fa-question-circle"></i></a>
+                <TooltipQuestionCircle title="Path to your taxonomy file. Example: gs://<your project id>-reference-db/taxonomy/species_tree.txt"/>
                 <input v-model="refDb.ncbiTreeUri" type="text" class="form-control" placeholder="Enter ref db ncbi tree uri" />
             </div>
 
@@ -31,6 +28,7 @@
 <script>
 
     import ErrorMessage from '../ErrorMessage.vue'
+    import TooltipQuestionCircle from "../../components/TooltipQuestionCircle";
 
     export default {
         name: "RefDbBlock",
@@ -48,6 +46,7 @@
 
         components: {
             ErrorMessage,
+            TooltipQuestionCircle
         },
 
         methods: {
