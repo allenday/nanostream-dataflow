@@ -1,6 +1,6 @@
 <template>
     <div>
-        <base-checkbox class="check-box-center" v-model="pipeline.pipelineAutoStart" v-on:input="changeAutostart(pipeline)"></base-checkbox>
+        <base-checkbox v-model="pipeline.pipelineAutoStart" v-on:input="changeAutostart(pipeline)"></base-checkbox>
     </div>
 </template>
 <script>
@@ -26,7 +26,4 @@
     };
 </script>
 <style>
-    .check-box-center {
-        margin-bottom:  40px;
-    }
 </style>
