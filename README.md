@@ -18,7 +18,6 @@ This source repo contains a prototype implementation of a scalable, reliable, an
     - webapp - GCP appengine application 
     - libs - Additional libs required for pipeline 
 - launcher - installation scripts
-- aligner - scripts to provision auto-scaled HTTP service for alignment (based on `bwa`)
 - simulator - python script that can simulate file uploads to GCS (for testing, or if you don't have a real dataset)
 - doc - additional documentation files 
 
@@ -139,6 +138,7 @@ Make sure you have installed:
 - [Maven](http://maven.apache.org/download.cgi)
 - [Google Cloud Sdk](https://cloud.google.com/sdk/install)
 - [Firebase Tools](https://firebase.google.com/docs/cli)
+- [Node.js 10.x](https://nodejs.org/dist/latest-v10.x)
 
 1. Init your gcloud configuration: `gcloud init`
 2. Obtain a JSON file with a service account credentials (https://cloud.google.com/docs/authentication/production#obtaining_and_providing_service_account_credentials_manually).

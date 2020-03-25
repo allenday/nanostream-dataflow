@@ -280,7 +280,8 @@ class Install:
             subprocess.check_output(cmd, shell=True).decode("utf-8")
 
     def initialize_firebase_project(self):
-        handler = FirebaseHandler(self.google_cloud_project)
+        handler = FirebaseHandler(self.google_cloud_project, self.dir_file)
+        handler.update_security_rules()
         handler.add_firebase_to_project()
         self._config_data = handler.prepare_firebase_config_data()
 
@@ -347,18 +348,20 @@ class BucketNotificationHandler:
 
 class FirebaseHandler:
 
-    def __init__(self, google_cloud_project):
+    def __init__(self, google_cloud_project, dir_file):
         self.google_cloud_project = google_cloud_project
+        self.dir_file = dir_file
+        self.helper_dir = self.dir_file + "/firestore/helper/"
+        self.security_rules_dir = self.dir_file + "/firestore/security_rules/"
 
-    # TODO: deploy security rules like (https://firebase.google.com/docs/firestore/security/get-started):
-    # rules_version = '2';
-    # service cloud.firestore {
-    #   match /databases/{database}/documents {
-    #     match /{document=**} {
-    #       allow read: if true;
-    #     }
-    #   }
-    # }
+    def update_security_rules(self):
+        # Some info: https://firebase.google.com/docs/firestore/security/get-started
+        self._init_firestore_helper()
+        current_secuirty_rules = self._get_current_security_rules()
+        target_security_rules = self._get_target_security_rules()
+        if current_secuirty_rules != target_security_rules:
+            log("Updating security rules to: \n%s" % target_security_rules)
+            self._deploy_security_rules()
 
     def add_firebase_to_project(self):
         cmd = 'firebase projects:addfirebase %s' % self.google_cloud_project
@@ -416,6 +419,37 @@ class FirebaseHandler:
 
     def _cleanup_sdkconfig_output(self, text):
         return re.sub(r'^.*firebase.initializeApp\(({.+?})\);.*', r'\1', text, 0, re.S)
+
+    def _init_firestore_helper(self):
+        cmd = "npm install --no-fund"
+        log('Install required modules for firestore helper: %s' % cmd)
+        wd = os.getcwd()
+        os.chdir(self.helper_dir)
+        subprocess.check_call(cmd, shell=True)
+        os.chdir(wd)
+
+    def _get_current_security_rules(self):
+        cmd = "node -e 'require(\"%s/main.js\").get_security_rules()'" % self.helper_dir
+        log('Getting current firestore security rules: %s' % cmd)
+        out = subprocess.check_output(cmd, shell=True).strip().decode("utf-8")
+        log("Current security rules: \n%s" % out)
+        return out
+
+    def _get_target_security_rules(self):
+        filename = '%s/firestore.rules' % self.security_rules_dir
+        with open(filename, 'r') as file:
+            data = file.read()
+            if not data:
+                raise IllegalArgumentException('Missing or cannot read security rules: %s' % filename)
+        return data
+
+    def _deploy_security_rules(self):
+        cmd = "firebase deploy --only firestore:rules --project %s" % self.google_cloud_project
+        log('Deploy security rules: %s' % cmd)
+        wd = os.getcwd()
+        os.chdir(self.security_rules_dir)
+        subprocess.check_call(cmd, shell=True)
+        os.chdir(wd)
 
 
 class ConfigHandler:
