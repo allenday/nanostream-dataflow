@@ -21,7 +21,7 @@
 
                 <div class="form-group">
                     <label for="input-folder">Input folder:</label>&nbsp;
-                    <TooltipQuestionCircle title="Input folder is a folder inside your upload bucket. Example: your upload files to &quot;gs://<your project id>-upload-bucket/folder123/&quot;, then your input folder is &quot;folder123&quot; (without slashes)"/>
+                    <TooltipQuestionCircle title="Input folder is a folder inside your upload bucket. Example: you upload files to &quot;gs://<your project id>-upload-bucket/folder123/&quot;, then your input folder is &quot;folder123&quot; (without slashes)"/>
                     <br>
                     <input v-model="pipeline.inputFolder" type="text" class="form-control" id="input-folder"
                            placeholder="Enter Input folder" name="input-folder">
