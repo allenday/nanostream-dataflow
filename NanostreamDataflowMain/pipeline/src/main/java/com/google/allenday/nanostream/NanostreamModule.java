@@ -13,7 +13,7 @@ import org.apache.beam.sdk.options.ValueProvider;
 public class NanostreamModule extends AbstractModule {
 
     protected String projectId;
-    protected String resistanceGenesList;
+    protected ValueProvider<String> resistanceGenesList;
     protected ValueProvider<String> outputCollectionNamePrefix;
     protected ValueProvider<String> outputDocumentNamePrefix;
     protected ProcessingMode processingMode;
@@ -47,7 +47,7 @@ public class NanostreamModule extends AbstractModule {
     public static class Builder {
 
         protected String projectId;
-        protected String resistanceGenesList;
+        protected ValueProvider<String> resistanceGenesList;
         protected ValueProvider<String> outputCollectionNamePrefix;
         protected ValueProvider<String> outputDocumentNamePrefix;
         protected ProcessingMode processingMode;
@@ -58,7 +58,7 @@ public class NanostreamModule extends AbstractModule {
         protected ValueProvider<Integer> autoStopDelay;
         protected ValueProvider<String> inputDir;
 
-        public Builder setResistanceGenesList(String resistanceGenesList) {
+        public Builder setResistanceGenesList(ValueProvider<String> resistanceGenesList) {
             this.resistanceGenesList = resistanceGenesList;
             return this;
         }
