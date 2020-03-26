@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# TODO: aligner not used anymore. Fix the test or remove
 # IP address of the aligner cluster created by running aligner/provision_species.sh
 SERVICES_HOST=http://$SPECIES_ALIGNER_CLUSTER_IP
 # Google Cloud project name
