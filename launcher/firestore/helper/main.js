@@ -10,5 +10,9 @@ module.exports = {
                 app.delete();
 
             })
+            .catch(function (error) {
+                console.error('error', error);
+                throw error;
+            });
     }
 };

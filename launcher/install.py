@@ -429,7 +429,7 @@ class FirebaseHandler:
         os.chdir(wd)
 
     def _get_current_security_rules(self):
-        cmd = "node -e 'require(\"%s/main.js\").get_security_rules()'" % self.helper_dir
+        cmd = "node -e 'require(\"%smain.js\").get_security_rules()'" % self.helper_dir
         log('Getting current firestore security rules: %s' % cmd)
         out = subprocess.check_output(cmd, shell=True).strip().decode("utf-8")
         log("Current security rules: \n%s" % out)
