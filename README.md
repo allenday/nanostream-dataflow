@@ -45,7 +45,8 @@ Before run automatic setup scripts or perform manual steps make sure you
 - linked billing account;
 - Firestore used in [native mode](https://cloud.google.com/firestore/docs/firestore-or-datastore#in_native_mode) (use "nam5 (United States)" location).
 - To run pipeline in `resistance_genes` mode you should provide "gene list" file stored in GCS. 
-You can find sample file in `nanostream-dataflow-demo-data` bucket. See "Available Reference databases" section below.  
+You can find sample file in `nanostream-dataflow-demo-data` bucket. See "Available Reference databases" section below.
+Expected "resistance gene list" location is `gs://<your project id>-reference-db/gene_info/resistance_genes_list.txt`.   
 
 
 #### Setup using docker on Google Cloud Console
