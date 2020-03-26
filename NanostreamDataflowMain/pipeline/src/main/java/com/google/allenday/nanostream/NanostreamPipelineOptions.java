@@ -42,9 +42,9 @@ public interface NanostreamPipelineOptions extends GenomicsPipelineOptions {
 
 
     @Description("Path to fasta file with resistance genes list")
-    String getResistanceGenesList();
+    ValueProvider<String> getResistanceGenesList();
 
-    void setResistanceGenesList(String value);
+    void setResistanceGenesList(ValueProvider<String> value);
 
     @Description("Prefix for Firestore collections names that used for output")
     ValueProvider<String> getOutputCollectionNamePrefix();

@@ -1,6 +1,7 @@
 package com.google.allenday.nanostream.taxonomy.resistant_genes;
 
 import org.apache.beam.sdk.io.TextIO;
+import org.apache.beam.sdk.options.ValueProvider;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.GroupByKey;
 import org.apache.beam.sdk.transforms.PTransform;
@@ -21,9 +22,9 @@ import java.util.Set;
  */
 public class LoadResistantGeneInfoTransform extends PTransform<PBegin, PCollection<KV<String, ResistantGeneInfo>>> {
 
-    private String genesListFilePath;
+    private ValueProvider<String> genesListFilePath;
 
-    public LoadResistantGeneInfoTransform(String genesListFilePath) {
+    public LoadResistantGeneInfoTransform(ValueProvider<String> genesListFilePath) {
         this.genesListFilePath = genesListFilePath;
     }
 

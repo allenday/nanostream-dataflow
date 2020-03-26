@@ -18,7 +18,6 @@ This source repo contains a prototype implementation of a scalable, reliable, an
     - webapp - GCP appengine application 
     - libs - Additional libs required for pipeline 
 - launcher - installation scripts
-- aligner - scripts to provision auto-scaled HTTP service for alignment (based on `bwa`)
 - simulator - python script that can simulate file uploads to GCS (for testing, or if you don't have a real dataset)
 - doc - additional documentation files 
 
@@ -46,7 +45,8 @@ Before run automatic setup scripts or perform manual steps make sure you
 - linked billing account;
 - Firestore used in [native mode](https://cloud.google.com/firestore/docs/firestore-or-datastore#in_native_mode) (use "nam5 (United States)" location).
 - To run pipeline in `resistance_genes` mode you should provide "gene list" file stored in GCS. 
-You can find sample file in `nanostream-dataflow-demo-data` bucket. See "Available Reference databases" section below.  
+You can find sample file in `nanostream-dataflow-demo-data` bucket. See "Available Reference databases" section below.
+Expected "resistance gene list" location is `gs://<your project id>-reference-db/gene_info/resistance_genes_list.txt`.   
 
 
 #### Setup using docker on Google Cloud Console
@@ -139,6 +139,7 @@ Make sure you have installed:
 - [Maven](http://maven.apache.org/download.cgi)
 - [Google Cloud Sdk](https://cloud.google.com/sdk/install)
 - [Firebase Tools](https://firebase.google.com/docs/cli)
+- [Node.js 10.x](https://nodejs.org/dist/latest-v10.x)
 
 1. Init your gcloud configuration: `gcloud init`
 2. Obtain a JSON file with a service account credentials (https://cloud.google.com/docs/authentication/production#obtaining_and_providing_service_account_credentials_manually).
