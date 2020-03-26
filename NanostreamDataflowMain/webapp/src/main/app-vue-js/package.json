@@ -12,7 +12,7 @@
     "@vue/babel-preset-app": "^4.2.3",
     "autoprefixer": "^9.7.5",
     "babel-eslint": "^10.1.0",
-    "bootstrap-vue": "^2.8.0",
+    "bootstrap-vue": "^2.9.0",
     "core-js": "^3.6.4",
     "d3": "^3.5.17",
     "d3-hierarchy": "^1.1.9",
