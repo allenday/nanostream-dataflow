@@ -6,13 +6,12 @@ module.exports = {
         app.securityRules().getFirestoreRuleset()
             .then(function (result) {
                 // console.log('result', result)
-                console.log(result.source[0].content)
+                console.log(result.source[0].content);
                 app.delete();
-
             })
             .catch(function (error) {
                 console.error('error', error);
-                throw error;
+                process.exit(0); // return 0 to not break execution of install script
             });
     }
 };

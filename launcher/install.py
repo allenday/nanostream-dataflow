@@ -281,8 +281,8 @@ class Install:
 
     def initialize_firebase_project(self):
         handler = FirebaseHandler(self.google_cloud_project, self.dir_file)
-        handler.update_security_rules()
         handler.add_firebase_to_project()
+        handler.update_security_rules()
         self._config_data = handler.prepare_firebase_config_data()
 
     def write_config_files(self):
