@@ -1,12 +1,17 @@
 FROM google/cloud-sdk
 
-# install maven for compile java code
-RUN apt-get install -y maven wget
+# install maven to allow compiling java code
+RUN apt-get -y update && apt-get install -y maven wget
 RUN mvn --version
 
 # Install standalone binary of firebase-tools (https://firebase.google.com/docs/cli)
 RUN wget https://firebase.tools/bin/linux/latest -O /usr/bin/firebase && chmod +x /usr/bin/firebase
 RUN firebase --version
+
+# Install nodejs 10.x
+RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
+RUN apt-get install -y nodejs
+RUN node --version
 
 WORKDIR /application
 COPY ./ /application
