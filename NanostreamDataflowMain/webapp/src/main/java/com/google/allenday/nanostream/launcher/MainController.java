@@ -21,7 +21,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class MainController {
 
     private final JobListFetcher jobListFetcher;
-    private final SubscriptionCreator subscriptionCreator;
     private final PipelineCreator pipelineCreator;
     private final PipelineUpdater pipelineUpdater;
     private final PipelineRemover pipelineRemover;
@@ -31,13 +30,12 @@ public class MainController {
 
     @Autowired
     public MainController(JobListFetcher jobListFetcher,
-                          SubscriptionCreator subscriptionCreator, PipelineCreator pipelineCreator,
+                          PipelineCreator pipelineCreator,
                           PipelineUpdater pipelineUpdater, PipelineRemover pipelineRemover, JobLauncher jobLauncher,
                           PipelineListFetcher pipelineListFetcher,
                           PipelineDetailsFetcher pipelineDetailsFetcher
     ) {
         this.jobListFetcher = jobListFetcher;
-        this.subscriptionCreator = subscriptionCreator;
         this.pipelineCreator = pipelineCreator;
         this.pipelineUpdater = pipelineUpdater;
         this.pipelineRemover = pipelineRemover;
@@ -106,12 +104,6 @@ public class MainController {
     @GetMapping(value = "/jobs/info", produces = APPLICATION_JSON_VALUE)
     public String getJobInfo(HttpServletRequest request) throws IOException {
         return new JobInfoFetcher(request).invoke();
-    }
-
-    @CrossOrigin
-    @PostMapping(value = "/subscription/create", produces = APPLICATION_JSON_VALUE)
-    public String createSubscription(@RequestParam String topic) throws IOException {
-        return subscriptionCreator.invoke(topic);
     }
 
 }

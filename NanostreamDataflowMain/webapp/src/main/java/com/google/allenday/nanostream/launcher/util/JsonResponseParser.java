@@ -20,19 +20,19 @@ public final class JsonResponseParser {
     private static final Logger logger = LoggerFactory.getLogger(JsonResponseParser.class);
 
     public static String extractJobId(String json) {
-        // Request output sample:
-        //        {
-        //          "job": {
-        //            "id": "2020-02-11_03_16_40-8884773552833626077",
-        //            "projectId": "nanostream-test1",
-        //            "name": "id123467",
-        //            "type": "JOB_TYPE_STREAMING",
-        //            "currentStateTime": "1970-01-01T00:00:00Z",
-        //            "createTime": "2020-02-11T11:16:41.405546Z",
-        //            "location": "us-central1",
-        //            "startTime": "2020-02-11T11:16:41.405546Z"
-        //          }
-        //        }
+        // Json sample:
+        //    {
+        //      "job": {
+        //        "id": "2020-02-11_03_16_40-8884773552833626077",
+        //        "projectId": "nanostream-test1",
+        //        "name": "id123467",
+        //        "type": "JOB_TYPE_STREAMING",
+        //        "currentStateTime": "1970-01-01T00:00:00Z",
+        //        "createTime": "2020-02-11T11:16:41.405546Z",
+        //        "location": "us-central1",
+        //        "startTime": "2020-02-11T11:16:41.405546Z"
+        //      }
+        //    }
 
         String jobId;
         try {
@@ -50,29 +50,29 @@ public final class JsonResponseParser {
 
     public static List<Map<String, Object>> parseRunningJobs(String json) {
         // Json sample:
-//    {
-//      "jobs": [
-//        {
-//          "id": "2019-12-12_05_14_07-11307687861672664813",
-//          "projectId": "nanostream-test1",
-//          "name": "template-32a4ca21-24d5-41fe-b531-f551f5179cdf",
-//          "type": "JOB_TYPE_STREAMING",
-//          "currentState": "JOB_STATE_CANCELLING",
-//          "currentStateTime": "2019-12-12T13:19:24.867468Z",
-//          "requestedState": "JOB_STATE_CANCELLED",
-//          "createTime": "2019-12-12T13:14:08.566549Z",
-//          "location": "us-central1",
-//          "jobMetadata": {
-//            "sdkVersion": {
-//              "version": "2.16.0",
-//              "versionDisplayName": "Apache Beam SDK for Java",
-//              "sdkSupportStatus": "SUPPORTED"
-//            }
-//          },
-//          "startTime": "2019-12-12T13:14:08.566549Z"
-//        }
-//      ]
-//    }
+        //    {
+        //      "jobs": [
+        //        {
+        //          "id": "2019-12-12_05_14_07-11307687861672664813",
+        //          "projectId": "nanostream-test1",
+        //          "name": "template-32a4ca21-24d5-41fe-b531-f551f5179cdf",
+        //          "type": "JOB_TYPE_STREAMING",
+        //          "currentState": "JOB_STATE_CANCELLING",
+        //          "currentStateTime": "2019-12-12T13:19:24.867468Z",
+        //          "requestedState": "JOB_STATE_CANCELLED",
+        //          "createTime": "2019-12-12T13:14:08.566549Z",
+        //          "location": "us-central1",
+        //          "jobMetadata": {
+        //            "sdkVersion": {
+        //              "version": "2.16.0",
+        //              "versionDisplayName": "Apache Beam SDK for Java",
+        //              "sdkSupportStatus": "SUPPORTED"
+        //            }
+        //          },
+        //          "startTime": "2019-12-12T13:14:08.566549Z"
+        //        }
+        //      ]
+        //    }
 
         // JsonPath docs: https://github.com/json-path/JsonPath
         try {
@@ -89,4 +89,29 @@ public final class JsonResponseParser {
         }
     }
 
+    public static String extractSubscriptionName(String json) {
+        // Json sample:
+        //    {
+        //        "name": "projects/nanostream-test1/subscriptions/p-20200205t132755.495z-44a17051-b2d7-4820-8b53-e9d7c4ebaaf9",
+        //        "topic": "projects/nanostream-test1/topics/nanostream-test1-pubsub-topic",
+        //        "pushConfig": {},
+        //        "ackDeadlineSeconds": 10,
+        //        "messageRetentionDuration": "604800s",
+        //        "expirationPolicy": {
+        //          "ttl": "2678400s"
+        //        }
+        //    }
+
+        String subscriptionName;
+        try {
+            DocumentContext document = parse(json);
+            subscriptionName = document.read("$.name");
+        } catch (Exception e) {
+            String message = "Unexpected json response: " + json;
+            logger.error(message, e);
+            throw new BadRequestException("UNKNOWN_ERROR", message);
+        }
+        logger.info("new subscription name: " + subscriptionName);
+        return subscriptionName;
+    }
 }

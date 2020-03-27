@@ -10,6 +10,7 @@ public class PipelineRequestParams {
     private String pipelineName;
     private String processingMode;
     private String inputDataSubscription;
+    private String uploadPubSubTopic;
     private String inputFolder;
     private Integer autoStopDelaySeconds;
     private Boolean pipelineAutoStart;
@@ -63,6 +64,14 @@ public class PipelineRequestParams {
 
     public void setInputDataSubscription(String inputDataSubscription) {
         this.inputDataSubscription = inputDataSubscription;
+    }
+
+    public String getUploadPubSubTopic() {
+        return uploadPubSubTopic;
+    }
+
+    public void setUploadPubSubTopic(String uploadPubSubTopic) {
+        this.uploadPubSubTopic = uploadPubSubTopic;
     }
 
     public String getInputFolder() {
