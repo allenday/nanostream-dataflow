@@ -34,7 +34,7 @@ There is an installation script [install.py](launcher/install.py) that
     - A bucket for reference database
     - A pubsub topic and for uploaded data
     - A pubsub topic, subscription, functions to start/stop dataflow templates
-- deploys dataflow templates
+- deploys [dataflow templates](NanostreamDataflowMain/pipeline/README.md)
 - deploys [Nanostream management application](NanostreamDataflowMain/webapp/README.md)    
 
 
@@ -193,3 +193,6 @@ gsutil -u <your project id> cp -r gs://nanostream-dataflow-demo-data/gene-info/r
 
 ### Pipeline template description
 [Pipeline](NanostreamDataflowMain/pipeline/README.md)
+
+### Management application description
+[Nanostream management application](NanostreamDataflowMain/webapp/README.md)

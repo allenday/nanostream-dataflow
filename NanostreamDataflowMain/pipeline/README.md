@@ -16,7 +16,9 @@ mvn install:install-file -Dfile=NanostreamDataflowMain/libs/pal1.5.1.1.jar -Dgro
 
 #### Deploy Dataflow template
 
-To deploy the pipeline use command:
+You can deploy the pipeline using [install script](../../README.md#setup).
+
+To deploy the pipeline manually use command:
 
 ```
 mvn compile exec:java  \
