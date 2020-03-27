@@ -58,4 +58,12 @@ export default {
         });
         return pipelines;
     },
+    canRemovePipeline(pipeline) {
+        const status = this.getPipelineStatus(pipeline);
+        if (['STOPPED', 'CREATED'].includes(status)) {
+            return true;
+        } else {
+            return false;
+        }
+    },
 }

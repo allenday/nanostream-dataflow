@@ -27,7 +27,7 @@
                         <td>{{ pipeline.status }}</td>
                         <td><AutostartCheckbox v-bind:pipeline="pipeline"/></td>
                         <td><button type="button"
-                                    v-on:click="removePipelineItem(pipeline)"
+                                    v-on:click="tryRemovePipeline(pipeline)"
                                     class="btn btn-link"><i class="fa fa-minus-circle" aria-hidden="true"></i></button></td>
                     </tr>
                 </table>
@@ -53,14 +53,12 @@
 
 <script>
 
-    import config from '../../config.js';
     import api from "../../api";
     import GcpUrl from '../../gcp_url.util.js';
     import PipelineUtil from "../../pipeline.util.js";
     import Jobs from './pipeline_list/Jobs.vue';
     import AutostartCheckbox from "./pipeline_list/AutostartCheckbox.vue"
     import ErrorMessage from './ErrorMessage.vue'
-
 
     export default {
 
@@ -169,6 +167,32 @@
             getPipelineStatus(pipeline) {
                 return PipelineUtil.getPipelineStatus(pipeline);
             },
+            tryRemovePipeline(pipeline) {
+                if (PipelineUtil.canRemovePipeline(pipeline)) {
+                    this.showRemoveConfirmationDialog(pipeline);
+                } else {
+                    this.showYouCanNotRemovePipelineMessage(pipeline);
+                }
+            },
+            showRemoveConfirmationDialog(pipeline) {
+                this.$bvModal.msgBoxConfirm('Remove pipeline "' + pipeline.pipelineName + '"?', {
+                    title: 'Please Confirm',
+                    okTitle: 'YES',
+                    cancelTitle: 'NO',
+                    autoFocusButton: 'cancel',
+                    cancelVariant: 'primary',
+                    okVariant: 'secondary',
+                    centered: true
+                })
+                .then(value => {
+                    if (value) {
+                        this.removePipelineItem(pipeline);
+                    }
+                })
+                .catch(error => {
+                    console.error(error)
+                });
+            },
             async removePipelineItem(pipeline) {
                 console.log('removePipelineItem', pipeline)
                 const loader = this.$loading.show();
@@ -182,7 +206,14 @@
                 } finally {
                     loader.hide();
                 }
-            }
+            },
+            showYouCanNotRemovePipelineMessage(pipeline) {
+                this.$bvModal.msgBoxOk('Pipeline "' + pipeline.pipelineName + '" has runnig jobs. Please stop them first.', {
+                    title: "Pipeline is running",
+                    autoFocusButton: 'ok',
+                    centered: true
+                });
+            },
         }
 
     }
