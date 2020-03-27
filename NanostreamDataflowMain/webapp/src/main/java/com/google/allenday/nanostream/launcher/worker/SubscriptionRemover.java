@@ -1,19 +1,15 @@
 package com.google.allenday.nanostream.launcher.worker;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
 import static com.google.allenday.nanostream.launcher.util.PipelineUtil.*;
-import static java.lang.String.format;
 
 @Service
 public class SubscriptionRemover {
@@ -28,7 +24,6 @@ public class SubscriptionRemover {
     }
 
     public String invoke(String subscription) throws IOException {
-
         HttpURLConnection connection = sendDeleteSubscriptionRequest(subscription);
 
         return getRequestOutput(connection);

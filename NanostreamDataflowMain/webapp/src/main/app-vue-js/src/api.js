@@ -3,7 +3,6 @@ import config from './config.js';
 // const urlPrefix = "http://localhost:8080/api/v1";
 const urlPrefix = "https://" + config.firebase.projectId + ".appspot.com/api/v1";
 const jobsUrl = '/jobs';
-const createSubscriptionURL = '/subscription/create';
 const pipelinesUrl = '/pipelines';
 const jobInfoUrl = '/jobs/info';
 const stopJobUrl = '/jobs/stop';
@@ -76,20 +75,6 @@ export default {
         
         return _makeRequest(new Request(urlPrefix + stopJobUrl + '?jobId=' + job_id + '&location=' + location, {method: 'POST'}))
     },    
-    createSubscription(topic) {
-        console.log('createSubscription called')
-
-        let reqData = {
-            topic: topic
-        };
-
-        return fetch(new Request(urlPrefix + createSubscriptionURL,
-            {
-                method: 'POST',
-                body: encodeURLData(reqData)
-            }))
-            .then((response) => response.json());
-    },
     getJobDetails(jobId, location) {
 
         console.log('getJobDetails called, jobId=' + jobId + '&location=' + location)

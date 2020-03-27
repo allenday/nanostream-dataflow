@@ -48,6 +48,7 @@
             pipelineName: '',
             inputFolder: '',
             processingMode: 'species',
+            uploadPubSubTopic: config.general.uploadPubSubTopic, // topic name required to create subscription
             inputDataSubscription: '',
             autoStopDelaySeconds: 900,
             pipelineAutoStart: true,
@@ -104,7 +105,6 @@
                 let instance = new ComponentClass({
                     propsData: {pipeline: _preparePipelineData(this.pipelines)}
                 });
-//                instance.$slots.default = ['Click me!']
                 instance.$mount(); // pass nothing
 
                 this.$refs.container.appendChild(instance.$el)
@@ -120,36 +120,12 @@
                 this.errMsg.show = true;
             },
             async startPipeline() {
-
-                async function _createSubscriptionThanSavePipelineOptions(pipeline) {
-                    let data = await api.createSubscription(config.general.uploadPubSubTopic);
-                    console.log('data from create subscription call', data)
-//                        {
-//                            "name": "projects/nanostream-test1/subscriptions/p-20200205t132755.495z-44a17051-b2d7-4820-8b53-e9d7c4ebaaf9",
-//                            "topic": "projects/nanostream-test1/topics/nanostream-test1-pubsub-topic",
-//                            "pushConfig": {},
-//                            "ackDeadlineSeconds": 10,
-//                            "messageRetentionDuration": "604800s",
-//                            "expirationPolicy": {
-//                              "ttl": "2678400s"
-//                            }
-//                        }
-
-                    if (data && data.name) {
-                        pipeline.inputDataSubscription = data.name;
-                        await _savePipelineOptions(pipeline);
-                    } else {
-                        console.log('Cannot create subscription: ' + data)
-                        throw 'Cannot create subscription: ' + JSON.stringify(data);
-                    }
-                }
-
-                async function _savePipelineOptions(pipeline) {
+                async function _createNewPipeline(pipeline) {
                     let data = await api.createNewPipeline(pipeline);
 
                     console.log('data from createNewPipeline call', data)
                     if (!data || data.error) {
-                        throw 'Cannot save pipeline options: ' + data.message;
+                        throw 'Pipeline creation error: ' + data.message;
                     }
                 }
 
@@ -160,7 +136,7 @@
                 let wasError = false;
                 try {
                     for (const pipeline of this.pipelines) {
-                        await _createSubscriptionThanSavePipelineOptions(pipeline)
+                        await _createNewPipeline(pipeline)
                     }
                 } catch (error) {
                     wasError = true;

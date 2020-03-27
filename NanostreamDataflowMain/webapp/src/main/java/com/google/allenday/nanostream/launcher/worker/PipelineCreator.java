@@ -18,11 +18,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static com.google.allenday.nanostream.launcher.util.AssertUtil.assertEquals;
 import static com.google.allenday.nanostream.launcher.util.AssertUtil.assertNotEmpty;
 import static com.google.allenday.nanostream.launcher.util.DateTimeUtil.makeTimestamp;
+import static com.google.allenday.nanostream.launcher.util.JsonResponseParser.extractSubscriptionName;
 import static com.google.allenday.nanostream.launcher.util.PipelineUtil.FIRESTORE_PIPELINES_COLLECTION;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toSet;
@@ -35,18 +35,27 @@ public class PipelineCreator extends PipelineBase {
     private static final Pattern NOT_WORD_CHARACTERS = Pattern.compile("[^\\w]+");
 
     private final JobLauncher jobLauncher;
+    private final SubscriptionCreator subscriptionCreator;
 
     @Autowired
-    public PipelineCreator(JobLauncher jobLauncher) {
+    public PipelineCreator(JobLauncher jobLauncher, SubscriptionCreator subscriptionCreator) {
         super();
         this.jobLauncher = jobLauncher;
+        this.subscriptionCreator = subscriptionCreator;
     }
 
     public PipelineEntity create(PipelineRequestParams pipelineRequestParams) throws IOException, ExecutionException, InterruptedException {
+        createSubscription(pipelineRequestParams);
         PipelineEntity pipelineEntity = createOptionsForNewPipeline(pipelineRequestParams);
         savePipelineConfiguration(pipelineEntity);
         launchJobIfRequired(pipelineEntity, pipelineRequestParams.getPipelineStartImmediately());
         return pipelineEntity;
+    }
+
+    private void createSubscription(PipelineRequestParams pipelineRequestParams) throws IOException {
+        assertNotEmpty(pipelineRequestParams.getUploadPubSubTopic(), "Empty topic name not allowed");
+        String subscriptionName = extractSubscriptionName(subscriptionCreator.invoke(pipelineRequestParams.getUploadPubSubTopic()));
+        pipelineRequestParams.setInputDataSubscription(subscriptionName);
     }
 
     private PipelineEntity createOptionsForNewPipeline(PipelineRequestParams pipelineRequestParams) {
