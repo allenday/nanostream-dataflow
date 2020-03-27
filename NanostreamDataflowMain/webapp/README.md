@@ -1,8 +1,9 @@
 # Nanostream management application
 
-Nanostream management application is designed to run/stop previously deployed dataflow templates.
+Nanostream management application is designed to run/stop previously deployed [dataflow templates](../pipeline/README.md).
 
-You can access it by url: `https://<your project id>.appspot.com`
+You can deploy the application to your project using [install script](../../README.md#setup).
+You can access deployed application by url: `https://<your project id>.appspot.com`
 
 
 ## New Pipeline screen

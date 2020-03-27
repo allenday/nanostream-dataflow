@@ -193,3 +193,6 @@ gsutil -u <your project id> cp -r gs://nanostream-dataflow-demo-data/gene-info/r
 
 ### Pipeline template description
 [Pipeline](NanostreamDataflowMain/pipeline/README.md)
+
+### Management application description
+[Nanostream management application](NanostreamDataflowMain/webapp/README.md)
