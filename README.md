@@ -34,7 +34,7 @@ There is an installation script [install.py](launcher/install.py) that
     - A bucket for reference database
     - A pubsub topic and for uploaded data
     - A pubsub topic, subscription, functions to start/stop dataflow templates
-- deploys dataflow templates
+- deploys [dataflow templates](NanostreamDataflowMain/pipeline/README.md)
 - deploys [Nanostream management application](NanostreamDataflowMain/webapp/README.md)    
 
 
