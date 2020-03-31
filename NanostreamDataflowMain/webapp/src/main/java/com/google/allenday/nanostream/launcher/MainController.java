@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -21,25 +20,28 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class MainController {
 
     private final JobListFetcher jobListFetcher;
+    private final JobLauncher jobLauncher;
+    private final JobStopper jobStopper;
+    private final JobInfoFetcher jobInfoFetcher;
     private final PipelineCreator pipelineCreator;
     private final PipelineUpdater pipelineUpdater;
     private final PipelineRemover pipelineRemover;
-    private final JobLauncher jobLauncher;
     private final PipelineListFetcher pipelineListFetcher;
     private final PipelineDetailsFetcher pipelineDetailsFetcher;
 
     @Autowired
-    public MainController(JobListFetcher jobListFetcher,
-                          PipelineCreator pipelineCreator,
-                          PipelineUpdater pipelineUpdater, PipelineRemover pipelineRemover, JobLauncher jobLauncher,
-                          PipelineListFetcher pipelineListFetcher,
+    public MainController(JobListFetcher jobListFetcher, JobLauncher jobLauncher, JobStopper jobStopper,
+                          JobInfoFetcher jobInfoFetcher, PipelineCreator pipelineCreator, PipelineUpdater pipelineUpdater,
+                          PipelineRemover pipelineRemover, PipelineListFetcher pipelineListFetcher,
                           PipelineDetailsFetcher pipelineDetailsFetcher
     ) {
         this.jobListFetcher = jobListFetcher;
+        this.jobLauncher = jobLauncher;
+        this.jobStopper = jobStopper;
+        this.jobInfoFetcher = jobInfoFetcher;
         this.pipelineCreator = pipelineCreator;
         this.pipelineUpdater = pipelineUpdater;
         this.pipelineRemover = pipelineRemover;
-        this.jobLauncher = jobLauncher;
         this.pipelineListFetcher = pipelineListFetcher;
         this.pipelineDetailsFetcher = pipelineDetailsFetcher;
     }
@@ -90,8 +92,8 @@ public class MainController {
 
     @CrossOrigin
     @PostMapping(value = "/jobs/stop", produces = APPLICATION_JSON_VALUE)
-    public String stopJob(HttpServletRequest request) throws IOException {
-        return new JobStopper(request).invoke();
+    public String stopJob(@RequestParam String location, @RequestParam String jobId) throws IOException {
+        return jobStopper.invoke(location, jobId);
     }
 
     @CrossOrigin
@@ -102,8 +104,8 @@ public class MainController {
 
     @CrossOrigin
     @GetMapping(value = "/jobs/info", produces = APPLICATION_JSON_VALUE)
-    public String getJobInfo(HttpServletRequest request) throws IOException {
-        return new JobInfoFetcher(request).invoke();
+    public String getJobInfo(@RequestParam String location, @RequestParam String jobId) throws IOException {
+        return jobInfoFetcher.invoke(location, jobId);
     }
 
 }

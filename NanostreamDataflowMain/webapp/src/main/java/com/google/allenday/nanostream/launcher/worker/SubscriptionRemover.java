@@ -17,13 +17,6 @@ public class SubscriptionRemover {
 
     private static final Logger logger = LoggerFactory.getLogger(SubscriptionRemover.class);
 
-    private String project;
-
-
-    public SubscriptionRemover() {
-        project = getProjectId();
-    }
-
     public String invoke(String subscription) throws IOException {
         logger.info(format("Deleting subscription '%s'", subscription));
         HttpURLConnection connection = sendDeleteSubscriptionRequest(subscription);

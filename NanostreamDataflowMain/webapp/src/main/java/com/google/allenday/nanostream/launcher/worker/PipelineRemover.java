@@ -1,5 +1,6 @@
 package com.google.allenday.nanostream.launcher.worker;
 
+import com.google.allenday.nanostream.launcher.config.GcpProject;
 import com.google.allenday.nanostream.launcher.data.PipelineEntity;
 import com.google.allenday.nanostream.launcher.data.PipelineRequestParams;
 import com.google.allenday.nanostream.launcher.exception.BadRequestException;
@@ -24,7 +25,8 @@ public class PipelineRemover extends PipelineBase {
     private final SubscriptionRemover subscriptionRemover;
 
     @Autowired
-    public PipelineRemover(SubscriptionRemover subscriptionRemover) {
+    public PipelineRemover(SubscriptionRemover subscriptionRemover, GcpProject gcpProject) {
+        super(gcpProject);
         this.subscriptionRemover = subscriptionRemover;
     }
 

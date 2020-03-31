@@ -1,5 +1,6 @@
 package com.google.allenday.nanostream.launcher.worker;
 
+import com.google.allenday.nanostream.launcher.config.GcpProject;
 import com.google.allenday.nanostream.launcher.data.PipelineEntity;
 import com.google.allenday.nanostream.launcher.data.PipelineRequestParams;
 import com.google.allenday.nanostream.launcher.data.ReferenceDb;
@@ -39,11 +40,11 @@ public class PipelineCreator extends PipelineBase {
     private final PipelineRemover pipelineRemover;
 
     @Autowired
-    public PipelineCreator(JobLauncher jobLauncher,
+    public PipelineCreator(GcpProject gcpProject, JobLauncher jobLauncher,
                            SubscriptionCreator subscriptionCreator,
                            PipelineRemover pipelineRemover
     ) {
-        super();
+        super(gcpProject);
         this.jobLauncher = jobLauncher;
         this.subscriptionCreator = subscriptionCreator;
         this.pipelineRemover = pipelineRemover;
