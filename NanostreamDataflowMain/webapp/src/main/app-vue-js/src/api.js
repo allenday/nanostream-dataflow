@@ -1,42 +1,33 @@
 import config from './config.js';
+import FetchUtil from './fetch.util.js';
 
-// const urlPrefix = "http://localhost:8080/api/v1";
-const urlPrefix = "https://" + config.firebase.projectId + ".appspot.com/api/v1";
+const urlPrefix = "http://localhost:8080/api/v1";
+// const urlPrefix = "https://" + config.firebase.projectId + ".appspot.com/api/v1";
 const jobsUrl = '/jobs';
 const pipelinesUrl = '/pipelines';
 const jobInfoUrl = '/jobs/info';
 const stopJobUrl = '/jobs/stop';
 
-function encodeURLData(params) {
-    const formData = new FormData();
-    Object.keys(params).map((key) => {
-        formData.append(key, params[key])
-    });
-    return formData;
-}
-
-function _makeRequest(request) {
-    return fetch(request)
-        .then(async function (response) {
-            if (!response.ok) {
-                throw await response.json();
-            }
-            return response.json();
-        });
-}
-
 export default {
 
     getJobs() {
         console.log('getJobs called');
-        return fetch(urlPrefix + jobsUrl)
-            .then((response) => response.json());
+
+        return FetchUtil.makeRequest(new Request(urlPrefix + jobsUrl,
+            {
+                headers: {"Content-Type": "application/json; charset=utf-8"},
+                method: 'GET',
+            }));
+
     },
     getPipelines() {
         console.log('getPipelines called');
-        return fetch(urlPrefix + pipelinesUrl)
-            .then((response) => response.json())
-            // .catch(error => console.error('get piplines error', error));
+
+        return FetchUtil.makeRequest(new Request(urlPrefix + pipelinesUrl,
+            {
+                headers: {"Content-Type": "application/json; charset=utf-8"},
+                method: 'GET',
+            }));
     },
     createNewPipeline(pipeline) {
         console.log('createNewPipeline called', pipeline)
@@ -46,15 +37,16 @@ export default {
 
         console.log('createNewPipeline params: ', reqData)
 
-        return _makeRequest(new Request(urlPrefix + pipelinesUrl,
+        return FetchUtil.makeRequest(new Request(urlPrefix + pipelinesUrl,
             {
-                headers: { "Content-Type": "application/json; charset=utf-8" },
+                headers: {"Content-Type": "application/json; charset=utf-8"},
                 method: 'POST',
                 body: JSON.stringify(reqData)
             }));
     },
     updatePipeline(pipeline) {
         console.log('updatePipeline called', pipeline)
+
         return fetch(new Request(urlPrefix + pipelinesUrl,
             {
                 headers: { "Content-Type": "application/json; charset=utf-8" },
@@ -63,7 +55,9 @@ export default {
             }))
     },
     removePipeline(pipeline) {
-        return _makeRequest(new Request(urlPrefix + pipelinesUrl + '/' + encodeURI(pipeline.id),
+        console.log('removePipeline called: ' + urlPrefix + pipelinesUrl + '/' + encodeURI(pipeline.id))
+
+        return FetchUtil.makeRequest(new Request(urlPrefix + pipelinesUrl + '/' + encodeURI(pipeline.id),
             {
                 headers: {"Content-Type": "application/json; charset=utf-8"},
                 method: 'DELETE',
@@ -71,23 +65,30 @@ export default {
             }));
     },
     stopJob(job_id, location) {
-        console.log('STOP Pipeline called: ' + stopJobUrl + '?jobId=' + job_id + '&location=' + location)
+        console.log('stopJob called: ' + stopJobUrl + '?jobId=' + job_id + '&location=' + location)
         
-        return _makeRequest(new Request(urlPrefix + stopJobUrl + '?jobId=' + job_id + '&location=' + location, {method: 'POST'}))
+        return FetchUtil.makeRequest(new Request(urlPrefix + stopJobUrl + '?jobId=' + job_id + '&location=' + location,
+            {method: 'POST'}))
     },    
     getJobDetails(jobId, location) {
-
         console.log('getJobDetails called, jobId=' + jobId + '&location=' + location)
 
-        return fetch(urlPrefix + jobInfoUrl + '?jobId=' + jobId + '&location=' + location)
-            .then((response) => response.json());
+        return FetchUtil.makeRequest(new Request(urlPrefix + jobInfoUrl + '?jobId=' + jobId + '&location=' + location,
+            {
+                headers: {"Content-Type": "application/json; charset=utf-8"},
+                method: 'GET',
+            }));
+
     },
     getPipelineDetails(pipelineId) {
-
         console.log('getPipelineDetails called, pipelineId=' + pipelineId)
 
-        return fetch(urlPrefix + pipelinesUrl + '/' + encodeURI(pipelineId))
-            .then((response) => response.json());
+        return FetchUtil.makeRequest(new Request(urlPrefix + pipelinesUrl + '/' + encodeURI(pipelineId),
+            {
+                headers: {"Content-Type": "application/json; charset=utf-8"},
+                method: 'GET',
+            }));
+
     },
     
 }
