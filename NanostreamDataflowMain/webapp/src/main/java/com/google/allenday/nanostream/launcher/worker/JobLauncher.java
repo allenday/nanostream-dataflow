@@ -64,11 +64,13 @@ public class JobLauncher {
         return jobIds;
     }
 
-    public void launchById(String pipelineId) throws ExecutionException, InterruptedException, IOException {
+    public List<String> launchById(String pipelineId) throws ExecutionException, InterruptedException, IOException {
         logger.info("Launch new job for pipeline: {}", pipelineId);
         DocumentSnapshot document = getDocumentById(pipelineId);
         List<String> jobIds = new ArrayList<>();
         tryProcessDocument(jobIds, document);
+
+        return jobIds;
     }
 
     private List<QueryDocumentSnapshot> getUnlockedDocumentsToStart(String targetInputFolder, String uploadBucketName) throws InterruptedException, ExecutionException {

@@ -1,5 +1,6 @@
 package com.google.allenday.nanostream.launcher.worker;
 
+import com.google.allenday.nanostream.launcher.data.PipelineEntity;
 import com.google.allenday.nanostream.launcher.data.PipelineRequestParams;
 import com.google.allenday.nanostream.launcher.exception.BadRequestException;
 import com.google.api.core.ApiFuture;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
+import static com.google.allenday.nanostream.launcher.util.AssertUtil.assertNotEmpty;
 import static com.google.allenday.nanostream.launcher.util.PipelineUtil.FIRESTORE_PIPELINES_COLLECTION;
 
 @Service
@@ -30,7 +32,18 @@ public class PipelineRemover extends PipelineBase {
         String inputDataSubscription = pipelineRequestParams.getInputDataSubscription();
         String removeSubscriptionOutput = subscriptionRemover.invoke(inputDataSubscription);
         validateRemoveSubscriptionOutput(removeSubscriptionOutput, inputDataSubscription);
+        doRemove(pipelineId);
+    }
 
+    public void remove(PipelineEntity pipelineEntity, PipelineRequestParams pipelineRequestParams) throws ExecutionException, InterruptedException, IOException {
+        assertNotEmpty(pipelineRequestParams.getInputDataSubscription(), "Missing subscription name");
+        subscriptionRemover.invoke(pipelineRequestParams.getInputDataSubscription());
+        if (pipelineEntity != null && pipelineEntity.getId() != null) {
+            doRemove(pipelineEntity.getId());
+        }
+    }
+
+    private void doRemove(String pipelineId) throws InterruptedException, ExecutionException {
         ApiFuture<WriteResult> future = db.collection(FIRESTORE_PIPELINES_COLLECTION).document(pipelineId).delete();
         WriteResult writeResult = future.get();
         logger.info("Pipeline '{}' removed at {}", pipelineId, writeResult.getUpdateTime());
