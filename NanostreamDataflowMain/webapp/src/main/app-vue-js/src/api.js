@@ -1,8 +1,8 @@
 import config from './config.js';
 import FetchUtil from './fetch.util.js';
 
-const urlPrefix = "http://localhost:8080/api/v1";
-// const urlPrefix = "https://" + config.firebase.projectId + ".appspot.com/api/v1";
+// const urlPrefix = "http://localhost:8080/api/v1";
+const urlPrefix = "https://" + config.firebase.projectId + ".appspot.com/api/v1";
 const jobsUrl = '/jobs';
 const pipelinesUrl = '/pipelines';
 const jobInfoUrl = '/jobs/info';
