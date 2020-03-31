@@ -1,30 +1,28 @@
 package com.google.allenday.nanostream.launcher.worker;
 
+import com.google.allenday.nanostream.launcher.config.GcpProject;
 import com.google.api.core.ApiFuture;
-import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
-import static com.google.allenday.nanostream.launcher.util.PipelineUtil.*;
+import static com.google.allenday.nanostream.launcher.util.PipelineUtil.FIRESTORE_PIPELINES_COLLECTION;
 
 @Service
-public class PipelineListFetcher {
+public class PipelineListFetcher extends PipelineBase {
 
     private static final Logger logger = LoggerFactory.getLogger(PipelineListFetcher.class);
 
-    private String project;
-    private Firestore db;
-
-    public PipelineListFetcher() {
-        project = getProjectId();
-        db = initFirestoreConnection();
+    @Autowired
+    public PipelineListFetcher(GcpProject gcpProject) {
+        super(gcpProject);
     }
 
     public Map<String, List<Map<String, Object>>> invoke() throws ExecutionException, InterruptedException {

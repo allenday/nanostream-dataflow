@@ -10,20 +10,15 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import static com.google.allenday.nanostream.launcher.util.PipelineUtil.*;
+import static java.lang.String.format;
 
 @Service
 public class SubscriptionRemover {
 
     private static final Logger logger = LoggerFactory.getLogger(SubscriptionRemover.class);
 
-    private String project;
-
-
-    public SubscriptionRemover() {
-        project = getProjectId();
-    }
-
     public String invoke(String subscription) throws IOException {
+        logger.info(format("Deleting subscription '%s'", subscription));
         HttpURLConnection connection = sendDeleteSubscriptionRequest(subscription);
 
         return getRequestOutput(connection);

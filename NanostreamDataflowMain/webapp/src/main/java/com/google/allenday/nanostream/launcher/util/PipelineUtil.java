@@ -2,7 +2,6 @@ package com.google.allenday.nanostream.launcher.util;
 
 import com.google.appengine.api.appidentity.AppIdentityService;
 import com.google.appengine.api.appidentity.AppIdentityServiceFactory;
-import com.google.apphosting.api.ApiProxy;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.FirestoreOptions;
 import org.apache.commons.io.IOUtils;
@@ -16,7 +15,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.google.apphosting.api.ApiProxy.getCurrentEnvironment;
 import static java.net.HttpURLConnection.HTTP_OK;
 
 public final class PipelineUtil {
@@ -28,27 +26,9 @@ public final class PipelineUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(PipelineUtil.class);
 
-    public static String getProjectId() { // TODO: convert to a bean to run the code once on startup
-        String projectId;
-        projectId = System.getenv("GOOGLE_CLOUD_PROJECT");
-        if (projectId != null && !projectId.isEmpty()) {
-            logger.info("ProjectId from env var: " + projectId);
-            return projectId;
-        } else { // useful for local environment where GOOGLE_CLOUD_PROJECT not set
-            ApiProxy.Environment env = getCurrentEnvironment();
-            String appId = env.getAppId();
-            // According to docs (https://cloud.google.com/appengine/docs/standard/java/appidentity/)
-            // appId should be the same as projectId.
-            // In reality appId is prefixed by "s~" chars
-            projectId = appId.replaceAll("^s~", "");
-            logger.info("ProjectId from api proxy: " + projectId);
-            return projectId;
-        }
-    }
-
-    public static Firestore initFirestoreConnection() {
+    public static Firestore initFirestoreConnection(String projectId) {
         FirestoreOptions firestoreOptions = FirestoreOptions.getDefaultInstance().toBuilder()
-                .setProjectId(getProjectId())
+                .setProjectId(projectId)
                 .build();
         return firestoreOptions.getService();
     }

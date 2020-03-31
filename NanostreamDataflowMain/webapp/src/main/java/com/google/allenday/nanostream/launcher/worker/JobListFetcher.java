@@ -1,5 +1,6 @@
 package com.google.allenday.nanostream.launcher.worker;
 
+import com.google.allenday.nanostream.launcher.config.GcpProject;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -14,8 +15,8 @@ import static java.lang.String.format;
 public class JobListFetcher {
     private final String project;
 
-    public JobListFetcher() {
-        project = getProjectId();
+    public JobListFetcher(GcpProject gcpProject) {
+        project = gcpProject.getId();
     }
 
     public String invoke() throws IOException {

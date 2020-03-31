@@ -2,11 +2,13 @@ package com.google.allenday.nanostream.launcher.worker;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.allenday.nanostream.launcher.config.GcpProject;
 import com.google.allenday.nanostream.launcher.data.PipelineRequestParams;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.WriteResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -20,6 +22,11 @@ import static com.google.allenday.nanostream.launcher.util.PipelineUtil.FIRESTOR
 public class PipelineUpdater extends PipelineBase {
 
     private static final Logger logger = LoggerFactory.getLogger(PipelineUpdater.class);
+
+    @Autowired
+    public PipelineUpdater(GcpProject gcpProject) {
+        super(gcpProject);
+    }
 
     public void update(PipelineRequestParams pipelineRequestParams) throws ExecutionException, InterruptedException {
         ObjectMapper objectMapper = new ObjectMapper();

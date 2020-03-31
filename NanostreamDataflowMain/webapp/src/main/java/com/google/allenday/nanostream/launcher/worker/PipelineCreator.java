@@ -1,5 +1,6 @@
 package com.google.allenday.nanostream.launcher.worker;
 
+import com.google.allenday.nanostream.launcher.config.GcpProject;
 import com.google.allenday.nanostream.launcher.data.PipelineEntity;
 import com.google.allenday.nanostream.launcher.data.PipelineRequestParams;
 import com.google.allenday.nanostream.launcher.data.ReferenceDb;
@@ -36,19 +37,38 @@ public class PipelineCreator extends PipelineBase {
 
     private final JobLauncher jobLauncher;
     private final SubscriptionCreator subscriptionCreator;
+    private final PipelineRemover pipelineRemover;
 
     @Autowired
-    public PipelineCreator(JobLauncher jobLauncher, SubscriptionCreator subscriptionCreator) {
-        super();
+    public PipelineCreator(GcpProject gcpProject, JobLauncher jobLauncher,
+                           SubscriptionCreator subscriptionCreator,
+                           PipelineRemover pipelineRemover
+    ) {
+        super(gcpProject);
         this.jobLauncher = jobLauncher;
         this.subscriptionCreator = subscriptionCreator;
+        this.pipelineRemover = pipelineRemover;
     }
 
     public PipelineEntity create(PipelineRequestParams pipelineRequestParams) throws IOException, ExecutionException, InterruptedException {
+        validateCreatePipelineRequestParams(pipelineRequestParams);
+
         createSubscription(pipelineRequestParams);
-        PipelineEntity pipelineEntity = createOptionsForNewPipeline(pipelineRequestParams);
-        savePipelineConfiguration(pipelineEntity);
-        launchJobIfRequired(pipelineEntity, pipelineRequestParams.getPipelineStartImmediately());
+        PipelineEntity pipelineEntity = null;
+        try {
+            pipelineEntity = tryCreatePipeline(pipelineRequestParams);
+            launchJobIfRequired(pipelineEntity, pipelineRequestParams.getPipelineStartImmediately());
+        } catch (Exception e) {
+            pipelineRemover.remove(pipelineEntity, pipelineRequestParams);
+            throw e;
+        }
+        return pipelineEntity;
+    }
+
+    private PipelineEntity tryCreatePipeline(PipelineRequestParams pipelineRequestParams) throws ExecutionException, InterruptedException, IOException {
+        PipelineEntity pipelineEntity;
+        pipelineEntity = createPipelineEntity(pipelineRequestParams);
+        savePipelineEntity(pipelineEntity);
         return pipelineEntity;
     }
 
@@ -58,9 +78,7 @@ public class PipelineCreator extends PipelineBase {
         pipelineRequestParams.setInputDataSubscription(subscriptionName);
     }
 
-    private PipelineEntity createOptionsForNewPipeline(PipelineRequestParams pipelineRequestParams) {
-        validateCreatePipelineRequestParams(pipelineRequestParams);
-
+    private PipelineEntity createPipelineEntity(PipelineRequestParams pipelineRequestParams) {
         PipelineEntity pipelineEntity = new PipelineEntity(pipelineRequestParams);
         String now = Instant.now().toString();
         pipelineEntity.setId(makePipelineId());
@@ -76,7 +94,6 @@ public class PipelineCreator extends PipelineBase {
         assertNotEmpty(pipelineRequestParams.getInputFolder(), "Empty input folder not allowed");
         assertNotEmpty(pipelineRequestParams.getUploadBucketName(), "Empty upload bucket name not allowed");
         assertNotEmpty(pipelineRequestParams.getProcessingMode(), "Empty processing mode not allowed");
-        assertNotEmpty(pipelineRequestParams.getInputDataSubscription(), "Empty input data subscription not allowed");
         validateReferenceDbs(pipelineRequestParams.getReferenceDbs());
     }
 
@@ -119,7 +136,7 @@ public class PipelineCreator extends PipelineBase {
         return format("%s_%s", prefix, makeTimestamp());
     }
 
-    private void savePipelineConfiguration(PipelineEntity pipelineEntity) throws ExecutionException, InterruptedException {
+    private void savePipelineEntity(PipelineEntity pipelineEntity) throws ExecutionException, InterruptedException {
         ApiFuture<WriteResult> future = db.collection(FIRESTORE_PIPELINES_COLLECTION).document(pipelineEntity.getId()).set(pipelineEntity);
         WriteResult writeResult = future.get();
         logger.info("Pipeline '{}' saved to  firestore at {}", pipelineEntity.getPipelineName(), writeResult.getUpdateTime());
@@ -127,7 +144,10 @@ public class PipelineCreator extends PipelineBase {
 
     private void launchJobIfRequired(PipelineEntity pipelineEntity, Boolean pipelineStartImmediately) throws ExecutionException, InterruptedException, IOException {
         if (pipelineStartImmediately) {
-            jobLauncher.launchById(pipelineEntity.getId());
+            List<String> jobIds = jobLauncher.launchById(pipelineEntity.getId());
+            if (jobIds.isEmpty()) {
+                throw new BadRequestException("UNKNOWN_ERROR", "Cannot start pipeline");
+            }
         }
     }
 

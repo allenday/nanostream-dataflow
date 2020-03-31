@@ -1,9 +1,11 @@
 package com.google.allenday.nanostream.launcher.worker;
 
+import com.google.allenday.nanostream.launcher.config.GcpProject;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -25,9 +27,9 @@ public class SubscriptionCreator {
 
     private String project;
 
-
-    public SubscriptionCreator() {
-        project = getProjectId();
+    @Autowired
+    public SubscriptionCreator(GcpProject gcpProject) {
+        project = gcpProject.getId();
     }
 
     public String invoke(String topic) throws IOException {

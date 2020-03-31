@@ -2,6 +2,7 @@ package com.google.allenday.nanostream.launcher.worker;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.allenday.nanostream.launcher.config.GcpProject;
 import com.google.allenday.nanostream.launcher.data.PipelineEntity;
 import com.google.allenday.nanostream.launcher.data.ReferenceDb;
 import com.google.api.core.ApiFuture;
@@ -44,11 +45,11 @@ public class JobLauncher {
     private Firestore db;
 
     @Autowired
-    public JobLauncher(JobListFetcher jobListFetcher) {
+    public JobLauncher(JobListFetcher jobListFetcher, GcpProject gcpProject) {
         this.jobListFetcher = jobListFetcher;
-        project = getProjectId();
+        project = gcpProject.getId();
         bucket = format("gs://%s-dataflow", project);
-        db = initFirestoreConnection();
+        db = initFirestoreConnection(project);
     }
 
     public List<String> launchAutostarted(String targetInputFolder, String uploadBucketName) throws ExecutionException, InterruptedException, IOException {
@@ -64,11 +65,13 @@ public class JobLauncher {
         return jobIds;
     }
 
-    public void launchById(String pipelineId) throws ExecutionException, InterruptedException, IOException {
+    public List<String> launchById(String pipelineId) throws ExecutionException, InterruptedException, IOException {
         logger.info("Launch new job for pipeline: {}", pipelineId);
         DocumentSnapshot document = getDocumentById(pipelineId);
         List<String> jobIds = new ArrayList<>();
         tryProcessDocument(jobIds, document);
+
+        return jobIds;
     }
 
     private List<QueryDocumentSnapshot> getUnlockedDocumentsToStart(String targetInputFolder, String uploadBucketName) throws InterruptedException, ExecutionException {
